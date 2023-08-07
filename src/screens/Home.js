@@ -1,64 +1,86 @@
-import {View, Text, SafeAreaView, StyleSheet} from 'react-native';
-import React from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import {View, Text, ScrollView, StyleSheet} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import DataPendaftar from '../components/DataPendaftar';
+import Pengumuman from '../components/Pengumuman';
+import firestore from '@react-native-firebase/firestore'; // Import Firestore
+import auth from '@react-native-firebase/auth'; // Import Firebase Auth
+
 export default function Home() {
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged(user => {
+      if (user) {
+        const userUid = user.uid;
+        const userRef = firestore().collection('users').doc(userUid);
+
+        const unsubscribeSnapshot = userRef.onSnapshot(
+          doc => {
+            if (doc.exists) {
+              const userData = doc.data();
+              const nama = userData.nama;
+              setUserName(nama);
+            } else {
+              console.log('No such document!');
+            }
+          },
+          error => {
+            console.log('Error fetching document:', error);
+          },
+        );
+
+        return () => {
+          unsubscribeSnapshot(); // Unsubscribe saat komponen unmount
+        };
+      } else {
+        // User is logged out, handle accordingly
+        setUserName('');
+      }
+    });
+
+    return () => {
+      unsubscribe(); // Unsubscribe saat komponen unmount
+    };
+  }, []);
+
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <View style={{flex: 1, padding: 16}}>
-        <View style={styles.container}>
-          <Text style={styles.heading}>
-            Example to Use React Native Vector Icons
-          </Text>
-          <View style={styles.iconContainer}>
-            <Text>
-              <Icon name="rocket" size={30} color="#900" />
-            </Text>
-            {/* Icon Component */}
-            <Icon name="rocket" size={30} color="#900" />
-          </View>
-          <View style={{marginTop: 16, marginBottom: 16}}>
-            {/* Icon.Button Component */}
-            <Icon.Button
-              name="facebook"
-              backgroundColor="#3b5998"
-              onPress={() => alert('Login with Facebook')}>
-              Login with Facebook
-            </Icon.Button>
-          </View>
+    <ScrollView style={styles.container}>
+      <View style={styles.pendaftarContainer}>
+        <View>
+          <Text style={styles.dashboardTitle}>Dashboard</Text>
+          <Text style={styles.userTitle}>Welcome Back, {userName}</Text>
         </View>
-        <Text style={styles.footerTitle}>Vector Icons</Text>
-        <Text style={styles.footerText}>www.aboutreact.com</Text>
+        <DataPendaftar />
       </View>
-    </SafeAreaView>
+      <Pengumuman />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  container: {backgroundColor: '#1D2D50'},
+  pendaftarContainer: {
+    backgroundColor: 'whitesmoke',
+    paddingBottom: 50,
+    borderBottomLeftRadius: 60,
+    shadowColor: 'black',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.2,
+    shadowRadius: 7,
+    elevation: 5,
   },
-  heading: {
-    fontSize: 20,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  iconContainer: {
+  dashboardTitle: {
+    padding: 16,
     marginTop: 16,
-    marginBottom: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    textAlign: 'center',
+    color: '#133B5C',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
-  footerTitle: {
+  userTitle: {
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    color: '#133B5C',
     fontSize: 18,
-    textAlign: 'center',
-    color: 'grey',
-  },
-  footerText: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: 'grey',
+    fontWeight: 'bold',
   },
 });

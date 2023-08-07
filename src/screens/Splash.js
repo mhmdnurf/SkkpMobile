@@ -1,8 +1,28 @@
 // SplashScreen.js
 import {Image, Text, View, StyleSheet} from 'react-native';
 import React, {useEffect} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function Splash() {
+export default function Splash({navigation}) {
+  useEffect(() => {
+    checkLoginStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const checkLoginStatus = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('userToken');
+      if (userToken) {
+        navigation.navigate('Homepage');
+      } else {
+        navigation.navigate('Login');
+      }
+    } catch (error) {
+      console.log('Error checking login status:', error);
+      navigation.navigate('Login');
+    }
+  };
+
   return (
     <View style={styles.root}>
       <View style={styles.imageContainer}>

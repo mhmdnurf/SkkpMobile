@@ -1,33 +1,39 @@
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import React, {useState, useEffect} from 'react';
-import SidangTab from './src/components/SidangTab';
+import React from 'react';
+import {StatusBar} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Sesuaikan dengan pustaka ikon yang Anda gunakan
-import PengajuanTab from './src/components/PengajuanTab';
-import NotifikasiTab from './src/components/NotifikasiTab';
-import Home from './src/screens/Home';
+import {createStackNavigator} from '@react-navigation/stack';
 import Splash from './src/screens/Splash';
+import Login from './src/screens/Login';
+import Register from './src/screens/Register';
+import Home from './src/screens/Home';
+import PengajuanTab from './src/mahasiswa/components/PengajuanTab';
+import SidangTab from './src/mahasiswa/components/SidangTab';
+import NotifikasiTab from './src/components/NotifikasiTab';
 import Menu from './src/screens/Menu';
-Icon.loadFont(); // Memuat font ikon
+import Icon from 'react-native-vector-icons/FontAwesome';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+
+const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 3000); // Ganti 3000 dengan durasi yang Anda inginkan dalam milidetik (misalnya, 5000 untuk 5 detik)
-  }, []);
-
-  if (isLoading) {
-    return <Splash />;
-  }
+const MainTabs = () => {
   return (
-    <NavigationContainer>
-      <Tab.Navigator>
+    <>
+      <StatusBar backgroundColor="#99A98F" barStyle="light-content" />
+      <Tab.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          tabBarActiveTintColor: '#0A4D68',
+          tabBarInactiveTintColor: 'gray',
+          tabBarLabelStyle: {
+            fontSize: 12,
+          },
+          tabBarStyle: {
+            display: 'flex',
+          },
+        }}>
         <Tab.Screen
-          name="Dashboard"
+          name="Home"
           component={Home}
           options={{
             tabBarIcon: ({color, size}) => (
@@ -72,6 +78,31 @@ const App = () => {
           }}
         />
       </Tab.Navigator>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Splash"
+        screenOptions={{
+          tabBarActiveTintColor: '#30A2FF',
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: 'white',
+          },
+        }}>
+        <Stack.Screen name="Splash" component={Splash} />
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen
+          name="Homepage"
+          component={MainTabs}
+          options={{headerShown: false}}
+        />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 };

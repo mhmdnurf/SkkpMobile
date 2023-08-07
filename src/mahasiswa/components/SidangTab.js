@@ -1,11 +1,11 @@
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import React from 'react';
-import About from '../screens/About';
-import Info from '../screens/Info';
+import About from '../../screens/About';
+import Info from '../../screens/Info';
 
 const Tab = createMaterialTopTabNavigator();
 
-const PengajuanTab = () => {
+const SidangTab = () => {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -21,4 +21,4 @@ const PengajuanTab = () => {
   );
 };
 
-export default PengajuanTab;
+export default SidangTab;

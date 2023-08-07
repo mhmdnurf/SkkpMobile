@@ -1,11 +1,11 @@
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import React from 'react';
-import Info from '../screens/Info';
-import About from '../screens/About';
+import PengajuanKP from '../screens/PengajuanKP';
+import PengajuanSkripsi from '../screens/PengajuanSkripsi';
 
 const Tab = createMaterialTopTabNavigator();
 
-const SidangTab = () => {
+const PengajuanTab = () => {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -15,10 +15,10 @@ const SidangTab = () => {
           flexDirection: 'row',
         },
       }}>
-      <Tab.Screen name="Kerja Praktek" component={About} />
-      <Tab.Screen name="Skripsi" component={Info} />
+      <Tab.Screen name="Kerja Praktek" component={PengajuanKP} />
+      <Tab.Screen name="Skripsi" component={PengajuanSkripsi} />
     </Tab.Navigator>
   );
 };
 
-export default SidangTab;
+export default PengajuanTab;
