@@ -1,13 +1,22 @@
-import {View, TextInput, Text, StyleSheet} from 'react-native';
+import {
+  View,
+  TextInput,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import React, {useState, useEffect} from 'react';
-import {ScrollView, TouchableOpacity} from 'react-native-gesture-handler';
 import DocumentPicker from 'react-native-document-picker';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import RNFS from 'react-native-fs';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-const PengajuanKP = () => {
+const AddPengajuanKP = ({navigation}) => {
   const [judul, setJudul] = useState('');
   const [fileTranskipNilai, setFileTranskipNilai] = useState(null);
   const [transkipPath, setTranskipPath] = useState('');
@@ -20,6 +29,7 @@ const PengajuanKP = () => {
   const [fileProporsal, setFileProporsal] = useState(null);
   const [fileProporsalPath, setFileProporsalPath] = useState('');
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (
@@ -163,6 +173,7 @@ const PengajuanKP = () => {
     }
   };
   const handleSubmit = async () => {
+    setIsSubmitting(true);
     if (
       fileTranskipNilai &&
       fileFormKrs &&
@@ -234,7 +245,7 @@ const PengajuanKP = () => {
         const proporsalFilePath = `${RNFS.DocumentDirectoryPath}/${fileProporsal.name}`;
         await RNFS.copyFile(fileProporsal.uri, proporsalFilePath);
         const proporsalBlob = await RNFS.readFile(proporsalFilePath, 'base64');
-        await pembayaranKpReference.putString(proporsalBlob, 'base64');
+        await proporsalReference.putString(proporsalBlob, 'base64');
         const dokumenProporsal = await proporsalReference.getDownloadURL();
         // Push to Firestore
         const createdDate = new Date();
@@ -248,12 +259,17 @@ const PengajuanKP = () => {
           jenisProporsal: 'KP',
           createdBy: user.uid,
           createdAt: createdDate,
+          status: 'Diproses',
         });
-
+        Alert.alert('Sukses', 'Data berhasil diupload!', [
+          {text: 'OK', onPress: () => navigation.goBack()},
+        ]);
         console.log('Image uploaded successfully');
         console.log('Image URL: ', transkipNilai);
       } catch (error) {
         console.error('Error uploading image:', error);
+      } finally {
+        setIsSubmitting(false);
       }
     }
 
@@ -262,17 +278,21 @@ const PengajuanKP = () => {
     });
   };
   return (
-    <ScrollView>
+    <ScrollView
+      contentContainerStyle={{
+        flex: 1,
+      }}>
       <View style={styles.container}>
-        <Text>Judul Kerja Praktek</Text>
+        <Text style={styles.inputTitle}>Judul Kerja Praktek*</Text>
         <TextInput
+          placeholder="Masukkan Judul"
           style={styles.input}
           multiline
           numberOfLines={3}
           value={judul}
           onChangeText={text => setJudul(text)}
         />
-        <Text>Transkip Nilai</Text>
+        <Text style={styles.inputTitle}>Transkip Nilai*</Text>
         <View style={styles.uploadContainer}>
           <TextInput
             style={styles.fileNameInput}
@@ -286,7 +306,7 @@ const PengajuanKP = () => {
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
-        <Text>Form KRS</Text>
+        <Text style={styles.inputTitle}>Form KRS*</Text>
         <View style={styles.uploadContainer}>
           <TextInput
             style={styles.fileNameInput}
@@ -298,7 +318,7 @@ const PengajuanKP = () => {
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
-        <Text>Form Pendaftaran KP</Text>
+        <Text style={styles.inputTitle}>Form Pendaftaran KP*</Text>
         <View style={styles.uploadContainer}>
           <TextInput
             style={styles.fileNameInput}
@@ -312,7 +332,7 @@ const PengajuanKP = () => {
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
-        <Text>Slip Pembayaran KP</Text>
+        <Text style={styles.inputTitle}>Slip Pembayaran KP*</Text>
         <View style={styles.uploadContainer}>
           <TextInput
             style={styles.fileNameInput}
@@ -326,7 +346,7 @@ const PengajuanKP = () => {
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
-        <Text>Dokumen Proporsal</Text>
+        <Text style={styles.inputTitle}>Dokumen Proporsal*</Text>
         <View style={styles.uploadContainer}>
           <TextInput
             style={styles.fileNameInput}
@@ -340,23 +360,42 @@ const PengajuanKP = () => {
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+            alignItems: 'center',
+          }}>
+          <TouchableOpacity
+            style={[
+              styles.buttonAction,
+              isSubmitDisabled && styles.disabledUploadButton,
+            ]}
+            onPress={handleSubmit}
+            disabled={isSubmitDisabled || isSubmitting}>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.uploadButtonText}>Submit</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonActionCancel}
+            onPress={() => navigation.goBack()}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <TouchableOpacity
-        style={[
-          styles.uploadButton,
-          isSubmitDisabled && styles.disabledUploadButton,
-        ]}
-        onPress={handleSubmit}
-        disabled={isSubmitDisabled}>
-        <Text style={styles.uploadButtonText}>Submit</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
+    flex: 1,
+    padding: 20,
+    borderRadius: 5,
     backgroundColor: 'white',
   },
   input: {
@@ -383,10 +422,28 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   uploadButton: {
-    backgroundColor: '#1D2D50',
+    backgroundColor: '#59C1BD',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
+  },
+  buttonAction: {
+    backgroundColor: '#59C1BD',
+    padding: 15,
+    marginLeft: 5,
+    borderRadius: 5,
+    flex: 2,
+  },
+  buttonActionCancel: {
+    backgroundColor: '#C70039',
+    padding: 15,
+    marginLeft: 5,
+    borderRadius: 5,
+    flex: 2,
+  },
+  cancelButtonText: {
+    color: 'white',
+    textAlign: 'center',
   },
   uploadButtonText: {
     color: 'white',
@@ -396,6 +453,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#ccc', // You can adjust this color to your preference
     // You can also adjust other styles, like opacity, to make it look disabled
   },
+  inputTitle: {
+    color: 'black',
+    fontWeight: 'bold',
+  },
 });
 
-export default PengajuanKP;
+export default AddPengajuanKP;

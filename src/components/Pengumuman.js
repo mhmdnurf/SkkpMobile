@@ -6,12 +6,12 @@ export default function Pengumuman() {
   return (
     <View>
       <View style={styles.titleContainer}>
-        <Icon name="bell" size={36} color="white" />
+        <Icon name="bell" size={36} color="#0D4C92" />
         <Text style={styles.pengumumanTitle}>Pengumuman</Text>
       </View>
       <View style={styles.boxContainer}>
         <View style={{flex: 1, flexDirection: 'row'}}>
-          <Icon name="info" size={16} color="#1D2D50" />
+          <Icon name="info" size={16} color="#59C1BD" />
           <Text style={styles.judulPengumuman}>
             INFORMASI SEMINAR PROPORSAL !
           </Text>
@@ -29,7 +29,7 @@ export default function Pengumuman() {
       </View>
       <View style={styles.boxContainer}>
         <View style={{flex: 1, flexDirection: 'row'}}>
-          <Icon name="info" size={16} color="#1D2D50" />
+          <Icon name="info" size={16} color="#59C1BD" />
           <Text style={styles.judulPengumuman}>
             INFORMASI SIDANG AKHIR SKRIPSI !
           </Text>
@@ -47,7 +47,7 @@ export default function Pengumuman() {
       </View>
       <View style={styles.boxContainer}>
         <View style={{flex: 1, flexDirection: 'row'}}>
-          <Icon name="info" size={16} color="#1D2D50" />
+          <Icon name="info" size={16} color="#59C1BD" />
           <Text style={styles.judulPengumuman}>
             INFORMASI SIDANG KERJA PRAKTEK !
           </Text>
@@ -65,7 +65,7 @@ export default function Pengumuman() {
       </View>
       <View style={styles.lastBoxContainer}>
         <View style={{flex: 1, flexDirection: 'row'}}>
-          <Icon name="info" size={16} color="#1D2D50" />
+          <Icon name="info" size={16} color="#59C1BD" />
           <Text style={styles.judulPengumuman}>
             INFORMASI SIDANG KOMPREHENSIF !
           </Text>
@@ -92,6 +92,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 16,
     marginTop: 16,
+    shadowColor: 'black',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.2,
+    shadowRadius: 7,
+    elevation: 5,
   },
   lastBoxContainer: {
     backgroundColor: 'white',
@@ -100,6 +105,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 16,
     marginBottom: 16,
+    shadowColor: 'black',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.2,
+    shadowRadius: 7,
+    elevation: 5,
   },
   titleContainer: {
     flex: 1,
@@ -112,18 +122,18 @@ const styles = StyleSheet.create({
   pengumumanTitle: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#0D4C92',
     marginLeft: 8,
   },
   textPengumuman: {
     fontSize: 16,
-    color: '#1D2D50',
+    color: '#0D4C92',
     fontWeight: '400',
   },
   judulPengumuman: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1D2D50',
+    color: '#0D4C92',
     marginLeft: 4,
   },
 });

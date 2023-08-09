@@ -1,7 +1,8 @@
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import React from 'react';
-import PengajuanKP from '../screens/PengajuanKP';
-import PengajuanSkripsi from '../screens/PengajuanSkripsi';
+import PengajuanSkripsi from '../screens/pengajuan_skripsi/HomePengajuanSkripsi';
+import AddPengajuanKP from '../screens/pengajuan_kp/AddPengajuanKP';
+import HomePengajuanKP from '../screens/pengajuan_kp/HomePengajuanKP';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -14,8 +15,12 @@ const PengajuanTab = () => {
         tabBarItemStyle: {
           flexDirection: 'row',
         },
+        tabBarIndicatorStyle: {
+          backgroundColor: '#59C1BD',
+          height: 2,
+        },
       }}>
-      <Tab.Screen name="Kerja Praktek" component={PengajuanKP} />
+      <Tab.Screen name="Kerja Praktek" component={HomePengajuanKP} />
       <Tab.Screen name="Skripsi" component={PengajuanSkripsi} />
     </Tab.Navigator>
   );

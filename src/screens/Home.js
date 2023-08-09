@@ -58,9 +58,9 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  container: {backgroundColor: '#1D2D50'},
+  container: {backgroundColor: '#CFF5E7'},
   pendaftarContainer: {
-    backgroundColor: 'whitesmoke',
+    backgroundColor: '#59C1BD',
     paddingBottom: 50,
     borderBottomLeftRadius: 60,
     shadowColor: 'black',
@@ -72,14 +72,14 @@ const styles = StyleSheet.create({
   dashboardTitle: {
     padding: 16,
     marginTop: 16,
-    color: '#133B5C',
+    color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
   },
   userTitle: {
     paddingBottom: 16,
     paddingHorizontal: 16,
-    color: '#133B5C',
+    color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
   },

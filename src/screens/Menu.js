@@ -1,10 +1,51 @@
 import {View, Text, Button, StyleSheet, Image, ScrollView} from 'react-native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import auth from '@react-native-firebase/auth'; // Import Firebase auth
 import {useNavigation} from '@react-navigation/native'; // Jika Anda menggunakan @react-navigation
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import firestore from '@react-native-firebase/firestore';
 
 export default function Menu() {
+  const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
+
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged(user => {
+      if (user) {
+        const userUid = user.uid;
+        const userRef = firestore().collection('users').doc(userUid);
+
+        const unsubscribeSnapshot = userRef.onSnapshot(
+          doc => {
+            if (doc.exists) {
+              const userData = doc.data();
+              const nama = userData.nama;
+              const role = userData.role;
+              setUserName(nama);
+              setUserRole(role);
+            } else {
+              console.log('No such document!');
+            }
+          },
+          error => {
+            console.log('Error fetching document:', error);
+          },
+        );
+
+        return () => {
+          unsubscribeSnapshot(); // Unsubscribe saat komponen unmount
+        };
+      } else {
+        // User is logged out, handle accordingly
+        setUserName('');
+        setUserRole('');
+      }
+    });
+
+    return () => {
+      unsubscribe(); // Unsubscribe saat komponen unmount
+    };
+  }, []);
   const navigation = useNavigation();
   const handleSignOut = async () => {
     try {
@@ -32,8 +73,8 @@ export default function Menu() {
           style={styles.image}
           resizeMode="contain"
         />
-        <Text style={styles.textNama}>Zayn Malik</Text>
-        <Text style={styles.textRole}>Mahasiswa</Text>
+        <Text style={styles.textNama}>{userName}</Text>
+        <Text style={styles.textRole}>{userRole}</Text>
       </View>
       <View style={styles.profileContainer}>
         <View style={styles.profileBox}>

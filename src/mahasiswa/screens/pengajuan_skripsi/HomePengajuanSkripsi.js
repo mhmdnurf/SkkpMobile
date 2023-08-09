@@ -1,10 +1,12 @@
 import {View, Text} from 'react-native';
 import React from 'react';
 
-export default function PengajuanSkripsi() {
+const HomePengajuanSkripsi = () => {
   return (
     <View>
-      <Text>PengajuanSkripsi</Text>
+      <Text>Halo</Text>
     </View>
   );
-}
+};
+
+export default HomePengajuanSkripsi;
