@@ -1,14 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  View,
-  Alert,
-} from 'react-native';
+import {Text, StyleSheet, TouchableOpacity, FlatList, View} from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import {
+  ALERT_TYPE,
+  Dialog,
+  AlertNotificationRoot,
+} from 'react-native-alert-notification';
 
 const HomePengajuanKP = ({navigation}) => {
   const [userPengajuanData, setUserPengajuanData] = useState([]);
@@ -17,7 +15,7 @@ const HomePengajuanKP = ({navigation}) => {
     const user = auth().currentUser;
 
     const unsubscribe = firestore()
-      .collection('pengajuan')
+      .collection('pengajuanKP')
       .where('createdBy', '==', user.uid)
       .onSnapshot(querySnapshot => {
         const data = [];
@@ -36,11 +34,13 @@ const HomePengajuanKP = ({navigation}) => {
       blockedStatuses.includes(item.status),
     );
     if (hasBlockedStatus) {
-      // Menampilkan pesan peringatan jika ada pengajuan yang sedang diproses
-      Alert.alert(
-        'Peringatan',
-        'Anda memiliki pengajuan yang sedang diproses. Tunggu hingga pengajuan sebelumnya selesai diproses sebelum membuat pengajuan baru.',
-      );
+      Dialog.show({
+        type: ALERT_TYPE.WARNING,
+        title: 'Peringatan',
+        textBody:
+          'Anda memiliki pengajuan yang sedang diproses. Tunggu hingga pengajuan sebelumnya selesai diproses sebelum membuat pengajuan baru.',
+        button: 'Close',
+      });
     } else {
       navigation.navigate('AddPengajuanKP');
     }
@@ -63,7 +63,7 @@ const HomePengajuanKP = ({navigation}) => {
                 ? '#AAFCA5'
                 : item.status === 'Revisi'
                 ? '#F7E987'
-                : '#75C2F6', // Warna default jika status tidak sesuai
+                : '#75C2F6',
           },
         ]}>
         {item.status}
@@ -78,21 +78,24 @@ const HomePengajuanKP = ({navigation}) => {
   );
 
   return (
-    <View style={styles.container}>
-      <View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={handleNavigateToAddPengajuanKP}>
-          <Text style={styles.textAddButton}>Buat Pengajuan KP</Text>
-        </TouchableOpacity>
+    <AlertNotificationRoot>
+      <View style={styles.container}>
+        <FlatList
+          style={styles.scrollContainer}
+          data={userPengajuanData}
+          keyExtractor={item => item.id}
+          renderItem={renderPengajuanItem}
+        />
+        <View style={styles.wrapperButton}>
+          <TouchableOpacity
+            style={styles.floatingButton}
+            onPress={handleNavigateToAddPengajuanKP}>
+            {/* <Icon name="plus" color="white" size={24} /> */}
+            <Text style={{color: 'white', fontSize: 18}}>Buat Pengajuan</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <FlatList
-        style={styles.scrollContainer}
-        data={userPengajuanData}
-        keyExtractor={item => item.id}
-        renderItem={renderPengajuanItem}
-      />
-    </View>
+    </AlertNotificationRoot>
   );
 };
 
@@ -100,7 +103,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 10,
-    backgroundColor: '#CFF5E7',
+  },
+  scrollContainer: {
+    marginTop: 30,
   },
   addButton: {
     backgroundColor: '#59C1BD',
@@ -168,6 +173,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     color: 'white',
+  },
+  wrapperButton: {
+    flex: 1,
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    margin: 20,
+  },
+  floatingButton: {
+    padding: 15,
+    backgroundColor: '#59C1BD',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
 

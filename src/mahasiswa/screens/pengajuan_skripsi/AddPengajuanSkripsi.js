@@ -1,56 +1,58 @@
 import {
-  View,
-  TextInput,
+  ScrollView,
   Text,
   StyleSheet,
-  ScrollView,
+  View,
+  TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import DocumentPicker from 'react-native-document-picker';
+import {Picker} from '@react-native-picker/picker';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import RNFS from 'react-native-fs';
 import moment from 'moment-timezone';
 
-const AddPengajuanKP = ({navigation}) => {
-  const [judul, setJudul] = useState('');
-  const [fileTranskipNilai, setFileTranskipNilai] = useState(null);
-  const [transkipPath, setTranskipPath] = useState('');
+export default function AddPengajuanSkripsi({navigation}) {
+  const [topik, setTopik] = useState('');
+  const [fileFormTopik, setFormTopik] = useState(null);
+  const [formTopikPath, setFormTopikPath] = useState('');
   const [fileFormKrs, setFileFormKrs] = useState(null);
   const [formKrsPath, setFormKrsPath] = useState('');
-  const [filePendaftaranKp, setFilePendaftaranKp] = useState(null);
-  const [pendaftaranKpPath, setPendaftaranKpPath] = useState('');
-  const [slipPembayaranKp, setSlipPembayaranKp] = useState(null);
-  const [slipPembayaranKpPath, setSlipPembayaranKpPath] = useState('');
-  const [fileProporsal, setFileProporsal] = useState(null);
-  const [fileProporsalPath, setFileProporsalPath] = useState('');
+  const [fileTranskipNilai, setFileTranskipNilai] = useState(null);
+  const [transkipPath, setTranskipPath] = useState('');
+  const [fileSlipPembayaranSkripsi, setSlipPembayaranSkripsi] = useState(null);
+  const [slipPembayaranSkripsiPath, setSlipPembayaranSkripsiPath] =
+    useState('');
+  const [fileSertifikat, setSertifikat] = useState(null);
+  const [sertifikatPath, setSertifikatPath] = useState('');
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (
-      judul !== '' &&
+      topik !== '' &&
       transkipPath !== '' &&
       formKrsPath !== '' &&
-      pendaftaranKpPath !== '' &&
-      slipPembayaranKpPath !== '' &&
-      fileProporsalPath !== ''
+      formTopikPath !== '' &&
+      slipPembayaranSkripsiPath !== '' &&
+      sertifikatPath !== ''
     ) {
       setIsSubmitDisabled(false);
     } else {
       setIsSubmitDisabled(true);
     }
   }, [
-    judul,
+    topik,
     transkipPath,
     formKrsPath,
-    pendaftaranKpPath,
-    slipPembayaranKpPath,
-    fileProporsalPath,
+    formTopikPath,
+    slipPembayaranSkripsiPath,
+    sertifikatPath,
   ]);
 
   const pickerTranskip = async () => {
@@ -67,6 +69,29 @@ const AddPengajuanKP = ({navigation}) => {
       const selectedFileName = result[0].name;
       setTranskipPath(selectedFileName);
       setFileTranskipNilai({uri: selectedFile, name: result[0]});
+      console.log('Nama Berkas:', selectedFileName);
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        console.log('Pengguna membatalkan pemilihan dokumen');
+      } else {
+        console.log('Error memilih dokumen:', error.message);
+      }
+    }
+  };
+  const pickerTopik = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [
+          DocumentPicker.types.images,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.docx,
+        ],
+      });
+      console.log(result);
+      const selectedFile = result[0].uri;
+      const selectedFileName = result[0].name;
+      setFormTopikPath(selectedFileName);
+      setFormTopik({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -101,30 +126,6 @@ const AddPengajuanKP = ({navigation}) => {
     }
   };
 
-  const pickerPendaftaranKp = async () => {
-    try {
-      const result = await DocumentPicker.pick({
-        type: [
-          DocumentPicker.types.images,
-          DocumentPicker.types.pdf,
-          DocumentPicker.types.docx,
-        ],
-      });
-      console.log(result);
-      const selectedFile = result[0].uri;
-      const selectedFileName = result[0].name;
-      setPendaftaranKpPath(selectedFileName);
-      setFilePendaftaranKp({uri: selectedFile, name: result[0]});
-      console.log('Nama Berkas:', selectedFileName);
-    } catch (error) {
-      if (DocumentPicker.isCancel(error)) {
-        console.log('Pengguna membatalkan pemilihan dokumen');
-      } else {
-        console.log('Error memilih dokumen:', error.message);
-      }
-    }
-  };
-
   const pickerPembayaran = async () => {
     try {
       const result = await DocumentPicker.pick({
@@ -137,8 +138,8 @@ const AddPengajuanKP = ({navigation}) => {
       console.log(result);
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
-      setSlipPembayaranKpPath(selectedFileName);
-      setSlipPembayaranKp({uri: selectedFile, name: result[0]});
+      setSlipPembayaranSkripsiPath(selectedFileName);
+      setSlipPembayaranSkripsi({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -149,7 +150,7 @@ const AddPengajuanKP = ({navigation}) => {
     }
   };
 
-  const pickerProporsal = async () => {
+  const pickerSertifikat = async () => {
     try {
       const result = await DocumentPicker.pick({
         type: [
@@ -161,8 +162,8 @@ const AddPengajuanKP = ({navigation}) => {
       console.log(result);
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
-      setFileProporsalPath(selectedFileName);
-      setFileProporsal({uri: selectedFile, name: result[0]});
+      setSertifikatPath(selectedFileName);
+      setSertifikat({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -172,37 +173,40 @@ const AddPengajuanKP = ({navigation}) => {
       }
     }
   };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     if (
       fileTranskipNilai &&
       fileFormKrs &&
-      filePendaftaranKp &&
-      slipPembayaranKp &&
-      fileProporsal
+      fileFormTopik &&
+      fileSlipPembayaranSkripsi &&
+      fileSertifikat
     ) {
       const user = auth().currentUser;
 
-      const transkipNilaiFileName = `persyaratan/pengajuanKP/transkipNilai/${
+      const transkipNilaiFileName = `persyaratan/pengajuanSkripsi/transkipNilai/${
         user.uid
       }/${Date.now()}`;
-      const formKrsFileName = `persyaratan/pengajuanKP/formKRS/${
+      const formKrsFileName = `persyaratan/pengajuanSkripsi/formKRS/${
         user.uid
       }/${Date.now()}`;
-      const pendaftaranKpFileName = `persyaratan/pengajuanKP/formPendaftaranKP/${
+      const formTopikFileName = `persyaratan/pengajuanSkripsi/formTopik/${
         user.uid
       }/${Date.now()}`;
-      const pembayaranKpFileName = `persyaratan/pengajuanKP/slipPembayaranKP/${
+      const pembayaranSkripsiFileName = `persyaratan/pengajuanSkripsi/slipPembayaranSkripsi/${
         user.uid
       }/${Date.now()}`;
-      const proporsalFileName = `persyaratan/pengajuanKP/proporsalKP/${
+      const sertifikatFileName = `persyaratan/pengajuanSkripsi/sertifikatPSPT/${
         user.uid
       }/${Date.now()}`;
       const transkipNilaiReference = storage().ref(transkipNilaiFileName);
       const formKrsReference = storage().ref(formKrsFileName);
-      const pendaftaranKpReference = storage().ref(pendaftaranKpFileName);
-      const pembayaranKpReference = storage().ref(pembayaranKpFileName);
-      const proporsalReference = storage().ref(proporsalFileName);
+      const formTopikReference = storage().ref(formTopikFileName);
+      const pembayaranSkripsiReference = storage().ref(
+        pembayaranSkripsiFileName,
+      );
+      const sertifikatReference = storage().ref(sertifikatFileName);
       try {
         // Proses Transkip Nilai
         const transkipNilaiFilePath = `${RNFS.DocumentDirectoryPath}/${fileTranskipNilai.name}`;
@@ -221,43 +225,46 @@ const AddPengajuanKP = ({navigation}) => {
         await formKrsReference.putString(formKrsBlob, 'base64');
         const formKrs = await formKrsReference.getDownloadURL();
 
-        // Proses Form Pendaftaran KP
-        const pendaftaranKpFilePath = `${RNFS.DocumentDirectoryPath}/${filePendaftaranKp.name}`;
-        await RNFS.copyFile(filePendaftaranKp.uri, pendaftaranKpFilePath);
-        const pendaftaranKpBlob = await RNFS.readFile(
-          pendaftaranKpFilePath,
+        // Proses Form Topik
+        const formTopikFilePath = `${RNFS.DocumentDirectoryPath}/${fileFormTopik.name}`;
+        await RNFS.copyFile(fileFormTopik.uri, formTopikFilePath);
+        const topikBlob = await RNFS.readFile(formTopikFilePath, 'base64');
+        await formTopikReference.putString(topikBlob, 'base64');
+        const formTopik = await formTopikReference.getDownloadURL();
+
+        // Proses Slip Pembayaran Skripsi
+        const pembayaranSkripsiFilePath = `${RNFS.DocumentDirectoryPath}/${fileSlipPembayaranSkripsi.name}`;
+        await RNFS.copyFile(
+          fileSlipPembayaranSkripsi.uri,
+          pembayaranSkripsiFilePath,
+        );
+        const pembayaranSkripsiBlob = await RNFS.readFile(
+          pembayaranSkripsiFilePath,
           'base64',
         );
-        await pendaftaranKpReference.putString(pendaftaranKpBlob, 'base64');
-        const formPendaftaranKP = await formKrsReference.getDownloadURL();
-
-        // Proses Slip Pembayaran KP
-        const pembayaranKpFilePath = `${RNFS.DocumentDirectoryPath}/${slipPembayaranKp.name}`;
-        await RNFS.copyFile(slipPembayaranKp.uri, pembayaranKpFilePath);
-        const pembayaranKpBlob = await RNFS.readFile(
-          pembayaranKpFilePath,
+        await pembayaranSkripsiReference.putString(
+          pembayaranSkripsiBlob,
           'base64',
         );
-        await pembayaranKpReference.putString(pembayaranKpBlob, 'base64');
-        const slipPembayaranKP = await formKrsReference.getDownloadURL();
+        const slipPembayaranSkripsi = await formKrsReference.getDownloadURL();
 
-        // Proses Dokumen Proporsal
-        const proporsalFilePath = `${RNFS.DocumentDirectoryPath}/${fileProporsal.name}`;
-        await RNFS.copyFile(fileProporsal.uri, proporsalFilePath);
-        const proporsalBlob = await RNFS.readFile(proporsalFilePath, 'base64');
-        await proporsalReference.putString(proporsalBlob, 'base64');
-        const dokumenProporsal = await proporsalReference.getDownloadURL();
+        // Proses Sertifikat PSPT
+        const sertifikatFilePath = `${RNFS.DocumentDirectoryPath}/${fileSertifikat.name}`;
+        await RNFS.copyFile(fileSertifikat.uri, sertifikatFilePath);
+        const proporsalBlob = await RNFS.readFile(sertifikatFilePath, 'base64');
+        await sertifikatReference.putString(proporsalBlob, 'base64');
+        const sertifikatPSPT = await sertifikatReference.getDownloadURL();
 
         // Push to Firestore
         const createdDate = moment().tz('Asia/Jakarta').toDate();
-        await firestore().collection('pengajuanKP').add({
-          judul,
-          transkipNilai,
+        await firestore().collection('pengajuanSkripsi').add({
+          topik,
+          formTopik,
           formKrs,
-          formPendaftaranKP,
-          slipPembayaranKP,
-          dokumenProporsal,
-          jenisProporsal: 'KP',
+          transkipNilai,
+          slipPembayaranSkripsi,
+          sertifikatPSPT,
+          jenisProporsal: 'Skripsi',
           createdBy: user.uid,
           createdAt: createdDate,
           status: 'Diproses',
@@ -266,44 +273,43 @@ const AddPengajuanKP = ({navigation}) => {
           {text: 'OK', onPress: () => navigation.goBack()},
         ]);
         console.log('Image uploaded successfully');
-        console.log('Image URL: ', transkipNilai);
       } catch (error) {
         console.error('Error uploading image:', error);
       } finally {
         setIsSubmitting(false);
       }
     }
-
-    console.log('Form data submitted:', {
-      judul,
-    });
   };
+
   return (
-    <ScrollView
-      contentContainerStyle={{
-        flex: 1,
-      }}>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <Text style={styles.inputTitle}>Judul Kerja Praktek*</Text>
-        <TextInput
-          placeholder="Masukkan Judul"
-          style={styles.input}
-          multiline
-          numberOfLines={3}
-          value={judul}
-          onChangeText={text => setJudul(text)}
-        />
-        <Text style={styles.inputTitle}>Transkip Nilai*</Text>
+        <Text style={styles.inputTitle}>Pilih Topik Penelitian*</Text>
+        <View style={styles.picker}>
+          <Picker
+            selectedValue={topik}
+            onValueChange={(itemValue, itemIndex) => setTopik(itemValue)}>
+            <Picker.Item label="Pilih Jurusan" value="" />
+            <Picker.Item
+              label="Internet of Things"
+              value="Internet of Things"
+            />
+            <Picker.Item
+              label="Software Development"
+              value="Software Development"
+            />
+            <Picker.Item label="Software Testing" value="Software Testing" />
+          </Picker>
+        </View>
+        <Text style={styles.inputTitle}>Form Pengajuan Topik*</Text>
         <View style={styles.uploadContainer}>
           <TextInput
             style={styles.fileNameInput}
             placeholder="..."
-            value={transkipPath}
+            value={formTopikPath}
             editable={false}
           />
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={pickerTranskip}>
+          <TouchableOpacity style={styles.uploadButton} onPress={pickerTopik}>
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
@@ -319,17 +325,17 @@ const AddPengajuanKP = ({navigation}) => {
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.inputTitle}>Form Pendaftaran KP*</Text>
+        <Text style={styles.inputTitle}>Transkip Nilai*</Text>
         <View style={styles.uploadContainer}>
           <TextInput
             style={styles.fileNameInput}
             placeholder="..."
-            value={pendaftaranKpPath}
+            value={transkipPath}
             editable={false}
           />
           <TouchableOpacity
             style={styles.uploadButton}
-            onPress={pickerPendaftaranKp}>
+            onPress={pickerTranskip}>
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
@@ -338,7 +344,7 @@ const AddPengajuanKP = ({navigation}) => {
           <TextInput
             style={styles.fileNameInput}
             placeholder="..."
-            value={slipPembayaranKpPath}
+            value={slipPembayaranSkripsiPath}
             editable={false}
           />
           <TouchableOpacity
@@ -347,27 +353,21 @@ const AddPengajuanKP = ({navigation}) => {
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.inputTitle}>Dokumen Proporsal*</Text>
+        <Text style={styles.inputTitle}>Sertifikat PSPT*</Text>
         <View style={styles.uploadContainer}>
           <TextInput
             style={styles.fileNameInput}
             placeholder="..."
-            value={fileProporsalPath}
+            value={sertifikatPath}
             editable={false}
           />
           <TouchableOpacity
             style={styles.uploadButton}
-            onPress={pickerProporsal}>
+            onPress={pickerSertifikat}>
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
-
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-evenly',
-            alignItems: 'center',
-          }}>
+        <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[
               styles.buttonAction,
@@ -390,7 +390,7 @@ const AddPengajuanKP = ({navigation}) => {
       </View>
     </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -398,6 +398,14 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 5,
     backgroundColor: 'white',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
   },
   input: {
     width: '100%',
@@ -451,13 +459,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   disabledUploadButton: {
-    backgroundColor: '#ccc', // You can adjust this color to your preference
-    // You can also adjust other styles, like opacity, to make it look disabled
+    backgroundColor: '#ccc',
   },
   inputTitle: {
     color: 'black',
     fontWeight: 'bold',
   },
+  picker: {
+    width: '100%',
+    marginBottom: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
 });
-
-export default AddPengajuanKP;

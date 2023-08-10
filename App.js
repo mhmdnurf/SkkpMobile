@@ -1,5 +1,5 @@
 import React from 'react';
-import {StatusBar} from 'react-native';
+import {StatusBar, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import Splash from './src/screens/Splash';
@@ -13,9 +13,12 @@ import Menu from './src/screens/Menu';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import AddPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/AddPengajuanKP';
-import HomePengajuanKP from './src/mahasiswa/screens/pengajuan_kp/HomePengajuanKP';
 import DetailPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/DetailPengajuanKP';
 import EditPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/EditPengajuanKP';
+import AddPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/AddPengajuanSkripsi';
+import DetailPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/DetailPengajuanSkripsi';
+import EditPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/EditPengajuanSkripsi';
+import {AlertNotificationRoot} from 'react-native-alert-notification';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -53,7 +56,11 @@ const MainTabs = () => {
             tabBarIcon: ({color, size}) => (
               <Icon name="hand-paper-o" color={color} size={size} />
             ),
-            title: 'Data Pengajuan',
+            title: 'Pengajuan Proposal',
+            headerStyle: {
+              backgroundColor: '#59C1BD',
+            },
+            headerTintColor: 'white',
           }}
         />
         <Tab.Screen
@@ -75,7 +82,7 @@ const MainTabs = () => {
           }}
         />
         <Tab.Screen
-          name="Menu dan Akun"
+          name="Menu"
           component={Menu}
           options={{
             tabBarIcon: ({color, size}) => (
@@ -121,14 +128,6 @@ const App = () => {
           }}
         />
         <Stack.Screen
-          name="HomePengajuanKP"
-          component={HomePengajuanKP}
-          options={{
-            headerShown: true,
-            title: 'Detail Pengajuan KP',
-          }}
-        />
-        <Stack.Screen
           name="DetailPengajuanKP"
           component={DetailPengajuanKP}
           options={{
@@ -143,6 +142,24 @@ const App = () => {
             headerShown: true,
             title: 'Edit Pengajuan KP',
           }}
+        />
+        <Stack.Screen
+          name="AddPengajuanSkripsi"
+          component={AddPengajuanSkripsi}
+          options={{
+            headerShown: true,
+            title: 'Buat Pengajuan Skripsi',
+          }}
+        />
+        <Stack.Screen
+          name="DetailPengajuanSkripsi"
+          component={DetailPengajuanSkripsi}
+          options={{headerShown: true, title: 'Detail Pengajuan Skripsi'}}
+        />
+        <Stack.Screen
+          name="EditPengajuanSkripsi"
+          component={EditPengajuanSkripsi}
+          options={{headerShown: true, title: 'Edit Pengajuan Skripsi'}}
         />
       </Stack.Navigator>
     </NavigationContainer>

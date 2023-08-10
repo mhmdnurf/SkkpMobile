@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 
@@ -15,7 +16,7 @@ const DetailPengajuanKP = ({route, navigation}) => {
 
   useEffect(() => {
     const unsubscribe = firestore()
-      .collection('pengajuan')
+      .collection('pengajuanKP')
       .doc(itemId)
       .get()
       .then(documentSnapshot => {
@@ -37,6 +38,16 @@ const DetailPengajuanKP = ({route, navigation}) => {
   const handleEditButtonPress = () => {
     navigation.navigate('EditPengajuanKP', {itemId});
   };
+  const handleDeleteButtonPress = async () => {
+    try {
+      await firestore().collection('pengajuanKP').doc(itemId).delete();
+      Alert.alert('Sukses', 'Data pengajuan berhasil dihapus');
+      navigation.navigate('Pengajuan');
+    } catch (error) {
+      console.error('Error menghapus data pengajuan:', error);
+      Alert.alert('Error', 'Terjadi kesalahan saat menghapus data pengajuan');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -56,11 +67,15 @@ const DetailPengajuanKP = ({route, navigation}) => {
           <Text style={styles.detailText}>
             Jenis Proposal: {pengajuanData.jenisProporsal}
           </Text>
-          {/* ... Tambahkan properti lainnya sesuai kebutuhan */}
           <TouchableOpacity
             style={styles.editButton}
             onPress={handleEditButtonPress}>
             <Text style={styles.editButtonText}>Edit Pengajuan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDeleteButtonPress}>
+            <Text>Hapus Pengajuan</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -98,6 +113,18 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   editButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  deleteButton: {
+    marginTop: 20,
+    backgroundColor: '#F7E987',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  deleteButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
