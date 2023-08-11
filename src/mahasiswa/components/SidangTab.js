@@ -14,9 +14,22 @@ const SidangTab = () => {
         tabBarItemStyle: {
           flexDirection: 'row',
         },
+        tabBarIndicatorStyle: {
+          backgroundColor: 'white',
+          height: 2,
+        },
+        tabBarStyle: {
+          backgroundColor: '#59C1BD',
+        },
+        tabBarLabelStyle: {
+          color: 'white',
+          fontWeight: 'bold',
+        },
       }}>
       <Tab.Screen name="Kerja Praktek" component={About} />
-      <Tab.Screen name="Skripsi" component={Info} />
+      <Tab.Screen name="Seminar Proposal" component={Info} />
+      <Tab.Screen name="Sidang Kompre" component={Info} />
+      <Tab.Screen name="Sidang Akhir" component={Info} />
     </Tab.Navigator>
   );
 };

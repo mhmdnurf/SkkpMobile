@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import DocumentPicker from 'react-native-document-picker';
@@ -183,21 +185,11 @@ const AddPengajuanKP = ({navigation}) => {
     ) {
       const user = auth().currentUser;
 
-      const transkipNilaiFileName = `persyaratan/pengajuanKP/transkipNilai/${
-        user.uid
-      }/${Date.now()}`;
-      const formKrsFileName = `persyaratan/pengajuanKP/formKRS/${
-        user.uid
-      }/${Date.now()}`;
-      const pendaftaranKpFileName = `persyaratan/pengajuanKP/formPendaftaranKP/${
-        user.uid
-      }/${Date.now()}`;
-      const pembayaranKpFileName = `persyaratan/pengajuanKP/slipPembayaranKP/${
-        user.uid
-      }/${Date.now()}`;
-      const proporsalFileName = `persyaratan/pengajuanKP/proporsalKP/${
-        user.uid
-      }/${Date.now()}`;
+      const transkipNilaiFileName = `persyaratan/pengajuanKP/transkipNilai/${user.uid}`;
+      const formKrsFileName = `persyaratan/pengajuanKP/formKRS/${user.uid}`;
+      const pendaftaranKpFileName = `persyaratan/pengajuanKP/formPendaftaranKP/${user.uid}`;
+      const pembayaranKpFileName = `persyaratan/pengajuanKP/slipPembayaranKP/${user.uid}`;
+      const proporsalFileName = `persyaratan/pengajuanKP/proporsalKP/${user.uid}`;
       const transkipNilaiReference = storage().ref(transkipNilaiFileName);
       const formKrsReference = storage().ref(formKrsFileName);
       const pendaftaranKpReference = storage().ref(pendaftaranKpFileName);
@@ -250,18 +242,22 @@ const AddPengajuanKP = ({navigation}) => {
 
         // Push to Firestore
         const createdDate = moment().tz('Asia/Jakarta').toDate();
-        await firestore().collection('pengajuanKP').add({
-          judul,
-          transkipNilai,
-          formKrs,
-          formPendaftaranKP,
-          slipPembayaranKP,
-          dokumenProporsal,
-          jenisProporsal: 'KP',
-          createdBy: user.uid,
-          createdAt: createdDate,
-          status: 'Diproses',
-        });
+        await firestore()
+          .collection('pengajuan')
+          .doc(user.uid)
+          .collection('pengajuanKP')
+          .add({
+            judul,
+            transkipNilai,
+            formKrs,
+            formPendaftaranKP,
+            slipPembayaranKP,
+            dokumenProporsal,
+            createdAt: createdDate,
+            status: 'Diproses',
+            catatan: '-',
+            dosenPembimbing: '-',
+          });
         Alert.alert('Sukses', 'Data berhasil diupload!', [
           {text: 'OK', onPress: () => navigation.goBack()},
         ]);
@@ -279,116 +275,110 @@ const AddPengajuanKP = ({navigation}) => {
     });
   };
   return (
-    <ScrollView
-      contentContainerStyle={{
-        flex: 1,
-      }}>
-      <View style={styles.container}>
-        <Text style={styles.inputTitle}>Judul Kerja Praktek*</Text>
-        <TextInput
-          placeholder="Masukkan Judul"
-          style={styles.input}
-          multiline
-          numberOfLines={3}
-          value={judul}
-          onChangeText={text => setJudul(text)}
-        />
-        <Text style={styles.inputTitle}>Transkip Nilai*</Text>
-        <View style={styles.uploadContainer}>
+    <KeyboardAvoidingView
+      style={{flex: 1}}
+      behavior="height"
+      keyboardVerticalOffset={0}>
+      <ScrollView
+        contentContainerStyle={{
+          flex: 1,
+          backgroundColor: 'white',
+        }}
+        keyboardShouldPersistTaps="handled">
+        <View style={styles.container}>
+          <Text style={styles.inputTitle}>Judul Kerja Praktek*</Text>
           <TextInput
-            style={styles.fileNameInput}
-            placeholder="..."
-            value={transkipPath}
-            editable={false}
+            placeholder="Masukkan Judul"
+            style={styles.input}
+            multiline
+            numberOfLines={3}
+            value={judul}
+            onChangeText={text => setJudul(text)}
           />
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={pickerTranskip}>
-            <Text style={styles.uploadButtonText}>Upload File</Text>
-          </TouchableOpacity>
+          <Text style={styles.inputTitle}>Transkip Nilai*</Text>
+          <View style={styles.uploadContainer}>
+            <TextInput
+              style={styles.fileNameInput}
+              placeholder="..."
+              value={transkipPath}
+              editable={false}
+            />
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={pickerTranskip}>
+              <Text style={styles.uploadButtonText}>Upload File</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.inputTitle}>Form KRS*</Text>
+          <View style={styles.uploadContainer}>
+            <TextInput
+              style={styles.fileNameInput}
+              placeholder="..."
+              value={formKrsPath}
+              editable={false}
+            />
+            <TouchableOpacity style={styles.uploadButton} onPress={pickerKrs}>
+              <Text style={styles.uploadButtonText}>Upload File</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.inputTitle}>Form Pendaftaran KP*</Text>
+          <View style={styles.uploadContainer}>
+            <TextInput
+              style={styles.fileNameInput}
+              placeholder="..."
+              value={pendaftaranKpPath}
+              editable={false}
+            />
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={pickerPendaftaranKp}>
+              <Text style={styles.uploadButtonText}>Upload File</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.inputTitle}>Slip Pembayaran KP*</Text>
+          <View style={styles.uploadContainer}>
+            <TextInput
+              style={styles.fileNameInput}
+              placeholder="..."
+              value={slipPembayaranKpPath}
+              editable={false}
+            />
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={pickerPembayaran}>
+              <Text style={styles.uploadButtonText}>Upload File</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.inputTitle}>Dokumen Proporsal*</Text>
+          <View style={styles.uploadContainer}>
+            <TextInput
+              style={styles.fileNameInput}
+              placeholder="..."
+              value={fileProporsalPath}
+              editable={false}
+            />
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={pickerProporsal}>
+              <Text style={styles.uploadButtonText}>Upload File</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <Text style={styles.inputTitle}>Form KRS*</Text>
-        <View style={styles.uploadContainer}>
-          <TextInput
-            style={styles.fileNameInput}
-            placeholder="..."
-            value={formKrsPath}
-            editable={false}
-          />
-          <TouchableOpacity style={styles.uploadButton} onPress={pickerKrs}>
-            <Text style={styles.uploadButtonText}>Upload File</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.inputTitle}>Form Pendaftaran KP*</Text>
-        <View style={styles.uploadContainer}>
-          <TextInput
-            style={styles.fileNameInput}
-            placeholder="..."
-            value={pendaftaranKpPath}
-            editable={false}
-          />
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={pickerPendaftaranKp}>
-            <Text style={styles.uploadButtonText}>Upload File</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.inputTitle}>Slip Pembayaran KP*</Text>
-        <View style={styles.uploadContainer}>
-          <TextInput
-            style={styles.fileNameInput}
-            placeholder="..."
-            value={slipPembayaranKpPath}
-            editable={false}
-          />
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={pickerPembayaran}>
-            <Text style={styles.uploadButtonText}>Upload File</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.inputTitle}>Dokumen Proporsal*</Text>
-        <View style={styles.uploadContainer}>
-          <TextInput
-            style={styles.fileNameInput}
-            placeholder="..."
-            value={fileProporsalPath}
-            editable={false}
-          />
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={pickerProporsal}>
-            <Text style={styles.uploadButtonText}>Upload File</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-evenly',
-            alignItems: 'center',
-          }}>
-          <TouchableOpacity
-            style={[
-              styles.buttonAction,
-              isSubmitDisabled && styles.disabledUploadButton,
-            ]}
-            onPress={handleSubmit}
-            disabled={isSubmitDisabled || isSubmitting}>
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <Text style={styles.uploadButtonText}>Submit</Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.buttonActionCancel}
-            onPress={() => navigation.goBack()}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+        <TouchableOpacity
+          style={[
+            styles.floatingButtonSubmit,
+            isSubmitDisabled && styles.disabledUploadButton,
+          ]}
+          onPress={handleSubmit}
+          disabled={isSubmitDisabled || isSubmitting}>
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text style={styles.uploadButtonText}>Submit</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -457,6 +447,21 @@ const styles = StyleSheet.create({
   inputTitle: {
     color: 'black',
     fontWeight: 'bold',
+  },
+  floatingButtonSubmit: {
+    padding: 15,
+    backgroundColor: '#59C1BD',
+    borderRadius: 10,
+    shadowColor: '#000',
+    marginVertical: 30,
+    marginHorizontal: 20,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
 

@@ -1,52 +1,37 @@
-import {View, Text, Button, StyleSheet, Image, ScrollView} from 'react-native';
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
-import auth from '@react-native-firebase/auth'; // Import Firebase auth
-import {useNavigation} from '@react-navigation/native'; // Jika Anda menggunakan @react-navigation
+import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import firestore from '@react-native-firebase/firestore';
 
-export default function Menu() {
-  const [userName, setUserName] = useState('');
-  const [userRole, setUserRole] = useState('');
+export default function Menu({navigation}) {
+  const [userData, setUserData] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = auth().onAuthStateChanged(user => {
-      if (user) {
-        const userUid = user.uid;
-        const userRef = firestore().collection('users').doc(userUid);
+    const user = auth().currentUser;
+    if (user) {
+      const userRef = firestore().collection('users').doc(user.uid);
+      const unsubscribe = userRef.onSnapshot(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          setUserData(data);
+        } else {
+          console.log('Document not found');
+        }
+      });
 
-        const unsubscribeSnapshot = userRef.onSnapshot(
-          doc => {
-            if (doc.exists) {
-              const userData = doc.data();
-              const nama = userData.nama;
-              const role = userData.role;
-              setUserName(nama);
-              setUserRole(role);
-            } else {
-              console.log('No such document!');
-            }
-          },
-          error => {
-            console.log('Error fetching document:', error);
-          },
-        );
-
-        return () => {
-          unsubscribeSnapshot(); // Unsubscribe saat komponen unmount
-        };
-      } else {
-        // User is logged out, handle accordingly
-        setUserName('');
-        setUserRole('');
-      }
-    });
-
-    return () => {
-      unsubscribe(); // Unsubscribe saat komponen unmount
-    };
+      return () => unsubscribe();
+    }
   }, []);
-  const navigation = useNavigation();
+
   const handleSignOut = async () => {
     try {
       const currentUser = auth().currentUser;
@@ -68,22 +53,34 @@ export default function Menu() {
       <View style={styles.imageContainer}>
         <Image
           source={{
-            uri: 'https://cdn06.pramborsfm.com/storage/app/media/Prambors/Editorial/zayn%20malik-20211103185111.jpg?tr=w-800',
+            uri: `${userData.image}`,
           }}
           style={styles.image}
           resizeMode="contain"
         />
-        <Text style={styles.textNama}>{userName}</Text>
-        <Text style={styles.textRole}>{userRole}</Text>
+        <Text style={styles.textNama}>{userData.nama}</Text>
+        <Text style={styles.textRole}>{userData.role}</Text>
       </View>
       <View style={styles.profileContainer}>
         <View style={styles.profileBox}>
           <View style={styles.profileContent}>
             <Text style={styles.profileTitle}>Profile</Text>
+            <Text style={styles.textTitleProfile}>NIM</Text>
+            <Text style={styles.textContent}>{userData.nim}</Text>
+            <Text style={styles.textTitleProfile}>Jurusan</Text>
+            <Text style={styles.textContent}>{userData.jurusan}</Text>
+            <Text style={styles.textTitleProfile}>Email</Text>
+            <Text style={styles.textContent}>{userData.email}</Text>
+            <Text style={styles.textTitleProfile}>Nomor HP</Text>
+            <Text style={styles.textContent}>{userData.nomorHP}</Text>
+            <TouchableOpacity
+              onPress={handleSignOut}
+              style={styles.buttonContainer}>
+              <Text style={styles.buttonText}>Logout</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
-      <Button title="Logout" onPress={handleSignOut} />
     </ScrollView>
   );
 }
@@ -91,7 +88,7 @@ export default function Menu() {
 const styles = StyleSheet.create({
   imageContainer: {
     height: 300,
-    backgroundColor: '#133B5C',
+    backgroundColor: '#59C1BD',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -111,7 +108,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
     color: 'black',
-    backgroundColor: '#FCDAB7',
+    backgroundColor: '#CFF5E7',
     padding: 5,
     marginTop: 10,
     borderRadius: 5,
@@ -142,5 +139,33 @@ const styles = StyleSheet.create({
     padding: 10,
     fontWeight: 'bold',
     color: 'black',
+  },
+  textTitleProfile: {
+    fontSize: 18,
+    padding: 10,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  textContent: {
+    paddingHorizontal: 10,
+    color: 'black',
+  },
+  buttonContainer: {
+    paddingHorizontal: 50,
+    paddingVertical: 10,
+    margin: 25,
+    alignSelf: 'center',
+    backgroundColor: '#59C1BD',
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

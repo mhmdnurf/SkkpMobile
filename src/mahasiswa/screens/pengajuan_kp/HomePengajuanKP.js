@@ -15,8 +15,9 @@ const HomePengajuanKP = ({navigation}) => {
     const user = auth().currentUser;
 
     const unsubscribe = firestore()
+      .collection('pengajuan')
+      .doc(user.uid)
       .collection('pengajuanKP')
-      .where('createdBy', '==', user.uid)
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {

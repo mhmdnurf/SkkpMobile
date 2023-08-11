@@ -4,9 +4,13 @@ import React from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 export default function Pengumuman() {
   return (
-    <View>
+    <View
+      style={{
+        backgroundColor: '#59C1BD',
+        marginTop: 20,
+      }}>
       <View style={styles.titleContainer}>
-        <Icon name="bell" size={36} color="#0D4C92" />
+        <Icon name="bell" size={36} color="white" />
         <Text style={styles.pengumumanTitle}>Pengumuman</Text>
       </View>
       <View style={styles.boxContainer}>
@@ -17,7 +21,7 @@ export default function Pengumuman() {
           </Text>
         </View>
         <Text style={styles.textPengumuman}>
-          Diberitahukan kepada mahasiswa/i Seminar Proporsal akan diadakan pada
+          Diberitahukan kepada mahasiswa/i Seminar Proposal akan diadakan pada
           tanggal : Jumat,23-06-2023
         </Text>
         <Text style={styles.textPengumuman}>
@@ -122,7 +126,7 @@ const styles = StyleSheet.create({
   pengumumanTitle: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#0D4C92',
+    color: 'white',
     marginLeft: 8,
   },
   textPengumuman: {

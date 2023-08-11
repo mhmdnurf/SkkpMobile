@@ -28,11 +28,12 @@ const EditPengajuanKP = ({route, navigation}) => {
   const [fileProporsal, setFileProporsal] = useState(null);
   const [fileProporsalPath, setFileProporsalPath] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pengajuanData, setPengajuanData] = useState(null);
   const {itemId} = route.params;
   const user = auth().currentUser;
 
   useEffect(() => {
-    const unsubscribe = firestore()
+    firestore()
       .collection('pengajuanKP')
       .doc(itemId)
       .get()
@@ -40,6 +41,11 @@ const EditPengajuanKP = ({route, navigation}) => {
         if (documentSnapshot.exists) {
           const data = documentSnapshot.data();
           setJudul(data.judul);
+          setTranskipPath(data.transkipNilai);
+          setFormKrsPath(data.formKrs);
+          setPendaftaranKpPath(data.formPendaftaranKP);
+          setSlipPembayaranKpPath(data.slipPembayaranKP);
+          setFileProporsalPath(data.dokumenProporsal);
         } else {
           console.log('Pengajuan tidak ditemukan');
         }
@@ -47,8 +53,6 @@ const EditPengajuanKP = ({route, navigation}) => {
       .catch(error => {
         console.error('Error mengambil data pengajuan:', error);
       });
-
-    return () => unsubscribe();
   }, [itemId]);
 
   const pickerTranskip = async () => {
@@ -194,6 +198,13 @@ const EditPengajuanKP = ({route, navigation}) => {
     const pembayaranKpReference = storage().ref(pembayaranKpFileName);
     const proporsalReference = storage().ref(proporsalFileName);
     try {
+      if (transkipPath) {
+        const oldTranskipReference = storage().ref(
+          `persyaratan/pengajuanKP/transkipNilai/${user.uid}/${transkipPath}`,
+        );
+        console.log(oldTranskipReference);
+        oldTranskipReference.delete();
+      }
       // Proses Transkip Nilai
       const transkipNilaiFilePath = `${RNFS.DocumentDirectoryPath}/${fileTranskipNilai.name}`;
       await RNFS.copyFile(fileTranskipNilai.uri, transkipNilaiFilePath);

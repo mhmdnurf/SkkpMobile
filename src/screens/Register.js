@@ -38,6 +38,7 @@ const Register = ({navigation}) => {
         nomorHP: nomorHP,
         email: email,
         role: 'Mahasiswa',
+        image: 'https://img.freepik.com/free-icon/user_318-563642.jpg?w=360',
       });
 
       navigation.navigate('Login');
@@ -77,9 +78,9 @@ const Register = ({navigation}) => {
           selectedValue={jurusan}
           onValueChange={(itemValue, itemIndex) => setJurusan(itemValue)}>
           <Picker.Item label="Pilih Jurusan" value="" />
-          <Picker.Item label="Teknik Informatika" value="IF" />
-          <Picker.Item label="Sistem Informasi" value="SI" />
-          <Picker.Item label="Komputer Akuntansi" value="KA" />
+          <Picker.Item label="Teknik Informatika" value="Teknik Informatika" />
+          <Picker.Item label="Sistem Informasi" value="Sistem Informasi" />
+          <Picker.Item label="Komputer Akuntansi" value="Komputer Akuntansi" />
         </Picker>
       </View>
       <TextInput

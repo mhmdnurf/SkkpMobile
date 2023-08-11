@@ -1,5 +1,5 @@
 import React from 'react';
-import {StatusBar, View} from 'react-native';
+import {StatusBar} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import Splash from './src/screens/Splash';
@@ -18,7 +18,6 @@ import EditPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/EditPengajuanK
 import AddPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/AddPengajuanSkripsi';
 import DetailPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/DetailPengajuanSkripsi';
 import EditPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/EditPengajuanSkripsi';
-import {AlertNotificationRoot} from 'react-native-alert-notification';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -49,29 +48,7 @@ const MainTabs = () => {
             headerShown: false,
           }}
         />
-        <Tab.Screen
-          name="Pengajuan"
-          component={PengajuanTab}
-          options={{
-            tabBarIcon: ({color, size}) => (
-              <Icon name="hand-paper-o" color={color} size={size} />
-            ),
-            title: 'Pengajuan Proposal',
-            headerStyle: {
-              backgroundColor: '#59C1BD',
-            },
-            headerTintColor: 'white',
-          }}
-        />
-        <Tab.Screen
-          name="Sidang"
-          component={SidangTab}
-          options={{
-            tabBarIcon: ({color, size}) => (
-              <Icon name="calendar-check-o" color={color} size={size} />
-            ),
-          }}
-        />
+
         <Tab.Screen
           name="Notifikasi"
           component={NotifikasiTab}
@@ -116,6 +93,36 @@ const App = () => {
           options={{headerShown: false}}
         />
         <Stack.Screen
+          name="Pengajuan"
+          component={PengajuanTab}
+          options={{
+            tabBarIcon: ({color, size}) => (
+              <Icon name="hand-paper-o" color={color} size={size} />
+            ),
+            title: 'Pengajuan Proposal',
+            headerStyle: {
+              backgroundColor: '#59C1BD',
+            },
+            headerTintColor: 'white',
+            headerShown: 'true',
+          }}
+        />
+        <Stack.Screen
+          name="Sidang"
+          component={SidangTab}
+          options={{
+            tabBarIcon: ({color, size}) => (
+              <Icon name="calendar-check-o" color={color} size={size} />
+            ),
+            title: 'Pendaftaran Sidang',
+            headerStyle: {
+              backgroundColor: '#59C1BD',
+            },
+            headerTintColor: 'white',
+            headerShown: 'true',
+          }}
+        />
+        <Stack.Screen
           name="AddPengajuanKP"
           component={AddPengajuanKP}
           options={{
@@ -132,7 +139,11 @@ const App = () => {
           component={DetailPengajuanKP}
           options={{
             headerShown: true,
-            title: 'Detail Pengajuan KP',
+            title: 'Detail Pengajuan Kerja Praktek',
+            headerStyle: {
+              backgroundColor: '#59C1BD',
+            },
+            headerTintColor: 'white',
           }}
         />
         <Stack.Screen
@@ -149,6 +160,10 @@ const App = () => {
           options={{
             headerShown: true,
             title: 'Buat Pengajuan Skripsi',
+            headerStyle: {
+              backgroundColor: '#59C1BD',
+            },
+            headerTintColor: 'white',
           }}
         />
         <Stack.Screen
