@@ -10,7 +10,7 @@ import DataPendaftar from '../components/DataPendaftar';
 import Pengumuman from '../components/Pengumuman';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
-import Icon from 'react-native-vector-icons/AntDesign';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 
 export default function Home({navigation}) {
   const [userName, setUserName] = useState('');
@@ -37,16 +37,15 @@ export default function Home({navigation}) {
         );
 
         return () => {
-          unsubscribeSnapshot(); // Unsubscribe saat komponen unmount
+          unsubscribeSnapshot();
         };
       } else {
-        // User is logged out, handle accordingly
         setUserName('');
       }
     });
 
     return () => {
-      unsubscribe(); // Unsubscribe saat komponen unmount
+      unsubscribe();
     };
   }, []);
 
@@ -68,35 +67,23 @@ export default function Home({navigation}) {
         <DataPendaftar />
       </View>
       <View style={styles.menuContainer}>
-        <TouchableOpacity
-          style={{
-            backgroundColor: 'white',
-            paddingHorizontal: 20,
-            paddingVertical: 10,
-          }}
-          onPress={handlePengajuan}>
+        <TouchableOpacity style={styles.buttonMenu} onPress={handlePengajuan}>
           <Icon
-            name="copy1"
+            name="file-circle-plus"
             size={30}
             color="#0D4C92"
-            style={{alignSelf: 'center', marginBottom: 5}}
+            style={styles.iconMenu}
           />
           <Text style={styles.iconText}>Pengajuan</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={{
-            backgroundColor: 'white',
-            paddingHorizontal: 30,
-            paddingVertical: 10,
-          }}
-          onPress={handleSidang}>
+        <TouchableOpacity style={styles.buttonMenu} onPress={handleSidang}>
           <Icon
             name="calendar"
             size={30}
             color="#0D4C92"
-            style={{alignSelf: 'center', marginBottom: 5}}
+            style={styles.iconMenu}
           />
-          <Text style={{color: '#0D4C92', fontWeight: 'bold'}}>Sidang</Text>
+          <Text style={styles.iconText}>Sidang</Text>
         </TouchableOpacity>
       </View>
       <Pengumuman />
@@ -121,6 +108,12 @@ const styles = StyleSheet.create({
     elevation: 10,
     borderRadius: 10,
   },
+  buttonMenu: {
+    backgroundColor: 'white',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  iconMenu: {alignSelf: 'center', marginBottom: 5},
   pendaftarContainer: {
     backgroundColor: '#59C1BD',
     paddingBottom: 50,

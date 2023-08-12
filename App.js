@@ -1,5 +1,6 @@
 import React from 'react';
 import {StatusBar} from 'react-native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import Splash from './src/screens/Splash';
@@ -10,8 +11,7 @@ import PengajuanTab from './src/mahasiswa/components/PengajuanTab';
 import SidangTab from './src/mahasiswa/components/SidangTab';
 import NotifikasiTab from './src/components/NotifikasiTab';
 import Menu from './src/screens/Menu';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 import AddPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/AddPengajuanKP';
 import DetailPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/DetailPengajuanKP';
 import EditPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/EditPengajuanKP';
@@ -43,7 +43,7 @@ const MainTabs = () => {
           component={Home}
           options={{
             tabBarIcon: ({color, size}) => (
-              <Icon name="home" color={color} size={size} />
+              <Icon name="house-chimney" color={color} size={size} />
             ),
             headerShown: false,
           }}
@@ -54,7 +54,7 @@ const MainTabs = () => {
           component={NotifikasiTab}
           options={{
             tabBarIcon: ({color, size}) => (
-              <Icon name="bell-o" color={color} size={size} />
+              <Icon name="envelope" color={color} size={size} />
             ),
           }}
         />
@@ -63,7 +63,7 @@ const MainTabs = () => {
           component={Menu}
           options={{
             tabBarIcon: ({color, size}) => (
-              <Icon name="th-list" color={color} size={size} />
+              <Icon name="list" color={color} size={size} />
             ),
           }}
         />

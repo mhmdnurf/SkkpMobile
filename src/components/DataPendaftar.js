@@ -1,12 +1,6 @@
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
+import {View, Text, FlatList, StyleSheet} from 'react-native';
 import React, {useState, useEffect} from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 import firestore from '@react-native-firebase/firestore';
 
 export default function DataPendaftar() {
@@ -14,11 +8,10 @@ export default function DataPendaftar() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPendaftarKP = async () => {
+    const fetchTotalPendaftarKP = async () => {
       try {
         const querySnapshot = await firestore()
-          .collection('pengajuan')
-          .where('jenisProporsal', '==', 'KP')
+          .collectionGroup('pengajuanKP')
           .get();
 
         const totalPendaftar = querySnapshot.size;
@@ -31,14 +24,13 @@ export default function DataPendaftar() {
     };
 
     const unsubscribe = firestore()
-      .collection('pengajuan')
-      .where('jenisProporsal', '==', 'KP')
+      .collectionGroup('pengajuanKP')
       .onSnapshot(snapshot => {
         const totalPendaftar = snapshot.size;
         setTotalPendaftarKP(totalPendaftar);
       });
 
-    fetchPendaftarKP();
+    fetchTotalPendaftarKP();
     return () => {
       unsubscribe();
     };
@@ -48,25 +40,29 @@ export default function DataPendaftar() {
     {
       title: 'Pendaftar Sidang KP',
       number: isLoading ? 'Loading...' : totalPendaftarKP.toString(),
+      iconName: 'briefcase',
     },
     {
       title: 'Pendaftar Sempro',
       number: isLoading ? 'Loading...' : totalPendaftarKP.toString(),
+      iconName: 'copy',
     },
     {
       title: 'Pendaftar Sidang Komprehensif',
       number: isLoading ? 'Loading...' : totalPendaftarKP.toString(),
+      iconName: 'desktop',
     },
     {
       title: 'Pendaftar Sidang Akhir',
       number: isLoading ? 'Loading...' : totalPendaftarKP.toString(),
+      iconName: 'user-graduate',
     },
   ];
 
   const renderItem = ({item}) => (
     <View style={styles.boxContainer}>
       <View style={{alignItems: 'flex-start'}}>
-        <Icon name="user" size={48} color="#A0E4CB" />
+        <Icon name={item.iconName} size={48} color="#A0E4CB" />
       </View>
       <View style={{alignItems: 'flex-end'}}>
         <Text style={styles.textTitle}>{item.title}</Text>

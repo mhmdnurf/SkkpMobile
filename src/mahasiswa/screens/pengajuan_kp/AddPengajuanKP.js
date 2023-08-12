@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import DocumentPicker from 'react-native-document-picker';
@@ -17,6 +17,8 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import RNFS from 'react-native-fs';
 import moment from 'moment-timezone';
+import {launchCamera} from 'react-native-image-picker';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 
 const AddPengajuanKP = ({navigation}) => {
   const [judul, setJudul] = useState('');
@@ -160,7 +162,6 @@ const AddPengajuanKP = ({navigation}) => {
           DocumentPicker.types.docx,
         ],
       });
-      console.log(result);
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
       setFileProporsalPath(selectedFileName);
@@ -174,6 +175,91 @@ const AddPengajuanKP = ({navigation}) => {
       }
     }
   };
+
+  const imagePickerTranskip = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setTranskipPath(selectedFileName);
+        setFileTranskipNilai({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
+  const imagePickerFormKrs = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setFormKrsPath(selectedFileName);
+        setFileFormKrs({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
+  const imagePickerFormKP = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setPendaftaranKpPath(selectedFileName);
+        setFilePendaftaranKp({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
+  const imagePickerSlip = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setSlipPembayaranKpPath(selectedFileName);
+        setSlipPembayaranKp({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     if (
@@ -275,110 +361,132 @@ const AddPengajuanKP = ({navigation}) => {
     });
   };
   return (
-    <KeyboardAvoidingView
-      style={{flex: 1}}
-      behavior="height"
-      keyboardVerticalOffset={0}>
-      <ScrollView
-        contentContainerStyle={{
-          flex: 1,
-          backgroundColor: 'white',
-        }}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.container}>
-          <Text style={styles.inputTitle}>Judul Kerja Praktek*</Text>
-          <TextInput
-            placeholder="Masukkan Judul"
-            style={styles.input}
-            multiline
-            numberOfLines={3}
-            value={judul}
-            onChangeText={text => setJudul(text)}
-          />
-          <Text style={styles.inputTitle}>Transkip Nilai*</Text>
-          <View style={styles.uploadContainer}>
+    <SafeAreaView style={{flex: 1}}>
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior="height"
+        keyboardVerticalOffset={0}>
+        <ScrollView
+          contentContainerStyle={{
+            flex: 1,
+            backgroundColor: 'white',
+          }}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.container}>
+            <Text style={styles.inputTitle}>Judul Kerja Praktek*</Text>
             <TextInput
-              style={styles.fileNameInput}
-              placeholder="..."
-              value={transkipPath}
-              editable={false}
+              placeholder="Masukkan Judul"
+              style={[styles.input, styles.border]}
+              multiline
+              numberOfLines={3}
+              value={judul}
+              onChangeText={text => setJudul(text)}
             />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerTranskip}>
-              <Text style={styles.uploadButtonText}>Upload File</Text>
-            </TouchableOpacity>
+            <Text style={styles.inputTitle}>Transkip Nilai*</Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={transkipPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerTranskip}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerTranskip}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>Form KRS*</Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={formKrsPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerFormKrs}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.uploadButton} onPress={pickerKrs}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>Form Pendaftaran KP*</Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={pendaftaranKpPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerFormKP}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerPendaftaranKp}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>Slip Pembayaran KP*</Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={slipPembayaranKpPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerSlip}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerPembayaran}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>Dokumen Proporsal*</Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={fileProporsalPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerProporsal}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.inputTitle}>Form KRS*</Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={styles.fileNameInput}
-              placeholder="..."
-              value={formKrsPath}
-              editable={false}
-            />
-            <TouchableOpacity style={styles.uploadButton} onPress={pickerKrs}>
-              <Text style={styles.uploadButtonText}>Upload File</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>Form Pendaftaran KP*</Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={styles.fileNameInput}
-              placeholder="..."
-              value={pendaftaranKpPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerPendaftaranKp}>
-              <Text style={styles.uploadButtonText}>Upload File</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>Slip Pembayaran KP*</Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={styles.fileNameInput}
-              placeholder="..."
-              value={slipPembayaranKpPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerPembayaran}>
-              <Text style={styles.uploadButtonText}>Upload File</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>Dokumen Proporsal*</Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={styles.fileNameInput}
-              placeholder="..."
-              value={fileProporsalPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerProporsal}>
-              <Text style={styles.uploadButtonText}>Upload File</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <TouchableOpacity
-          style={[
-            styles.floatingButtonSubmit,
-            isSubmitDisabled && styles.disabledUploadButton,
-          ]}
-          onPress={handleSubmit}
-          disabled={isSubmitDisabled || isSubmitting}>
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text style={styles.uploadButtonText}>Submit</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <TouchableOpacity
+            style={[
+              styles.floatingButtonSubmit,
+              isSubmitDisabled && styles.disabledUploadButton,
+            ]}
+            onPress={handleSubmit}
+            disabled={isSubmitDisabled || isSubmitting}>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.uploadButtonText}>Submit</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -417,6 +525,13 @@ const styles = StyleSheet.create({
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   buttonAction: {
     backgroundColor: '#59C1BD',
@@ -441,12 +556,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   disabledUploadButton: {
-    backgroundColor: '#ccc', // You can adjust this color to your preference
-    // You can also adjust other styles, like opacity, to make it look disabled
+    backgroundColor: '#ccc',
   },
   inputTitle: {
     color: 'black',
     fontWeight: 'bold',
+    marginBottom: 15,
   },
   floatingButtonSubmit: {
     padding: 15,
@@ -462,6 +577,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  border: {
+    borderWidth: 4,
+    borderColor: '#F5F5F5',
   },
 });
 
