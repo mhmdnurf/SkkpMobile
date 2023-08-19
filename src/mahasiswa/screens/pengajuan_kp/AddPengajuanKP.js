@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   SafeAreaView,
+  RefreshControl,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import DocumentPicker from 'react-native-document-picker';
@@ -34,8 +35,20 @@ const AddPengajuanKP = ({navigation}) => {
   const [fileProporsalPath, setFileProporsalPath] = useState('');
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [jadwalPengajuan, setJadwalPengajuan] = useState([]);
 
   useEffect(() => {
+    const unsubscribe = firestore()
+      .collection('jadwalPengajuan')
+      .where('status', '==', 'Aktif')
+      .onSnapshot(querySnapshot => {
+        const data = [];
+        querySnapshot.forEach(doc => {
+          data.push({id: doc.id, ...doc.data()});
+          setJadwalPengajuan(data);
+        });
+      });
+
     if (
       judul !== '' &&
       transkipPath !== '' &&
@@ -48,6 +61,9 @@ const AddPengajuanKP = ({navigation}) => {
     } else {
       setIsSubmitDisabled(true);
     }
+    return () => {
+      unsubscribe();
+    };
   }, [
     judul,
     transkipPath,
@@ -260,6 +276,24 @@ const AddPengajuanKP = ({navigation}) => {
     }
   };
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setJudul('');
+    setFileTranskipNilai(null);
+    setTranskipPath('');
+    setFileFormKrs(null);
+    setFormKrsPath('');
+    setFilePendaftaranKp(null);
+    setPendaftaranKpPath('');
+    setSlipPembayaranKp(null);
+    setSlipPembayaranKpPath('');
+    setFileProporsal(null);
+    setFileProporsalPath('');
+    setRefreshing(false);
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     if (
@@ -327,23 +361,22 @@ const AddPengajuanKP = ({navigation}) => {
         const dokumenProporsal = await proporsalReference.getDownloadURL();
 
         // Push to Firestore
-        const createdDate = moment().tz('Asia/Jakarta').toDate();
-        await firestore()
-          .collection('pengajuan')
-          .doc(user.uid)
-          .collection('pengajuanKP')
-          .add({
-            judul,
-            transkipNilai,
-            formKrs,
-            formPendaftaranKP,
-            slipPembayaranKP,
-            dokumenProporsal,
-            createdAt: createdDate,
-            status: 'Diproses',
-            catatan: '-',
-            dosenPembimbing: '-',
-          });
+        const jadwalId = jadwalPengajuan[0].id;
+        await firestore().collection('pengajuan').add({
+          judul,
+          transkipNilai,
+          formKrs,
+          formPendaftaranKP,
+          slipPembayaranKP,
+          dokumenProporsal,
+          createdAt: new Date(),
+          uid: user.uid,
+          status: 'Belum Diverifikasi',
+          catatan: '-',
+          dosenPembimbing: '-',
+          jenisPengajuan: 'Kerja Praktek',
+          periodePendaftaran: jadwalId,
+        });
         Alert.alert('Sukses', 'Data berhasil diupload!', [
           {text: 'OK', onPress: () => navigation.goBack()},
         ]);
@@ -371,9 +404,14 @@ const AddPengajuanKP = ({navigation}) => {
             flex: 1,
             backgroundColor: 'white',
           }}
-          keyboardShouldPersistTaps="handled">
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }>
           <View style={styles.container}>
-            <Text style={styles.inputTitle}>Judul Kerja Praktek*</Text>
+            <Text style={styles.inputTitle}>
+              Judul Kerja Praktek<Text style={{color: 'red'}}>*</Text>
+            </Text>
             <TextInput
               placeholder="Masukkan Judul"
               style={[styles.input, styles.border]}
@@ -382,7 +420,9 @@ const AddPengajuanKP = ({navigation}) => {
               value={judul}
               onChangeText={text => setJudul(text)}
             />
-            <Text style={styles.inputTitle}>Transkip Nilai*</Text>
+            <Text style={styles.inputTitle}>
+              Transkip Nilai<Text style={{color: 'red'}}>*</Text>
+            </Text>
             <View style={styles.uploadContainer}>
               <TextInput
                 style={[styles.fileNameInput, styles.border]}
@@ -401,7 +441,9 @@ const AddPengajuanKP = ({navigation}) => {
                 <Icon name="file-circle-plus" size={22} color="white" />
               </TouchableOpacity>
             </View>
-            <Text style={styles.inputTitle}>Form KRS*</Text>
+            <Text style={styles.inputTitle}>
+              Form KRS<Text style={{color: 'red'}}>*</Text>
+            </Text>
             <View style={styles.uploadContainer}>
               <TextInput
                 style={[styles.fileNameInput, styles.border]}
@@ -418,7 +460,9 @@ const AddPengajuanKP = ({navigation}) => {
                 <Icon name="file-circle-plus" size={22} color="white" />
               </TouchableOpacity>
             </View>
-            <Text style={styles.inputTitle}>Form Pendaftaran KP*</Text>
+            <Text style={styles.inputTitle}>
+              Form Pendaftaran KP<Text style={{color: 'red'}}>*</Text>
+            </Text>
             <View style={styles.uploadContainer}>
               <TextInput
                 style={[styles.fileNameInput, styles.border]}
@@ -437,7 +481,9 @@ const AddPengajuanKP = ({navigation}) => {
                 <Icon name="file-circle-plus" size={22} color="white" />
               </TouchableOpacity>
             </View>
-            <Text style={styles.inputTitle}>Slip Pembayaran KP*</Text>
+            <Text style={styles.inputTitle}>
+              Slip Pembayaran KP<Text style={{color: 'red'}}>*</Text>
+            </Text>
             <View style={styles.uploadContainer}>
               <TextInput
                 style={[styles.fileNameInput, styles.border]}
@@ -456,7 +502,9 @@ const AddPengajuanKP = ({navigation}) => {
                 <Icon name="file-circle-plus" size={22} color="white" />
               </TouchableOpacity>
             </View>
-            <Text style={styles.inputTitle}>Dokumen Proporsal*</Text>
+            <Text style={styles.inputTitle}>
+              Dokumen Proporsal<Text style={{color: 'red'}}>*</Text>
+            </Text>
             <View style={styles.uploadContainer}>
               <TextInput
                 style={[styles.fileNameInput, styles.border]}

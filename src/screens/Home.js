@@ -10,6 +10,7 @@ import DataPendaftar from '../components/DataPendaftar';
 import Pengumuman from '../components/Pengumuman';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import messaging from '@react-native-firebase/messaging';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 
 export default function Home({navigation}) {

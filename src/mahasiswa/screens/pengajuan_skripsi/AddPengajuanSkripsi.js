@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  RefreshControl,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import DocumentPicker from 'react-native-document-picker';
@@ -16,7 +17,8 @@ import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import RNFS from 'react-native-fs';
-import moment from 'moment-timezone';
+import {launchCamera} from 'react-native-image-picker';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 
 export default function AddPengajuanSkripsi({navigation}) {
   const [topik, setTopik] = useState('');
@@ -33,8 +35,20 @@ export default function AddPengajuanSkripsi({navigation}) {
   const [sertifikatPath, setSertifikatPath] = useState('');
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [jadwalPengajuan, setJadwalPengajuan] = useState([]);
 
   useEffect(() => {
+    const unsubscribe = firestore()
+      .collection('jadwalPengajuan')
+      .where('status', '==', 'Aktif')
+      .onSnapshot(querySnapshot => {
+        const data = [];
+        querySnapshot.forEach(doc => {
+          data.push({id: doc.id, ...doc.data()});
+          setJadwalPengajuan(data);
+        });
+      });
     if (
       topik !== '' &&
       transkipPath !== '' &&
@@ -47,6 +61,9 @@ export default function AddPengajuanSkripsi({navigation}) {
     } else {
       setIsSubmitDisabled(true);
     }
+    return () => {
+      unsubscribe();
+    };
   }, [
     topik,
     transkipPath,
@@ -175,6 +192,68 @@ export default function AddPengajuanSkripsi({navigation}) {
     }
   };
 
+  const imagePickerTranskip = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setTranskipPath(selectedFileName);
+        setFileTranskipNilai({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
+  const imagePickerFormKrs = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setFormKrsPath(selectedFileName);
+        setFileFormKrs({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
+  const imagePickerFormTopik = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setFormTopikPath(selectedFileName);
+        setFormTopik({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
   const handleSubmit = async () => {
     setIsSubmitting(true);
     if (
@@ -247,23 +326,22 @@ export default function AddPengajuanSkripsi({navigation}) {
         const sertifikatPSPT = await sertifikatReference.getDownloadURL();
 
         // Push to Firestore
-        const createdDate = moment().tz('Asia/Jakarta').toDate();
-        await firestore()
-          .collection('pengajuan')
-          .doc(user.uid)
-          .collection('pengajuanSkripsi')
-          .add({
-            topik,
-            formTopik,
-            formKrs,
-            transkipNilai,
-            slipPembayaranSkripsi,
-            sertifikatPSPT,
-            createdAt: createdDate,
-            status: 'Diproses',
-            catatan: '-',
-            dosenPembimbing: '-',
-          });
+        const jadwalId = jadwalPengajuan[0].id;
+        await firestore().collection('pengajuan').add({
+          topik,
+          formTopik,
+          formKrs,
+          transkipNilai,
+          slipPembayaranSkripsi,
+          sertifikatPSPT,
+          createdAt: new Date(),
+          uid: user.uid,
+          status: 'Belum Diverifikasi',
+          catatan: '-',
+          dosenPembimbing: '-',
+          jenisPengajuan: 'Skripsi',
+          periodePendaftaran: jadwalId,
+        });
         Alert.alert('Sukses', 'Data berhasil diupload!', [
           {text: 'OK', onPress: () => navigation.goBack()},
         ]);
@@ -276,21 +354,45 @@ export default function AddPengajuanSkripsi({navigation}) {
     }
   };
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    setTopik('');
+    setFileTranskipNilai(null);
+    setTranskipPath('');
+    setFileFormKrs(null);
+    setFormKrsPath('');
+    setFormTopik(null);
+    setFormTopikPath('');
+    setSlipPembayaranSkripsi(null);
+    setSlipPembayaranSkripsiPath('');
+    setSertifikat(null);
+    setSertifikatPath('');
+    setRefreshing(false);
+  };
+
   return (
     <KeyboardAvoidingView
       style={{flex: 1}}
       behavior="height"
       keyboardVerticalOffset={0}>
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        keyboardShouldPersistTaps="handled">
+        contentContainerStyle={{
+          flex: 1,
+          backgroundColor: 'white',
+        }}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         <View style={styles.container}>
-          <Text style={styles.inputTitle}>Pilih Topik Penelitian*</Text>
+          <Text style={styles.inputTitle}>
+            Topik Penelitian<Text style={{color: 'red'}}>*</Text>
+          </Text>
           <View style={styles.picker}>
             <Picker
               selectedValue={topik}
               onValueChange={(itemValue, itemIndex) => setTopik(itemValue)}>
-              <Picker.Item label="Pilih Jurusan" value="" />
+              <Picker.Item label="Pilih Topik Penelitian" value="" />
               <Picker.Item
                 label="Internet of Things"
                 value="Internet of Things"
@@ -302,70 +404,101 @@ export default function AddPengajuanSkripsi({navigation}) {
               <Picker.Item label="Software Testing" value="Software Testing" />
             </Picker>
           </View>
-          <Text style={styles.inputTitle}>Form Pengajuan Topik*</Text>
+
+          <Text style={styles.inputTitle}>
+            Form Pengajuan Topik<Text style={{color: 'red'}}>*</Text>
+          </Text>
           <View style={styles.uploadContainer}>
             <TextInput
-              style={styles.fileNameInput}
-              placeholder="..."
+              style={[styles.fileNameInput, styles.border]}
+              placeholder="Belum Upload"
               value={formTopikPath}
               editable={false}
             />
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={imagePickerFormTopik}>
+              <Icon name="camera" size={22} color="white" />
+            </TouchableOpacity>
             <TouchableOpacity style={styles.uploadButton} onPress={pickerTopik}>
-              <Text style={styles.uploadButtonText}>Upload File</Text>
+              <Icon name="file-circle-plus" size={22} color="white" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.inputTitle}>Form KRS*</Text>
+          <Text style={styles.inputTitle}>
+            Form KRS<Text style={{color: 'red'}}>*</Text>
+          </Text>
           <View style={styles.uploadContainer}>
             <TextInput
-              style={styles.fileNameInput}
-              placeholder="..."
+              style={[styles.fileNameInput, styles.border]}
+              placeholder="Belum Upload"
               value={formKrsPath}
               editable={false}
             />
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={imagePickerFormKrs}>
+              <Icon name="camera" size={22} color="white" />
+            </TouchableOpacity>
             <TouchableOpacity style={styles.uploadButton} onPress={pickerKrs}>
-              <Text style={styles.uploadButtonText}>Upload File</Text>
+              <Icon name="file-circle-plus" size={22} color="white" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.inputTitle}>Transkip Nilai*</Text>
+          <Text style={styles.inputTitle}>
+            Transkip Nilai<Text style={{color: 'red'}}>*</Text>
+          </Text>
           <View style={styles.uploadContainer}>
             <TextInput
-              style={styles.fileNameInput}
-              placeholder="..."
+              style={[styles.fileNameInput, styles.border]}
+              placeholder="Belum Upload"
               value={transkipPath}
               editable={false}
             />
             <TouchableOpacity
               style={styles.uploadButton}
+              onPress={imagePickerTranskip}>
+              <Icon name="camera" size={22} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.uploadButton}
               onPress={pickerTranskip}>
-              <Text style={styles.uploadButtonText}>Upload File</Text>
+              <Icon name="file-circle-plus" size={22} color="white" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.inputTitle}>Slip Pembayaran KP*</Text>
+          <Text style={styles.inputTitle}>
+            Slip Pembayaran Skripsi<Text style={{color: 'red'}}>*</Text>
+          </Text>
           <View style={styles.uploadContainer}>
             <TextInput
-              style={styles.fileNameInput}
-              placeholder="..."
+              style={[styles.fileNameInput, styles.border]}
+              placeholder="Belum Upload"
               value={slipPembayaranSkripsiPath}
               editable={false}
             />
             <TouchableOpacity
               style={styles.uploadButton}
+              onPress={imagePickerFormKrs}>
+              <Icon name="camera" size={22} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.uploadButton}
               onPress={pickerPembayaran}>
-              <Text style={styles.uploadButtonText}>Upload File</Text>
+              <Icon name="file-circle-plus" size={22} color="white" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.inputTitle}>Sertifikat PSPT*</Text>
+          <Text style={styles.inputTitle}>
+            Sertifikat PSPT<Text style={{color: 'red'}}>*</Text>
+          </Text>
           <View style={styles.uploadContainer}>
             <TextInput
-              style={styles.fileNameInput}
-              placeholder="..."
+              style={[styles.fileNameInput, styles.border]}
+              placeholder="Belum Upload"
               value={sertifikatPath}
               editable={false}
             />
             <TouchableOpacity
               style={styles.uploadButton}
               onPress={pickerSertifikat}>
-              <Text style={styles.uploadButtonText}>Upload File</Text>
+              <Icon name="file-circle-plus" size={22} color="white" />
             </TouchableOpacity>
           </View>
         </View>
@@ -393,15 +526,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 5,
     backgroundColor: 'white',
-  },
-  scrollContainer: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
   },
   input: {
     width: '100%',
@@ -431,6 +555,13 @@ const styles = StyleSheet.create({
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   buttonAction: {
     backgroundColor: '#59C1BD',
@@ -460,13 +591,7 @@ const styles = StyleSheet.create({
   inputTitle: {
     color: 'black',
     fontWeight: 'bold',
-  },
-  picker: {
-    width: '100%',
-    marginBottom: 10,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ccc',
+    marginBottom: 15,
   },
   floatingButtonSubmit: {
     padding: 15,
@@ -482,5 +607,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  border: {
+    borderWidth: 4,
+    borderColor: '#F5F5F5',
+  },
+  picker: {
+    width: '100%',
+    marginBottom: 15,
+    borderRadius: 5,
+    borderWidth: 4,
+    borderColor: '#F5F5F5',
   },
 });

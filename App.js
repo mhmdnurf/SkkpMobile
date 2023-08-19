@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {StatusBar} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
@@ -18,11 +18,28 @@ import EditPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/EditPengajuanK
 import AddPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/AddPengajuanSkripsi';
 import DetailPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/DetailPengajuanSkripsi';
 import EditPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/EditPengajuanSkripsi';
-
+import messaging from '@react-native-firebase/messaging';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const MainTabs = () => {
+const MainTabs = ({navigation}) => {
+  useEffect(() => {
+    messaging()
+      .getToken()
+      .then(token => {
+        console.log(token);
+      })
+      .catch(error => {
+        console.log('Error getting device token:', error);
+      });
+
+    messaging().setBackgroundMessageHandler(async remoteMessage => {
+      console.log('Message handled in the background!', remoteMessage);
+      navigation.navigate('Pengajuan');
+      // Tambahkan logika di sini untuk menampilkan notifikasi atau melakukan tindakan sesuai kebutuhan Anda.
+    });
+  });
+
   return (
     <>
       <StatusBar backgroundColor="#99A98F" barStyle="light-content" />

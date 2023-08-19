@@ -10,13 +10,14 @@ import {
 
 const HomePengajuanSkripsi = ({navigation}) => {
   const [userPengajuanData, setUserPengajuanData] = useState([]);
+  const [jadwalPengajuanData, setJadwalPengajuanData] = useState([]);
   useEffect(() => {
     const user = auth().currentUser;
 
     const unsubscribe = firestore()
       .collection('pengajuan')
-      .doc(user.uid)
-      .collection('pengajuanSkripsi')
+      .where('uid', '==', user.uid)
+      .where('jenisPengajuan', '==', 'Skripsi')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {
@@ -25,23 +26,53 @@ const HomePengajuanSkripsi = ({navigation}) => {
         setUserPengajuanData(data);
       });
 
-    return () => unsubscribe();
+    const unsubscribeJadwal = firestore()
+      .collection('jadwalPengajuan')
+      .where('status', '==', 'Aktif')
+      .onSnapshot(querySnapshot => {
+        const data = [];
+        querySnapshot.forEach(doc => {
+          const jadwalData = doc.data();
+          if (jadwalData.jenisPengajuan.includes('Skripsi')) {
+            data.push(jadwalData);
+          }
+        });
+        setJadwalPengajuanData(data);
+      });
+
+    return () => {
+      unsubscribe();
+      unsubscribeJadwal();
+    };
   }, []);
-  const handleNavigateToAddPengajuanKP = () => {
-    const blockedStatuses = ['Diproses', 'Revisi', 'Sah'];
-    const hasBlockedStatus = userPengajuanData.some(item =>
-      blockedStatuses.includes(item.status),
+  const handleNavigateToAddPengajuanSkripsi = () => {
+    const activeJadwal = jadwalPengajuanData.find(
+      item =>
+        item.status === 'Aktif' && item.jenisPengajuan.includes('Skripsi'),
     );
-    if (hasBlockedStatus) {
+    if (!activeJadwal) {
       Dialog.show({
         type: ALERT_TYPE.WARNING,
         title: 'Peringatan',
-        textBody:
-          'Anda memiliki pengajuan yang sedang diproses. Tunggu hingga pengajuan sebelumnya selesai diproses sebelum membuat pengajuan baru.',
-        button: 'Close',
+        textBody: 'Pengajuan Skripsi belum dibuka saat ini.',
+        button: 'Tutup',
       });
     } else {
-      navigation.navigate('AddPengajuanSkripsi');
+      const blockedStatuses = ['Belum Diverifikasi', 'Ditolak', 'Sah'];
+      const hasBlockedStatus = userPengajuanData.some(item =>
+        blockedStatuses.includes(item.status),
+      );
+      if (hasBlockedStatus) {
+        Dialog.show({
+          type: ALERT_TYPE.WARNING,
+          title: 'Peringatan',
+          textBody:
+            'Anda memiliki pengajuan yang sedang diproses. Tunggu hingga pengajuan sebelumnya selesai diproses sebelum membuat pengajuan baru.',
+          button: 'Tutup',
+        });
+      } else {
+        navigation.navigate('AddPengajuanSkripsi');
+      }
     }
   };
 
@@ -56,12 +87,12 @@ const HomePengajuanSkripsi = ({navigation}) => {
           styles.cardStatus,
           {
             backgroundColor:
-              item.status === 'Diproses'
+              item.status === 'Belum Diverifikasi'
                 ? '#75C2F6'
                 : item.status === 'Sah'
                 ? '#AAFCA5'
-                : item.status === 'Revisi'
-                ? '#F7E987'
+                : item.status === 'Ditolak'
+                ? '#f87171'
                 : '#75C2F6',
           },
         ]}>
@@ -78,16 +109,22 @@ const HomePengajuanSkripsi = ({navigation}) => {
   return (
     <AlertNotificationRoot>
       <View style={styles.container}>
-        <FlatList
-          style={styles.scrollContainer}
-          data={userPengajuanData}
-          keyExtractor={item => item.id}
-          renderItem={renderPengajuanItem}
-        />
+        {userPengajuanData.length > 0 ? (
+          <FlatList
+            style={styles.scrollContainer}
+            data={userPengajuanData}
+            keyExtractor={item => item.id}
+            renderItem={renderPengajuanItem}
+          />
+        ) : (
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataText}>Belum ada Pengajuan</Text>
+          </View>
+        )}
         <View style={styles.wrapperButton}>
           <TouchableOpacity
             style={styles.floatingButton}
-            onPress={handleNavigateToAddPengajuanKP}>
+            onPress={handleNavigateToAddPengajuanSkripsi}>
             {/* <Icon name="plus" color="white" size={24} /> */}
             <Text style={{color: 'white', fontSize: 18}}>Buat Pengajuan</Text>
           </TouchableOpacity>
@@ -149,8 +186,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     padding: 5,
-    maxHeight: 30,
-    maxWidth: 80,
+    minWidth: 30,
+    maxWidth: 200,
     textAlign: 'center',
     borderRadius: 10,
     color: 'white',
@@ -191,6 +228,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noDataText: {
+    fontSize: 24,
+    textAlign: 'center',
+    color: 'gray',
+    fontWeight: 'bold',
   },
 });
 

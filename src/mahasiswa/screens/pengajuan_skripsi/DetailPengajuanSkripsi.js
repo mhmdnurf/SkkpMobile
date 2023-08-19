@@ -23,8 +23,6 @@ const DetailPengajuanSkripsi = ({route, navigation}) => {
   const fetchPengajuanData = () => {
     firestore()
       .collection('pengajuan')
-      .doc(user.uid)
-      .collection('pengajuanSkripsi')
       .doc(itemId)
       .get()
       .then(documentSnapshot => {
@@ -77,12 +75,7 @@ const DetailPengajuanSkripsi = ({route, navigation}) => {
               await storage().ref(sertifikatFileName).delete();
 
               // Menghapus dokumen dari Firestore
-              await firestore()
-                .collection('pengajuan')
-                .doc(user.uid)
-                .collection('pengajuanSkripsi')
-                .doc(itemId)
-                .delete();
+              await firestore().collection('pengajuan').doc(itemId).delete();
 
               Alert.alert('Sukses', 'Data pengajuan berhasil dihapus');
               navigation.navigate('Pengajuan');
@@ -139,9 +132,11 @@ const DetailPengajuanSkripsi = ({route, navigation}) => {
             <Text style={styles.detailTitleText}>Status</Text>
             <Text style={styles.detailText}>{pengajuanData.status}</Text>
             <Text style={styles.detailTitleText}>Catatan</Text>
-            <Text style={styles.detailText}>-</Text>
+            <Text style={styles.detailText}>{pengajuanData.catatan}</Text>
             <Text style={styles.detailTitleText}>Dosen Pembimbing</Text>
-            <Text style={styles.detailText}>Muhammad Nurfatkhur Rahman</Text>
+            <Text style={styles.detailText}>
+              {pengajuanData.dosenPembimbing}
+            </Text>
             <TouchableOpacity
               style={styles.linkButton}
               onPress={() => handleOpenLink(pengajuanData.formTopik)}>

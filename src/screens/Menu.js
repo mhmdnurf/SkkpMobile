@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  Button,
   StyleSheet,
   Image,
   ScrollView,
@@ -49,7 +48,7 @@ export default function Menu({navigation}) {
   };
 
   return (
-    <ScrollView>
+    <ScrollView contentContainerStyle={{backgroundColor: 'white'}}>
       <View style={styles.imageContainer}>
         <Image
           source={{
