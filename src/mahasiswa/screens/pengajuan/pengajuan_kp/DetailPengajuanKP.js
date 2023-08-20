@@ -13,83 +13,168 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
+import {ALERT_TYPE, Dialog} from 'react-native-alert-notification';
 const user = auth().currentUser;
 const DetailPengajuanKP = ({route, navigation}) => {
   const {itemId} = route.params;
   const [pengajuanData, setPengajuanData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [jadwalPengajuanData, setJadwalPengajuanData] = useState([]);
+  const [statusPengajuan, setStatusPengajuan] = useState('');
 
-  const fetchPengajuanData = () => {
-    firestore()
-      .collection('pengajuan')
-      .doc(itemId)
-      .get()
-      .then(documentSnapshot => {
-        if (documentSnapshot.exists) {
-          setPengajuanData(documentSnapshot.data());
-        } else {
-          console.log('Pengajuan tidak ditemukan');
-        }
-        setIsLoading(false);
-        setRefreshing(false); // Set refreshing to false when data is fetched
-      })
-      .catch(error => {
-        console.error('Error mengambil data pengajuan:', error);
-        setIsLoading(false);
-        setRefreshing(false); // Set refreshing to false on error as well
-      });
+  const getUserInfo = async uid => {
+    try {
+      const userDocSnapshot = await firestore()
+        .collection('users')
+        .doc(uid)
+        .get();
+
+      if (userDocSnapshot.exists) {
+        return userDocSnapshot.data();
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+      return null;
+    }
   };
+
+  const fetchPengajuanData = async () => {
+    try {
+      const documentSnapshot = await firestore()
+        .collection('pengajuan')
+        .doc(itemId)
+        .get();
+
+      if (documentSnapshot.exists) {
+        const data = documentSnapshot.data();
+
+        // Mendapatkan nama dosen
+        if (data.dosenPembimbing) {
+          const dosenInfo = await getUserInfo(data.dosenPembimbing);
+          if (dosenInfo) {
+            data.namaDosen = dosenInfo.nama;
+          }
+        }
+
+        setPengajuanData(data);
+        setStatusPengajuan(data.status);
+      } else {
+        console.log('Pengajuan tidak ditemukan');
+      }
+      setIsLoading(false);
+      setRefreshing(false);
+    } catch (error) {
+      console.error('Error mengambil data pengajuan:', error);
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     fetchPengajuanData();
+    const unsubscribeJadwal = firestore()
+      .collection('jadwalPengajuan')
+      .where('status', '==', 'Aktif')
+      .onSnapshot(querySnapshot => {
+        const data = [];
+        querySnapshot.forEach(doc => {
+          const jadwalData = doc.data();
+          if (jadwalData.jenisPengajuan.includes('Kerja Praktek')) {
+            data.push(jadwalData);
+          }
+        });
+        setJadwalPengajuanData(data);
+      });
+    return () => {
+      unsubscribeJadwal();
+    };
   }, [itemId]);
 
   const handleEditButtonPress = () => {
-    navigation.navigate('EditPengajuanKP', {itemId});
+    const activeJadwal = jadwalPengajuanData.find(
+      item =>
+        item.status === 'Aktif' &&
+        item.jenisPengajuan.includes('Kerja Praktek'),
+    );
+    if (!activeJadwal) {
+      Dialog.show({
+        type: ALERT_TYPE.WARNING,
+        title: 'Peringatan',
+        textBody: 'Pengajuan Kerja Praktek belum dibuka saat ini.',
+        button: 'Tutup',
+      });
+    } else if (!activeJadwal && statusPengajuan === 'Ditolak') {
+      Dialog.show({
+        type: ALERT_TYPE.WARNING,
+        title: 'Peringatan',
+        textBody: 'Pengajuan Kerja Praktek belum dibuka saat ini.',
+        button: 'Tutup',
+      });
+    } else if (statusPengajuan === 'Sah') {
+      Dialog.show({
+        type: ALERT_TYPE.WARNING,
+        title: 'Peringatan',
+        textBody: 'Pengajuan anda telah disahkan',
+        button: 'Tutup',
+      });
+    } else {
+      navigation.navigate('EditPengajuanKP', {itemId});
+    }
   };
   const handleDeleteButtonPress = () => {
-    const transkipNilaiFileName = `persyaratan/pengajuanKP/transkipNilai/${user.uid}`;
-    const formKrsFileName = `persyaratan/pengajuanKP/formKRS/${user.uid}`;
-    const pendaftaranKpFileName = `persyaratan/pengajuanKP/formPendaftaranKP/${user.uid}`;
-    const pembayaranKpFileName = `persyaratan/pengajuanKP/slipPembayaranKP/${user.uid}`;
-    const proporsalFileName = `persyaratan/pengajuanKP/proporsalKP/${user.uid}`;
-    Alert.alert(
-      'Konfirmasi Hapus',
-      'Apakah Anda yakin ingin menghapus data pengajuan?',
-      [
-        {
-          text: 'Batal',
-          style: 'cancel',
-        },
-        {
-          text: 'Hapus',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Menghapus file dari Firebase Storage
-              await storage().ref(transkipNilaiFileName).delete();
-              await storage().ref(formKrsFileName).delete();
-              await storage().ref(pendaftaranKpFileName).delete();
-              await storage().ref(pembayaranKpFileName).delete();
-              await storage().ref(proporsalFileName).delete();
-
-              // Menghapus dokumen dari Firestore
-              await firestore().collection('pengajuan').doc(itemId).delete();
-
-              Alert.alert('Sukses', 'Data pengajuan berhasil dihapus');
-              navigation.navigate('Pengajuan');
-            } catch (error) {
-              console.error('Error menghapus data pengajuan:', error);
-              Alert.alert(
-                'Error',
-                'Terjadi kesalahan saat menghapus data pengajuan',
-              );
-            }
+    if (statusPengajuan === 'Sah') {
+      Dialog.show({
+        type: ALERT_TYPE.WARNING,
+        title: 'Peringatan',
+        textBody: 'Pengajuan anda telah disahkan',
+        button: 'Tutup',
+      });
+    } else {
+      const transkipNilaiFileName = `persyaratan/pengajuanKP/transkipNilai/${user.uid}`;
+      const formKrsFileName = `persyaratan/pengajuanKP/formKRS/${user.uid}`;
+      const pendaftaranKpFileName = `persyaratan/pengajuanKP/formPendaftaranKP/${user.uid}`;
+      const pembayaranKpFileName = `persyaratan/pengajuanKP/slipPembayaranKP/${user.uid}`;
+      const proporsalFileName = `persyaratan/pengajuanKP/proporsalKP/${user.uid}`;
+      Alert.alert(
+        'Konfirmasi Hapus',
+        'Apakah Anda yakin ingin menghapus data pengajuan?',
+        [
+          {
+            text: 'Batal',
+            style: 'cancel',
           },
-        },
-      ],
-      {cancelable: true},
-    );
+          {
+            text: 'Hapus',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                // Menghapus file dari Firebase Storage
+                await storage().ref(transkipNilaiFileName).delete();
+                await storage().ref(formKrsFileName).delete();
+                await storage().ref(pendaftaranKpFileName).delete();
+                await storage().ref(pembayaranKpFileName).delete();
+                await storage().ref(proporsalFileName).delete();
+
+                // Menghapus dokumen dari Firestore
+                await firestore().collection('pengajuan').doc(itemId).delete();
+
+                Alert.alert('Sukses', 'Data pengajuan berhasil dihapus');
+                navigation.navigate('Pengajuan');
+              } catch (error) {
+                console.error('Error menghapus data pengajuan:', error);
+                Alert.alert(
+                  'Error',
+                  'Terjadi kesalahan saat menghapus data pengajuan',
+                );
+              }
+            },
+          },
+        ],
+        {cancelable: true},
+      );
+    }
   };
 
   const handleOpenLink = link => {
@@ -134,7 +219,9 @@ const DetailPengajuanKP = ({route, navigation}) => {
             <Text style={styles.detailText}>{pengajuanData.catatan}</Text>
             <Text style={styles.detailTitleText}>Dosen Pembimbing</Text>
             <Text style={styles.detailText}>
-              {pengajuanData.dosenPembimbing}
+              {pengajuanData.namaDosen
+                ? pengajuanData.namaDosen
+                : pengajuanData.dosenPembimbing}
             </Text>
             <TouchableOpacity
               style={styles.linkButton}

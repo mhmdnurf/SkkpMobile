@@ -12,13 +12,15 @@ import SidangTab from './src/mahasiswa/components/SidangTab';
 import NotifikasiTab from './src/components/NotifikasiTab';
 import Menu from './src/screens/Menu';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-import AddPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/AddPengajuanKP';
-import DetailPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/DetailPengajuanKP';
-import EditPengajuanKP from './src/mahasiswa/screens/pengajuan_kp/EditPengajuanKP';
-import AddPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/AddPengajuanSkripsi';
-import DetailPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/DetailPengajuanSkripsi';
-import EditPengajuanSkripsi from './src/mahasiswa/screens/pengajuan_skripsi/EditPengajuanSkripsi';
+import AddPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/AddPengajuanKP';
+import DetailPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/DetailPengajuanKP';
+import EditPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/EditPengajuanKP';
+import AddPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/AddPengajuanSkripsi';
+import DetailPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/DetailPengajuanSkripsi';
+import EditPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/EditPengajuanSkripsi';
 import messaging from '@react-native-firebase/messaging';
+import AddSidangKP from './src/mahasiswa/screens/sidang/sidang_kp/AddSidangKP';
+import DetailSidangKP from './src/mahasiswa/screens/sidang/sidang_kp/DetailSidangKP';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -192,6 +194,18 @@ const App = () => {
           name="EditPengajuanSkripsi"
           component={EditPengajuanSkripsi}
           options={{headerShown: true, title: 'Edit Pengajuan Skripsi'}}
+        />
+
+        {/* Sidang KP */}
+        <Stack.Screen
+          name="AddSidangKP"
+          component={AddSidangKP}
+          options={{headerShown: true, title: 'Daftar Sidang KP'}}
+        />
+        <Stack.Screen
+          name="DetailSidangKP"
+          component={DetailSidangKP}
+          options={{headerShown: true, title: 'Daftar Sidang KP'}}
         />
       </Stack.Navigator>
     </NavigationContainer>

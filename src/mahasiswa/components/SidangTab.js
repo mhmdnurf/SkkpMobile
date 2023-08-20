@@ -1,7 +1,9 @@
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import React from 'react';
-import About from '../../screens/About';
-import Info from '../../screens/Info';
+import HomeSidangKP from '../screens/sidang/sidang_kp/HomeSidangKP';
+import HomeSempro from '../screens/sidang/sidang_sempro/HomeSempro';
+import HomeKompre from '../screens/sidang/sidang_kompre/HomeKompre';
+import HomeSkripsi from '../screens/sidang/sidang_skripsi/HomeSidangSkripsi';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -26,10 +28,10 @@ const SidangTab = () => {
           fontWeight: 'bold',
         },
       }}>
-      <Tab.Screen name="Kerja Praktek" component={About} />
-      <Tab.Screen name="Seminar Proposal" component={Info} />
-      <Tab.Screen name="Sidang Kompre" component={Info} />
-      <Tab.Screen name="Sidang Akhir" component={Info} />
+      <Tab.Screen name="Kerja Praktek" component={HomeSidangKP} />
+      <Tab.Screen name="Seminar Proposal" component={HomeSempro} />
+      <Tab.Screen name="Sidang Kompre" component={HomeKompre} />
+      <Tab.Screen name="Sidang Skripsi" component={HomeSkripsi} />
     </Tab.Navigator>
   );
 };

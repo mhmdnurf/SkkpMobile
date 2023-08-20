@@ -1,9 +1,9 @@
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import React from 'react';
-import PengajuanSkripsi from '../screens/pengajuan_skripsi/HomePengajuanSkripsi';
-import AddPengajuanKP from '../screens/pengajuan_kp/AddPengajuanKP';
-import HomePengajuanKP from '../screens/pengajuan_kp/HomePengajuanKP';
-import HomePengajuanSkripsi from '../screens/pengajuan_skripsi/HomePengajuanSkripsi';
+import PengajuanSkripsi from '../screens/pengajuan/pengajuan_skripsi/HomePengajuanSkripsi';
+import AddPengajuanKP from '../screens/pengajuan/pengajuan_kp/AddPengajuanKP';
+import HomePengajuanKP from '../screens/pengajuan/pengajuan_kp/HomePengajuanKP';
+import HomePengajuanSkripsi from '../screens/pengajuan/pengajuan_skripsi/HomePengajuanSkripsi';
 import {AlertNotificationRoot} from 'react-native-alert-notification';
 const Tab = createMaterialTopTabNavigator();
 

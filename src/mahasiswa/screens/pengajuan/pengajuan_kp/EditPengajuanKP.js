@@ -1,27 +1,25 @@
+import React, {useState, useEffect} from 'react';
 import {
   View,
-  TextInput,
   Text,
   StyleSheet,
-  ScrollView,
+  TextInput,
   TouchableOpacity,
   Alert,
+  ScrollView,
   ActivityIndicator,
-  KeyboardAvoidingView,
   SafeAreaView,
-  RefreshControl,
+  KeyboardAvoidingView,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
-import DocumentPicker from 'react-native-document-picker';
-import storage from '@react-native-firebase/storage';
-import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+import storage from '@react-native-firebase/storage';
+import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
-import moment from 'moment-timezone';
 import {launchCamera} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 
-const AddPengajuanKP = ({navigation}) => {
+const EditPengajuanKP = ({route, navigation}) => {
   const [judul, setJudul] = useState('');
   const [fileTranskipNilai, setFileTranskipNilai] = useState(null);
   const [transkipPath, setTranskipPath] = useState('');
@@ -33,9 +31,9 @@ const AddPengajuanKP = ({navigation}) => {
   const [slipPembayaranKpPath, setSlipPembayaranKpPath] = useState('');
   const [fileProporsal, setFileProporsal] = useState(null);
   const [fileProporsalPath, setFileProporsalPath] = useState('');
-  const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [jadwalPengajuan, setJadwalPengajuan] = useState([]);
+  const {itemId} = route.params;
 
   useEffect(() => {
     const unsubscribe = firestore()
@@ -49,29 +47,30 @@ const AddPengajuanKP = ({navigation}) => {
         });
       });
 
-    if (
-      judul !== '' &&
-      transkipPath !== '' &&
-      formKrsPath !== '' &&
-      pendaftaranKpPath !== '' &&
-      slipPembayaranKpPath !== '' &&
-      fileProporsalPath !== ''
-    ) {
-      setIsSubmitDisabled(false);
-    } else {
-      setIsSubmitDisabled(true);
-    }
+    firestore()
+      .collection('pengajuan')
+      .doc(itemId)
+      .get()
+      .then(documentSnapshot => {
+        if (documentSnapshot.exists) {
+          const data = documentSnapshot.data();
+          setJudul(data.judul);
+          setTranskipPath(data.transkipNilai);
+          setFormKrsPath(data.formKrs);
+          setPendaftaranKpPath(data.formPendaftaranKP);
+          setSlipPembayaranKpPath(data.slipPembayaranKP);
+          setFileProporsalPath(data.dokumenProporsal);
+        } else {
+          console.log('Pengajuan tidak ditemukan');
+        }
+      })
+      .catch(error => {
+        console.error('Error mengambil data pengajuan:', error);
+      });
     return () => {
       unsubscribe();
     };
-  }, [
-    judul,
-    transkipPath,
-    formKrsPath,
-    pendaftaranKpPath,
-    slipPembayaranKpPath,
-    fileProporsalPath,
-  ]);
+  }, [itemId]);
 
   const pickerTranskip = async () => {
     try {
@@ -178,6 +177,7 @@ const AddPengajuanKP = ({navigation}) => {
           DocumentPicker.types.docx,
         ],
       });
+      console.log(result);
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
       setFileProporsalPath(selectedFileName);
@@ -254,7 +254,6 @@ const AddPengajuanKP = ({navigation}) => {
       console.error('ImagePicker Error:', error);
     }
   };
-
   const imagePickerSlip = async () => {
     const options = {
       mediaType: 'photo',
@@ -276,35 +275,10 @@ const AddPengajuanKP = ({navigation}) => {
     }
   };
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    setJudul('');
-    setFileTranskipNilai(null);
-    setTranskipPath('');
-    setFileFormKrs(null);
-    setFormKrsPath('');
-    setFilePendaftaranKp(null);
-    setPendaftaranKpPath('');
-    setSlipPembayaranKp(null);
-    setSlipPembayaranKpPath('');
-    setFileProporsal(null);
-    setFileProporsalPath('');
-    setRefreshing(false);
-  };
-
-  const handleSubmit = async () => {
+  const handleEdit = async () => {
     setIsSubmitting(true);
-    if (
-      fileTranskipNilai &&
-      fileFormKrs &&
-      filePendaftaranKp &&
-      slipPembayaranKp &&
-      fileProporsal
-    ) {
+    try {
       const user = auth().currentUser;
-
       const transkipNilaiFileName = `persyaratan/pengajuanKP/transkipNilai/${user.uid}`;
       const formKrsFileName = `persyaratan/pengajuanKP/formKRS/${user.uid}`;
       const pendaftaranKpFileName = `persyaratan/pengajuanKP/formPendaftaranKP/${user.uid}`;
@@ -315,8 +289,16 @@ const AddPengajuanKP = ({navigation}) => {
       const pendaftaranKpReference = storage().ref(pendaftaranKpFileName);
       const pembayaranKpReference = storage().ref(pembayaranKpFileName);
       const proporsalReference = storage().ref(proporsalFileName);
-      try {
-        // Proses Transkip Nilai
+
+      // Inisialisasi variabel untuk URL dokumen (jika diunggah)
+      let transkipNilai = null;
+      let formKrs = null;
+      let formPendaftaranKP = null;
+      let slipPembayaranKP = null;
+      let dokumenProporsal = null;
+
+      // Proses Transkip Nilai
+      if (fileTranskipNilai) {
         const transkipNilaiFilePath = `${RNFS.DocumentDirectoryPath}/${fileTranskipNilai.name}`;
         await RNFS.copyFile(fileTranskipNilai.uri, transkipNilaiFilePath);
         const transkipNilaiBlob = await RNFS.readFile(
@@ -324,16 +306,20 @@ const AddPengajuanKP = ({navigation}) => {
           'base64',
         );
         await transkipNilaiReference.putString(transkipNilaiBlob, 'base64');
-        const transkipNilai = await transkipNilaiReference.getDownloadURL();
+        transkipNilai = await transkipNilaiReference.getDownloadURL();
+      }
 
-        // Proses Form KRS
+      // Proses Form KRS
+      if (fileFormKrs) {
         const formKrsFilePath = `${RNFS.DocumentDirectoryPath}/${fileFormKrs.name}`;
         await RNFS.copyFile(fileFormKrs.uri, formKrsFilePath);
         const formKrsBlob = await RNFS.readFile(formKrsFilePath, 'base64');
         await formKrsReference.putString(formKrsBlob, 'base64');
-        const formKrs = await formKrsReference.getDownloadURL();
+        formKrs = await formKrsReference.getDownloadURL();
+      }
 
-        // Proses Form Pendaftaran KP
+      // Proses Form Pendaftaran KP
+      if (filePendaftaranKp) {
         const pendaftaranKpFilePath = `${RNFS.DocumentDirectoryPath}/${filePendaftaranKp.name}`;
         await RNFS.copyFile(filePendaftaranKp.uri, pendaftaranKpFilePath);
         const pendaftaranKpBlob = await RNFS.readFile(
@@ -341,9 +327,11 @@ const AddPengajuanKP = ({navigation}) => {
           'base64',
         );
         await pendaftaranKpReference.putString(pendaftaranKpBlob, 'base64');
-        const formPendaftaranKP = await formKrsReference.getDownloadURL();
+        formPendaftaranKP = await pendaftaranKpReference.getDownloadURL();
+      }
 
-        // Proses Slip Pembayaran KP
+      // Proses Slip Pembayaran KP
+      if (slipPembayaranKp) {
         const pembayaranKpFilePath = `${RNFS.DocumentDirectoryPath}/${slipPembayaranKp.name}`;
         await RNFS.copyFile(slipPembayaranKp.uri, pembayaranKpFilePath);
         const pembayaranKpBlob = await RNFS.readFile(
@@ -351,48 +339,55 @@ const AddPengajuanKP = ({navigation}) => {
           'base64',
         );
         await pembayaranKpReference.putString(pembayaranKpBlob, 'base64');
-        const slipPembayaranKP = await formKrsReference.getDownloadURL();
+        slipPembayaranKP = await pembayaranKpReference.getDownloadURL();
+      }
 
-        // Proses Dokumen Proporsal
+      // Proses Dokumen Proporsal
+      if (fileProporsal) {
         const proporsalFilePath = `${RNFS.DocumentDirectoryPath}/${fileProporsal.name}`;
         await RNFS.copyFile(fileProporsal.uri, proporsalFilePath);
         const proporsalBlob = await RNFS.readFile(proporsalFilePath, 'base64');
         await proporsalReference.putString(proporsalBlob, 'base64');
-        const dokumenProporsal = await proporsalReference.getDownloadURL();
-
-        // Push to Firestore
-        const jadwalId = jadwalPengajuan[0].id;
-        await firestore().collection('pengajuan').add({
-          judul,
-          transkipNilai,
-          formKrs,
-          formPendaftaranKP,
-          slipPembayaranKP,
-          dokumenProporsal,
-          createdAt: new Date(),
-          uid: user.uid,
-          status: 'Belum Diverifikasi',
-          catatan: '-',
-          dosenPembimbing: '-',
-          jenisPengajuan: 'Kerja Praktek',
-          periodePendaftaran: jadwalId,
-        });
-        Alert.alert('Sukses', 'Data berhasil diupload!', [
-          {text: 'OK', onPress: () => navigation.goBack()},
-        ]);
-        console.log('Image uploaded successfully');
-        console.log('Image URL: ', transkipNilai);
-      } catch (error) {
-        console.error('Error uploading image:', error);
-      } finally {
-        setIsSubmitting(false);
+        dokumenProporsal = await proporsalReference.getDownloadURL();
       }
-    }
+      const jadwalId = jadwalPengajuan[0].id;
+      // Push to Firestore
+      const updateData = {
+        judul: judul,
+        editedAt: new Date(),
+        status: 'Belum Diverifikasi',
+        periodePendaftaran: jadwalId,
+      };
 
-    console.log('Form data submitted:', {
-      judul,
-    });
+      // Tambahkan URL dokumen jika diunggah
+      if (transkipNilai) {
+        updateData.transkipNilai = transkipNilai;
+      }
+      if (formKrs) {
+        updateData.formKrs = formKrs;
+      }
+      if (formPendaftaranKP) {
+        updateData.formPendaftaranKP = formPendaftaranKP;
+      }
+      if (slipPembayaranKP) {
+        updateData.slipPembayaranKP = slipPembayaranKP;
+      }
+      if (dokumenProporsal) {
+        updateData.dokumenProporsal = dokumenProporsal;
+      }
+
+      await firestore().collection('pengajuan').doc(itemId).update(updateData);
+
+      Alert.alert('Sukses', 'Data pengajuan berhasil diubah');
+      navigation.navigate('Pengajuan');
+    } catch (error) {
+      console.error('Error mengubah data pengajuan:', error);
+      Alert.alert('Error', 'Terjadi kesalahan saat mengubah data pengajuan');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
   return (
     <SafeAreaView style={{flex: 1}}>
       <KeyboardAvoidingView
@@ -404,10 +399,7 @@ const AddPengajuanKP = ({navigation}) => {
             flex: 1,
             backgroundColor: 'white',
           }}
-          keyboardShouldPersistTaps="handled"
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }>
+          keyboardShouldPersistTaps="handled">
           <View style={styles.container}>
             <Text style={styles.inputTitle}>
               Judul Kerja Praktek<Text style={{color: 'red'}}>*</Text>
@@ -520,12 +512,9 @@ const AddPengajuanKP = ({navigation}) => {
             </View>
           </View>
           <TouchableOpacity
-            style={[
-              styles.floatingButtonSubmit,
-              isSubmitDisabled && styles.disabledUploadButton,
-            ]}
-            onPress={handleSubmit}
-            disabled={isSubmitDisabled || isSubmitting}>
+            style={styles.floatingButtonSubmit}
+            onPress={handleEdit}
+            disabled={isSubmitting}>
             {isSubmitting ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
@@ -632,4 +621,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddPengajuanKP;
+export default EditPengajuanKP;
