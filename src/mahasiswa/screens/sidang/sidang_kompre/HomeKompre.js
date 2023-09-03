@@ -16,24 +16,37 @@ const HomeKompre = ({navigation}) => {
     const user = auth().currentUser;
 
     const unsubscribe = firestore()
-      .collection('pengajuan')
-      .where('uid', '==', user.uid)
-      .where('jenisPengajuan', '==', 'Kerja Praktek')
-      .onSnapshot(querySnapshot => {
+      .collection('sidang')
+      .where('user_uid', '==', user.uid)
+      .where('jenisSidang', '==', 'Komprehensif')
+      .onSnapshot(async querySnapshot => {
         const data = [];
-        querySnapshot.forEach(doc => {
-          data.push({id: doc.id, ...doc.data()});
-        });
+        for (const doc of querySnapshot.docs) {
+          const sidangData = doc.data();
+          const pengajuanDoc = await firestore()
+            .collection('pengajuan')
+            .doc(sidangData.pengajuan_uid)
+            .get();
+
+          if (pengajuanDoc.exists) {
+            const pengajuanData = pengajuanDoc.data();
+            data.push({
+              id: doc.id,
+              ...sidangData,
+              topik: pengajuanData.topikPenelitian,
+            });
+          }
+        }
         setUserPengajuanData(data);
       });
     const unsubscribeJadwal = firestore()
-      .collection('jadwalPengajuan')
+      .collection('jadwalSidang')
       .where('status', '==', 'Aktif')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {
           const jadwalData = doc.data();
-          if (jadwalData.jenisPengajuan.includes('Kerja Praktek')) {
+          if (jadwalData.jenisSidang.includes('Komprehensif')) {
             data.push(jadwalData);
           }
         });
@@ -46,21 +59,20 @@ const HomeKompre = ({navigation}) => {
     };
   }, []);
 
-  const handleNavigateToAddPengajuanKP = () => {
+  const handleNavigateToAddKompre = () => {
     const activeJadwal = jadwalPengajuanData.find(
       item =>
-        item.status === 'Aktif' &&
-        item.jenisPengajuan.includes('Kerja Praktek'),
+        item.status === 'Aktif' && item.jenisSidang.includes('Komprehensif'),
     );
     if (!activeJadwal) {
       Dialog.show({
         type: ALERT_TYPE.WARNING,
         title: 'Peringatan',
-        textBody: 'Pengajuan Kerja Praktek belum dibuka saat ini.',
+        textBody: 'Sidang Komprehensif belum dibuka saat ini.',
         button: 'Tutup',
       });
     } else {
-      const blockedStatuses = ['Belum Diverifikasi', 'Ditolak', 'Sah'];
+      const blockedStatuses = ['Belum Diverifikasi', 'Ditolak'];
       const hasBlockedStatus = userPengajuanData.some(item =>
         blockedStatuses.includes(item.status),
       );
@@ -68,18 +80,17 @@ const HomeKompre = ({navigation}) => {
         Dialog.show({
           type: ALERT_TYPE.WARNING,
           title: 'Peringatan',
-          textBody:
-            'Anda memiliki pengajuan yang sedang diproses. Tunggu hingga pengajuan sebelumnya selesai diproses sebelum membuat pengajuan baru.',
+          textBody: 'Anda memiliki pendaftaran yang sedang diproses.',
           button: 'Tutup',
         });
       } else {
-        navigation.navigate('AddPengajuanKP');
+        navigation.navigate('AddKompre');
       }
     }
   };
 
   const handleDetailPress = itemId => {
-    navigation.navigate('DetailPengajuanKP', {itemId});
+    navigation.navigate('DetailKompre', {itemId});
   };
 
   const renderPengajuanItem = ({item}) => (
@@ -90,9 +101,9 @@ const HomeKompre = ({navigation}) => {
           {
             backgroundColor:
               item.status === 'Belum Diverifikasi'
-                ? '#75C2F6'
+                ? '#FFC436'
                 : item.status === 'Sah'
-                ? '#AAFCA5'
+                ? '#A0C49D'
                 : item.status === 'Ditolak'
                 ? '#f87171'
                 : '#75C2F6',
@@ -100,6 +111,9 @@ const HomeKompre = ({navigation}) => {
         ]}>
         {item.status}
       </Text>
+      <Text style={styles.cardTopTitle}>Topik</Text>
+      <Text style={styles.cardTitle}>{item.topik}</Text>
+      <Text style={styles.cardTopTitle}>Judul</Text>
       <Text style={styles.cardTitle}>{item.judul}</Text>
       <TouchableOpacity
         style={styles.detailButton}
@@ -121,14 +135,14 @@ const HomeKompre = ({navigation}) => {
           />
         ) : (
           <View style={styles.noDataContainer}>
-            <Text style={styles.noDataText}>Belum ada Pengajuan</Text>
+            <Text style={styles.noDataText}>Belum ada Pendaftaran</Text>
           </View>
         )}
         <View style={styles.wrapperButton}>
           <TouchableOpacity
             style={styles.floatingButton}
-            onPress={handleNavigateToAddPengajuanKP}>
-            <Text style={{color: 'white', fontSize: 18}}>Buat Pengajuan</Text>
+            onPress={handleNavigateToAddKompre}>
+            <Text style={{color: 'white', fontSize: 18}}>Daftar Sidang</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -140,23 +154,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 10,
+    backgroundColor: 'white',
   },
   scrollContainer: {
     marginTop: 30,
-  },
-  addButton: {
-    backgroundColor: '#59C1BD',
-    padding: 10,
-    width: '50%',
-    margin: 10,
-    marginBottom: 25,
-    marginTop: 15,
-    borderRadius: 5,
-    shadowColor: 'black',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 7,
-    elevation: 5,
   },
   textAddButton: {
     fontSize: 16,
@@ -178,18 +179,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    borderWidth: 2,
+    borderColor: 'whitesmoke',
   },
   cardTitle: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: 18,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    marginBottom: 20,
+    marginTop: 5,
+    color: 'gray',
+  },
+  cardTopTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
     color: 'black',
+    marginTop: 20,
   },
   cardStatus: {
     fontWeight: 'bold',
     marginBottom: 10,
     padding: 5,
-    minWidth: 30,
-    maxWidth: 200,
+    width: 'auto',
     textAlign: 'center',
     borderRadius: 10,
     color: 'white',
@@ -201,7 +213,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   detailButton: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 8,
     borderRadius: 5,
     marginTop: 5,
@@ -220,7 +232,7 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     padding: 15,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {

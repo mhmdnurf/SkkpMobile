@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   RefreshControl,
@@ -19,6 +18,11 @@ import RNFS from 'react-native-fs';
 import {launchCamera} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 import {Picker} from '@react-native-picker/picker';
+import {
+  ALERT_TYPE,
+  AlertNotificationRoot,
+  Dialog,
+} from 'react-native-alert-notification';
 
 const AddSidangKP = ({navigation}) => {
   const [judul, setJudul] = useState('');
@@ -32,8 +36,8 @@ const AddSidangKP = ({navigation}) => {
   const [formBimbinganPath, setFormBimbinganPath] = useState('');
   const [sertifikatSeminar, setSertifikatSeminar] = useState(null);
   const [sertifikatSeminarPath, setSertifikatSeminarPath] = useState('');
-  const [sertifikatPSPT, setSertifikatPSPT] = useState('');
-  const [sertifikatPSPTPath, setSertifikatPSPTPath] = useState(null);
+  const [sertifikatPSPT, setSertifikatPSPT] = useState(null);
+  const [sertifikatPSPTPath, setSertifikatPSPTPath] = useState('');
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [jadwalSidang, setJadwalSidang] = useState([]);
@@ -41,11 +45,10 @@ const AddSidangKP = ({navigation}) => {
   const [userPengajuanData, setUserPengajuanData] = useState([]);
 
   const user = auth().currentUser;
-
   useEffect(() => {
     const unsubscribe = firestore()
       .collection('pengajuan')
-      .where('uid', '==', user.uid)
+      .where('user_uid', '==', user.uid)
       .where('jenisPengajuan', '==', 'Kerja Praktek')
       .onSnapshot(querySnapshot => {
         const data = [];
@@ -471,7 +474,7 @@ const AddSidangKP = ({navigation}) => {
         const sertifikatPSPTFilePath = `${RNFS.DocumentDirectoryPath}/${sertifikatPSPT.name}`;
         await RNFS.copyFile(sertifikatPSPT.uri, sertifikatPSPTFilePath);
         const sertifikatPSPTBlob = await RNFS.readFile(
-          sertifikatSeminarFilePath,
+          sertifikatPSPTFilePath,
           'base64',
         );
         await sertifikatPSPTReference.putString(sertifikatPSPTBlob, 'base64');
@@ -480,41 +483,33 @@ const AddSidangKP = ({navigation}) => {
 
         // Push to Firestore
         const jadwalId = jadwalSidang[0].id;
+        const berkasPersyaratan = {
+          persetujuanKP: persetujuanKP,
+          penilaianPerusahaan: penilaianPerusahaan,
+          formPendaftaranKP: formPendaftaranKP,
+          bimbinganKP: bimbinganKP,
+          fileSertifikatSeminar: fileSertifikatSeminar,
+          fileSertifikatPSPT,
+        };
         await firestore().collection('sidang').add({
-          judul,
-          persetujuanKP,
-          penilaianPerusahaan,
-          formPendaftaranKP,
-          bimbinganKP,
-          fileSertifikatSeminar,
-          fileSertifikatPSPT,
+          pengajuan_uid: judul,
+          berkasPersyaratan,
           createdAt: new Date(),
-          uid: user.uid,
+          user_uid: user.uid,
           status: 'Belum Diverifikasi',
           catatan: '-',
-          dosenPembimbing: '-',
           jenisSidang: 'Kerja Praktek',
-          periodePendaftaran: jadwalId,
+          jadwalSidang_uid: jadwalId,
         });
-        console.log('Form data submitted:', {
-          judul,
-          persetujuanKP,
-          penilaianPerusahaan,
-          formPendaftaranKP,
-          bimbinganKP,
-          fileSertifikatSeminar,
-          fileSertifikatPSPT,
-          createdAt: new Date(),
-          uid: user.uid,
-          status: 'Belum Diverifikasi',
-          catatan: '-',
-          dosenPembimbing: '-',
-          jenisSidang: 'Kerja Praktek',
-          periodePendaftaran: jadwalId,
+        Dialog.show({
+          type: ALERT_TYPE.SUCCESS,
+          title: 'Berhasil',
+          textBody: 'Pendaftaran Sidang Kerja Praktek berhasil dilakukan',
+          button: 'Tutup',
+          onPressButton: () => {
+            navigation.goBack();
+          },
         });
-        Alert.alert('Sukses', 'Data berhasil diupload!', [
-          {text: 'OK', onPress: () => navigation.goBack()},
-        ]);
         console.log('Image uploaded successfully');
         console.log('Image URL: ', persetujuanKP);
       } catch (error) {
@@ -525,182 +520,184 @@ const AddSidangKP = ({navigation}) => {
     }
   };
   return (
-    <KeyboardAvoidingView
-      style={{flex: 1}}
-      behavior="height"
-      keyboardVerticalOffset={0}>
-      <ScrollView
-        contentContainerStyle={{
-          backgroundColor: 'white',
-        }}
-        keyboardShouldPersistTaps="handled"
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <View style={styles.container}>
-          <Text style={styles.inputTitle}>
-            Judul Kerja Praktek<Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.picker}>
-            <Picker
-              selectedValue={judul}
-              onValueChange={(itemValue, itemIndex) => setJudul(itemValue)}>
-              <Picker.Item label="Pilih Judul" value={null} />
-              {userPengajuanData.map(item => (
-                <Picker.Item
-                  key={item.id}
-                  label={item.judul}
-                  value={item.judul}
-                />
-              ))}
-            </Picker>
+    <AlertNotificationRoot>
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior="height"
+        keyboardVerticalOffset={0}>
+        <ScrollView
+          contentContainerStyle={{
+            backgroundColor: 'white',
+          }}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }>
+          <View style={styles.container}>
+            <Text style={styles.inputTitle}>
+              Judul Kerja Praktek<Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.picker}>
+              <Picker
+                selectedValue={judul}
+                onValueChange={(itemValue, itemIndex) => setJudul(itemValue)}>
+                <Picker.Item label="Pilih Judul" value={null} />
+                {userPengajuanData.map(item => (
+                  <Picker.Item
+                    key={item.id}
+                    label={item.judul}
+                    value={item.id}
+                  />
+                ))}
+              </Picker>
+            </View>
+            <Text style={styles.inputTitle}>
+              Form Persetujuan KP<Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={persetujuanPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerPersetujuanKP}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerPersetujuanKP}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Form Penilaian Perusahaan<Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={penilaianPerusahaanPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerNilaiPerusahaan}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerNilaiPerusahaan}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Form Pendaftaran KP<Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={pendaftaranKpPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerFormKP}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerPendaftaranKp}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Form Bimbingan KP<Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={formBimbinganPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerBimbinganKP}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerBimbinganKP}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Sertifikat Seminar STTI (2 Sertifikat)
+              <Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={sertifikatSeminarPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerSertifikatSeminar}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerSertifikatSeminar}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Sertifikat PSPT
+              <Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={sertifikatPSPTPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerSertifikatPSPT}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerSertifikatPSPT}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.inputTitle}>
-            Form Persetujuan KP<Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={persetujuanPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerPersetujuanKP}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerPersetujuanKP}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Form Penilaian Perusahaan<Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={penilaianPerusahaanPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerNilaiPerusahaan}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerNilaiPerusahaan}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Form Pendaftaran KP<Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={pendaftaranKpPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerFormKP}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerPendaftaranKp}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Form Bimbingan KP<Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={formBimbinganPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerBimbinganKP}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerBimbinganKP}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Sertifikat Seminar STTI (2 Sertifikat)
-            <Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={sertifikatSeminarPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerSertifikatSeminar}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerSertifikatSeminar}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Sertifikat PSPT
-            <Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={sertifikatPSPTPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerSertifikatPSPT}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerSertifikatPSPT}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
+        </ScrollView>
+        <View style={styles.btnSubmitContainer}>
+          <TouchableOpacity
+            style={[
+              styles.floatingButtonSubmit,
+              isSubmitDisabled && styles.disabledUploadButton,
+            ]}
+            onPress={handleSubmit}
+            disabled={isSubmitDisabled || isSubmitting}>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.uploadButtonText}>Submit</Text>
+            )}
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-      <View style={styles.btnSubmitContainer}>
-        <TouchableOpacity
-          style={[
-            styles.floatingButtonSubmit,
-            isSubmitDisabled && styles.disabledUploadButton,
-          ]}
-          onPress={handleSubmit}
-          disabled={isSubmitDisabled || isSubmitting}>
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text style={styles.uploadButtonText}>Submit</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </AlertNotificationRoot>
   );
 };
 
@@ -735,7 +732,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   uploadButton: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -748,7 +745,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   buttonAction: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -779,7 +776,7 @@ const styles = StyleSheet.create({
   },
   floatingButtonSubmit: {
     padding: 15,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     borderRadius: 10,
     shadowColor: '#000',
     marginVertical: 30,

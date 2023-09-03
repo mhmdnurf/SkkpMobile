@@ -17,59 +17,32 @@ import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {launchCamera} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-import {Picker} from '@react-native-picker/picker';
 import {
   ALERT_TYPE,
   AlertNotificationRoot,
   Dialog,
 } from 'react-native-alert-notification';
 
-const EditPengajuanSkripsi = ({route, navigation}) => {
-  const [fileFormTopik, setFormTopik] = useState(null);
-  const [formTopikPath, setFormTopikPath] = useState('');
-  const [fileFormKrs, setFileFormKrs] = useState(null);
-  const [formKrsPath, setFormKrsPath] = useState('');
+const EditSempro = ({route, navigation}) => {
+  const [judul, setJudul] = useState('');
   const [fileTranskipNilai, setFileTranskipNilai] = useState(null);
   const [transkipPath, setTranskipPath] = useState('');
-  const [fileSlipPembayaranSkripsi, setSlipPembayaranSkripsi] = useState(null);
-  const [slipPembayaranSkripsiPath, setSlipPembayaranSkripsiPath] =
-    useState('');
-  const [sertifikatPSPT, setSertifikatPSPT] = useState(null);
-  const [sertifikatPSPTPath, setSertifikatPSPTPath] = useState('');
+  const [filePendaftaranSempro, setFilePendaftaranSempro] = useState(null);
+  const [pendaftaranSemproPath, setPendaftaranSemproPath] = useState('');
+  const [filePersetujuanSempro, setFilePersetujuanSempro] = useState(null);
+  const [persetujuanPath, setPersetujuanPath] = useState('');
+  const [sertifikatKeahlian, setSertifikatKeahlian] = useState(null);
+  const [sertifikatKeahlianPath, setSertifikatKeahlianPath] = useState('');
+  const [formMenghadiriSidang, setFormMenghadiriSidang] = useState(null);
+  const [menghadiriSidangPath, setMenghadiriSidangPath] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [jadwalPengajuan, setJadwalPengajuan] = useState([]);
-  const [topikPenelitianOptions, setTopikPenelitianOptions] = useState([]);
-  const [pilihTopik, setPilihTopik] = useState('');
-  const [userJurusan, setUserJurusan] = useState('');
-  const [berkasPersyaratan, setBerkasPersyaratan] = useState('');
+  const [berkasPersyaratan, setBerkasPersyaratan] = useState({});
   const {itemId} = route.params;
-  useEffect(() => {
-    firestore()
-      .collection('pengajuan')
-      .doc(itemId)
-      .get()
-      .then(documentSnapshot => {
-        if (documentSnapshot.exists) {
-          const data = documentSnapshot.data();
-          setPilihTopik(data.topikPenelitian);
-          setBerkasPersyaratan(data.berkasPersyaratan);
-          setTranskipPath(data.berkasPersyaratan.transkipNilai);
-          setFormKrsPath(data.berkasPersyaratan.formKrs);
-          setFormTopikPath(data.berkasPersyaratan.formTopik);
-          setSlipPembayaranSkripsiPath(
-            data.berkasPersyaratan.slipPembayaranSkripsi,
-          );
-          setSertifikatPSPTPath(data.berkasPersyaratan.fileSertifikatPSPT);
-        } else {
-          console.log('Pengajuan tidak ditemukan');
-        }
-      })
-      .catch(error => {
-        console.error('Error mengambil data pengajuan:', error);
-      });
 
+  useEffect(() => {
     const unsubscribe = firestore()
-      .collection('jadwalPengajuan')
+      .collection('jadwalSidang')
       .where('status', '==', 'Aktif')
       .onSnapshot(querySnapshot => {
         const data = [];
@@ -79,36 +52,35 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
         });
       });
 
-    const unsubscribeUser = auth().onAuthStateChanged(async user => {
-      if (user) {
-        // Dapatkan data pengguna dari Firestore berdasarkan UID
-        const userDoc = await firestore()
-          .collection('users')
-          .doc(user.uid)
-          .get();
-        setUserJurusan(userDoc.data().jurusan); // Ambil informasi jurusan
-
-        // Simpan data pengguna dalam state
-      }
-    });
-    const unsubscribeTopik = firestore()
-      .collection('topikPenelitian')
-      .where('prodiTopik', 'array-contains', userJurusan)
-      .onSnapshot(querySnapshot => {
-        const topics = [];
-        querySnapshot.forEach(doc => {
-          topics.push(doc.data());
-        });
-        setTopikPenelitianOptions(topics);
+    firestore()
+      .collection('sidang')
+      .doc(itemId)
+      .get()
+      .then(documentSnapshot => {
+        if (documentSnapshot.exists) {
+          const data = documentSnapshot.data();
+          setJudul(data.judul);
+          setBerkasPersyaratan(data.berkasPersyaratan);
+          setTranskipPath(data.berkasPersyaratan.transkipNilai);
+          setPendaftaranSemproPath(data.berkasPersyaratan.pendaftaranSempro);
+          setPersetujuanPath(data.berkasPersyaratan.persetujuanSempro);
+          setSertifikatKeahlianPath(
+            data.berkasPersyaratan.fileSertifikatKeahlian,
+          );
+          setMenghadiriSidangPath(data.berkasPersyaratan.fileMenghadiriSidang);
+        } else {
+          console.log('Pengajuan tidak ditemukan');
+        }
+      })
+      .catch(error => {
+        console.error('Error mengambil data pengajuan:', error);
       });
     return () => {
       unsubscribe();
-      unsubscribeTopik();
-      unsubscribeUser();
     };
-  }, [itemId, userJurusan]);
+  }, [itemId]);
 
-  const pickerTranskip = async () => {
+  const pickerTranskipNilai = async () => {
     try {
       const result = await DocumentPicker.pick({
         type: [
@@ -131,7 +103,8 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       }
     }
   };
-  const pickerTopik = async () => {
+
+  const pickerPendaftaranSempro = async () => {
     try {
       const result = await DocumentPicker.pick({
         type: [
@@ -143,8 +116,8 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       console.log(result);
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
-      setFormTopikPath(selectedFileName);
-      setFormTopik({uri: selectedFile, name: result[0]});
+      setPendaftaranSemproPath(selectedFileName);
+      setFilePendaftaranSempro({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -155,7 +128,7 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
     }
   };
 
-  const pickerKrs = async () => {
+  const pickerPersetujuanSempro = async () => {
     try {
       const result = await DocumentPicker.pick({
         type: [
@@ -167,8 +140,8 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       console.log(result);
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
-      setFormKrsPath(selectedFileName);
-      setFileFormKrs({uri: selectedFile, name: result[0]});
+      setPersetujuanPath(selectedFileName);
+      setFilePersetujuanSempro({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -179,7 +152,7 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
     }
   };
 
-  const pickerPembayaran = async () => {
+  const pickerSertifikatKeahlian = async () => {
     try {
       const result = await DocumentPicker.pick({
         type: [
@@ -191,8 +164,8 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       console.log(result);
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
-      setSlipPembayaranSkripsiPath(selectedFileName);
-      setSlipPembayaranSkripsi({uri: selectedFile, name: result[0]});
+      setSertifikatKeahlianPath(selectedFileName);
+      setSertifikatKeahlian({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -203,7 +176,7 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
     }
   };
 
-  const pickerSertifikat = async () => {
+  const pickerMenghadiriSidang = async () => {
     try {
       const result = await DocumentPicker.pick({
         type: [
@@ -212,11 +185,10 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
           DocumentPicker.types.docx,
         ],
       });
-      console.log(result);
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
-      setSertifikatPSPTPath(selectedFileName);
-      setSertifikatPSPT({uri: selectedFile, name: result[0]});
+      setMenghadiriSidangPath(selectedFileName);
+      setFormMenghadiriSidang({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -227,11 +199,31 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
     }
   };
 
-  const imagePickerTranskip = async () => {
+  const imagePickerTranskipNilai = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5,
-      cameraType: 'back',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setPersetujuanPath(selectedFileName);
+        setFilePersetujuanSempro({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
+  const imagePickerPendaftaranSempro = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
     };
     try {
       const response = await launchCamera(options);
@@ -249,11 +241,10 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
     }
   };
 
-  const imagePickerFormKrs = async () => {
+  const imagePickerPersetujuanSempro = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5,
-      cameraType: 'back',
+      quality: 0.5, // Kualitas gambar (0 - 1)
     };
     try {
       const response = await launchCamera(options);
@@ -262,8 +253,8 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setFormKrsPath(selectedFileName);
-        setFileFormKrs({uri: selectedFile, name: selectedFileName});
+        setPendaftaranSemproPath(selectedFileName);
+        setFilePendaftaranSempro({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -271,11 +262,10 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
     }
   };
 
-  const imagePickerSertifikatPSPT = async () => {
+  const imagePickerSertifikatKeahlian = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5,
-      cameraType: 'back',
+      quality: 0.5, // Kualitas gambar (0 - 1)
     };
     try {
       const response = await launchCamera(options);
@@ -284,8 +274,8 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setSertifikatPSPTPath(selectedFileName);
-        setSertifikatPSPT({uri: selectedFile, name: selectedFileName});
+        setSertifikatKeahlianPath(selectedFileName);
+        setSertifikatKeahlian({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -293,11 +283,10 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
     }
   };
 
-  const imagePickerFormTopik = async () => {
+  const imagePickerMenghadiriSidang = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5,
-      cameraType: 'back',
+      quality: 0.5, // Kualitas gambar (0 - 1)
     };
     try {
       const response = await launchCamera(options);
@@ -306,29 +295,8 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setFormTopikPath(selectedFileName);
-        setFormTopik({uri: selectedFile, name: selectedFileName});
-        console.log('Selected Image URI:', selectedFile);
-      }
-    } catch (error) {
-      console.error('ImagePicker Error:', error);
-    }
-  };
-  const imagePickerPembayaran = async () => {
-    const options = {
-      mediaType: 'photo',
-      quality: 0.5,
-      cameraType: 'back',
-    };
-    try {
-      const response = await launchCamera(options);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else {
-        const selectedFile = response.assets[0].uri;
-        const selectedFileName = response.assets[0].fileName;
-        setSlipPembayaranSkripsiPath(selectedFileName);
-        setSlipPembayaranSkripsi({uri: selectedFile, name: selectedFileName});
+        setMenghadiriSidangPath(selectedFileName);
+        setFormMenghadiriSidang({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -338,30 +306,32 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
 
   const handleEdit = async () => {
     setIsSubmitting(true);
-
     try {
       const user = auth().currentUser;
-      const transkipNilaiFileName = `persyaratan/pengajuanSkripsi/transkipNilai/${user.uid}`;
-      const formKrsFileName = `persyaratan/pengajuanSkripsi/formKRS/${user.uid}`;
-      const formTopikFileName = `persyaratan/pengajuanSkripsi/formTopik/${user.uid}`;
-      const pembayaranSkripsiFileName = `persyaratan/pengajuanSkripsi/slipPembayaranSkripsi/${user.uid}`;
-      const sertifikatFileName = `persyaratan/pengajuanSkripsi/sertifikatPSPT/${user.uid}`;
+      const transkipNilaiFileName = `persyaratan/sidangSempro/transkipNilai/${user.uid}`;
+      const pendaftaranSemproFileName = `persyaratan/sidangSempro/formPendaftaran/${user.uid}`;
+      const persetujuanSemproFileName = `persyaratan/sidangSempro/formPersetujuan/${user.uid}`;
+      const sertifikatKeahlianFileName = `persyaratan/sidangSempro/sertifikatKeahlian/${user.uid}`;
+      const menghadiriSidangFileName = `persyaratan/sidangSempro/formMenghadiriSidang/${user.uid}`;
+
       const transkipNilaiReference = storage().ref(transkipNilaiFileName);
-      const formKrsReference = storage().ref(formKrsFileName);
-      const formTopikReference = storage().ref(formTopikFileName);
-      const pembayaranSkripsiReference = storage().ref(
-        pembayaranSkripsiFileName,
+      const pendaftaranSemproReference = storage().ref(
+        pendaftaranSemproFileName,
       );
-      const sertifikatReference = storage().ref(sertifikatFileName);
+      const persetujuanSemproReference = storage().ref(
+        persetujuanSemproFileName,
+      );
+      const sertifikatKeahlianReference = storage().ref(
+        sertifikatKeahlianFileName,
+      );
+      const menghadiriSidangReference = storage().ref(menghadiriSidangFileName);
 
-      // Inisialisasi variabel untuk URL dokumen (jika diunggah)
       let transkipNilai = null;
-      let formKrs = null;
-      let formTopik = null;
-      let slipPembayaranSkripsi = null;
-      let fileSertifikatPSPT = null;
+      let pendaftaranSempro = null;
+      let persetujuanSempro = null;
+      let fileSertifikatKeahlian = null;
+      let fileMenghadiriSidang = null;
 
-      // Proses Transkip Nilai
       if (fileTranskipNilai) {
         const transkipNilaiFilePath = `${RNFS.DocumentDirectoryPath}/${fileTranskipNilai.name}`;
         await RNFS.copyFile(fileTranskipNilai.uri, transkipNilaiFilePath);
@@ -373,102 +343,115 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
         transkipNilai = await transkipNilaiReference.getDownloadURL();
       }
 
-      // Proses Form KRS
-      if (fileFormKrs) {
-        const formKrsFilePath = `${RNFS.DocumentDirectoryPath}/${fileFormKrs.name}`;
-        await RNFS.copyFile(fileFormKrs.uri, formKrsFilePath);
-        const formKrsBlob = await RNFS.readFile(formKrsFilePath, 'base64');
-        await formKrsReference.putString(formKrsBlob, 'base64');
-        formKrs = await formKrsReference.getDownloadURL();
-      }
-
-      // Proses Form Pendaftaran KP
-      if (fileFormTopik) {
-        const formTopikFilePath = `${RNFS.DocumentDirectoryPath}/${fileFormTopik.name}`;
-        await RNFS.copyFile(fileFormTopik.uri, formTopikFilePath);
-        const topikBlob = await RNFS.readFile(formTopikFilePath, 'base64');
-        await formTopikReference.putString(topikBlob, 'base64');
-        formTopik = await formTopikReference.getDownloadURL();
-      }
-
-      // Proses Slip Pembayaran KP
-      if (fileSlipPembayaranSkripsi) {
-        const pembayaranSkripsiFilePath = `${RNFS.DocumentDirectoryPath}/${fileSlipPembayaranSkripsi.name}`;
+      if (filePendaftaranSempro) {
+        // Proses Form Pendaftaran Seminar Proposal
+        const pendaftaranSemproFilePath = `${RNFS.DocumentDirectoryPath}/${filePendaftaranSempro.name}`;
         await RNFS.copyFile(
-          fileSlipPembayaranSkripsi.uri,
-          pembayaranSkripsiFilePath,
+          filePendaftaranSempro.uri,
+          pendaftaranSemproFilePath,
         );
-        const pembayaranSkripsiBlob = await RNFS.readFile(
-          pembayaranSkripsiFilePath,
+        const pendaftaranSemproBlob = await RNFS.readFile(
+          pendaftaranSemproFilePath,
           'base64',
         );
-        await pembayaranSkripsiReference.putString(
-          pembayaranSkripsiBlob,
+        await pendaftaranSemproReference.putString(
+          pendaftaranSemproBlob,
           'base64',
         );
-        slipPembayaranSkripsi =
-          await pembayaranSkripsiReference.getDownloadURL();
+        pendaftaranSempro = await pendaftaranSemproReference.getDownloadURL();
       }
 
-      // Proses Dokumen Proporsal
-      if (sertifikatPSPT) {
-        const sertifikatFilePath = `${RNFS.DocumentDirectoryPath}/${sertifikatPSPT.name}`;
-        await RNFS.copyFile(sertifikatPSPT.uri, sertifikatFilePath);
-        const proporsalBlob = await RNFS.readFile(sertifikatFilePath, 'base64');
-        await sertifikatReference.putString(proporsalBlob, 'base64');
-        fileSertifikatPSPT = await sertifikatReference.getDownloadURL();
+      if (filePersetujuanSempro) {
+        // Proses Form Persetujuan Sempro
+        const persetujuanSemproFilePath = `${RNFS.DocumentDirectoryPath}/${filePersetujuanSempro.name}`;
+        await RNFS.copyFile(
+          filePersetujuanSempro.uri,
+          persetujuanSemproFilePath,
+        );
+        const persetujuanSemproBlob = await RNFS.readFile(
+          persetujuanSemproFilePath,
+          'base64',
+        );
+        await persetujuanSemproReference.putString(
+          persetujuanSemproBlob,
+          'base64',
+        );
+        persetujuanSempro = await persetujuanSemproReference.getDownloadURL();
+      }
+
+      if (fileSertifikatKeahlian) {
+        // Proses Sertifikat Keahlian
+        const sertifikatKeahlianFilePath = `${RNFS.DocumentDirectoryPath}/${sertifikatKeahlian.name}`;
+        await RNFS.copyFile(sertifikatKeahlian.uri, sertifikatKeahlianFilePath);
+        const sertifikatKeahlianBlob = await RNFS.readFile(
+          sertifikatKeahlianFilePath,
+          'base64',
+        );
+        await sertifikatKeahlianReference.putString(
+          sertifikatKeahlianBlob,
+          'base64',
+        );
+        fileSertifikatKeahlian =
+          await sertifikatKeahlianReference.getDownloadURL();
+      }
+
+      if (fileMenghadiriSidang) {
+        // Proses Form Menghadiri Sidang
+        const menghadiriSidangFilePath = `${RNFS.DocumentDirectoryPath}/${formMenghadiriSidang.name}`;
+        await RNFS.copyFile(formMenghadiriSidang.uri, menghadiriSidangFilePath);
+        const menghadiriSidangBlob = await RNFS.readFile(
+          menghadiriSidangFilePath,
+          'base64',
+        );
+        await menghadiriSidangReference.putString(
+          menghadiriSidangBlob,
+          'base64',
+        );
+        fileMenghadiriSidang = await menghadiriSidangReference.getDownloadURL();
       }
       const jadwalId = jadwalPengajuan[0].id;
-      // Push to Firestore
       const updateData = {
-        topikPenelitian: pilihTopik,
+        judul: judul,
         editedAt: new Date(),
         status: 'Belum Diverifikasi',
-        jadwalPengajuan_uid: jadwalId,
+        jadwalSidang_uid: jadwalId,
         berkasPersyaratan: {
           transkipNilai: berkasPersyaratan.transkipNilai,
-          formKrs: berkasPersyaratan.formKrs,
-          formTopik: berkasPersyaratan.formTopik,
-          slipPembayaranSkripsi: berkasPersyaratan.slipPembayaranSkripsi,
-          fileSertifikatPSPT: berkasPersyaratan.fileSertifikatPSPT,
+          pendaftaranSempro: berkasPersyaratan.pendaftaranSempro,
+          persetujuanSempro: berkasPersyaratan.persetujuanSempro,
+          fileSertifikatKeahlian: berkasPersyaratan.fileSertifikatKeahlian,
+          fileMenghadiriSidang: berkasPersyaratan.fileMenghadiriSidang,
         },
       };
 
-      // Tambahkan URL dokumen jika diunggah
       if (transkipNilai) {
         updateData.berkasPersyaratan.transkipNilai = transkipNilai;
       }
-      if (formKrs) {
-        updateData.berkasPersyaratan.formKrs = formKrs;
+      if (pendaftaranSempro) {
+        updateData.berkasPersyaratan.pendaftaranSempro = pendaftaranSempro;
       }
-      if (formTopik) {
-        updateData.berkasPersyaratan.formTopik = formTopik;
+      if (persetujuanSempro) {
+        updateData.berkasPersyaratan.persetujuanSempro = persetujuanSempro;
       }
-      if (slipPembayaranSkripsi) {
-        updateData.berkasPersyaratan.slipPembayaranSkripsi =
-          slipPembayaranSkripsi;
+      if (fileSertifikatKeahlian) {
+        updateData.berkasPersyaratan.fileSertifikatKeahlian =
+          fileSertifikatKeahlian;
       }
-      if (fileSertifikatPSPT) {
-        updateData.berkasPersyaratan.fileSertifikatPSPT = fileSertifikatPSPT;
+      if (fileMenghadiriSidang) {
+        updateData.berkasPersyaratan.fileMenghadiriSidang =
+          fileMenghadiriSidang;
       }
-
-      await firestore().collection('pengajuan').doc(itemId).update(updateData);
-
+      await firestore().collection('sidang').doc(itemId).update(updateData);
       Dialog.show({
         type: ALERT_TYPE.SUCCESS,
         title: 'Berhasil',
-        textBody: 'Data pengajuan Skripsi berhasil diubah',
+        textBody: 'Data Seminar Proposal berhasil diubah',
         button: 'Tutup',
         onPressButton: () => {
-          navigation.navigate('Pengajuan');
+          navigation.navigate('Sidang');
         },
       });
-    } catch (error) {
-      console.error('Error mengubah data pengajuan:', error);
-      Alert.alert('Error', 'Terjadi kesalahan saat mengubah data pengajuan');
-    } finally {
-      setIsSubmitting(false);
-    }
+    } catch (error) {}
   };
 
   return (
@@ -479,71 +462,25 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
         keyboardVerticalOffset={0}>
         <ScrollView
           contentContainerStyle={{
-            flex: 1,
             backgroundColor: 'white',
           }}
           keyboardShouldPersistTaps="handled">
           <View style={styles.container}>
             <Text style={styles.inputTitle}>
-              Topik Penelitian<Text style={{color: 'red'}}>*</Text>
-            </Text>
-            <View style={styles.picker}>
-              <Picker
-                selectedValue={pilihTopik}
-                onValueChange={itemValue => setPilihTopik(itemValue)}>
-                <Picker.Item label="Pilih Topik Penelitian" value="" />
-                {topikPenelitianOptions.map(option => (
-                  <Picker.Item
-                    key={option.namaTopik}
-                    label={option.namaTopik}
-                    value={option.namaTopik}
-                  />
-                ))}
-              </Picker>
-            </View>
-
-            <Text style={styles.inputTitle}>
-              Form Pengajuan Topik<Text style={{color: 'red'}}>*</Text>
+              Judul<Text style={styles.star}>*</Text>
             </Text>
             <View style={styles.uploadContainer}>
               <TextInput
-                style={[styles.fileNameInput, styles.border]}
-                placeholder="Belum Upload"
-                value={formTopikPath}
-                editable={false}
+                placeholder="Masukkan Judul"
+                style={[styles.input, styles.border]}
+                multiline
+                numberOfLines={3}
+                value={judul}
+                onChangeText={text => setJudul(text)}
               />
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={imagePickerFormTopik}>
-                <Icon name="camera" size={22} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={pickerTopik}>
-                <Icon name="file-circle-plus" size={22} color="white" />
-              </TouchableOpacity>
             </View>
             <Text style={styles.inputTitle}>
-              Form KRS<Text style={{color: 'red'}}>*</Text>
-            </Text>
-            <View style={styles.uploadContainer}>
-              <TextInput
-                style={[styles.fileNameInput, styles.border]}
-                placeholder="Belum Upload"
-                value={formKrsPath}
-                editable={false}
-              />
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={imagePickerFormKrs}>
-                <Icon name="camera" size={22} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.uploadButton} onPress={pickerKrs}>
-                <Icon name="file-circle-plus" size={22} color="white" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.inputTitle}>
-              Transkip Nilai<Text style={{color: 'red'}}>*</Text>
+              Transkip Sementara<Text style={styles.star}>*</Text>
             </Text>
             <View style={styles.uploadContainer}>
               <TextInput
@@ -554,60 +491,109 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
               />
               <TouchableOpacity
                 style={styles.uploadButton}
-                onPress={imagePickerTranskip}>
+                onPress={imagePickerTranskipNilai}>
                 <Icon name="camera" size={22} color="white" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.uploadButton}
-                onPress={pickerTranskip}>
+                onPress={pickerTranskipNilai}>
                 <Icon name="file-circle-plus" size={22} color="white" />
               </TouchableOpacity>
             </View>
             <Text style={styles.inputTitle}>
-              Slip Pembayaran Skripsi<Text style={{color: 'red'}}>*</Text>
+              Form Pendaftaran Seminar Proposal
+              <Text style={styles.star}>*</Text>
             </Text>
             <View style={styles.uploadContainer}>
               <TextInput
                 style={[styles.fileNameInput, styles.border]}
                 placeholder="Belum Upload"
-                value={slipPembayaranSkripsiPath}
+                value={pendaftaranSemproPath}
                 editable={false}
               />
               <TouchableOpacity
                 style={styles.uploadButton}
-                onPress={imagePickerPembayaran}>
+                onPress={imagePickerPendaftaranSempro}>
                 <Icon name="camera" size={22} color="white" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.uploadButton}
-                onPress={pickerPembayaran}>
+                onPress={pickerPendaftaranSempro}>
                 <Icon name="file-circle-plus" size={22} color="white" />
               </TouchableOpacity>
             </View>
+
             <Text style={styles.inputTitle}>
-              Sertifikat PSPT<Text style={{color: 'red'}}>*</Text>
+              Form Persetujuan Seminar Proposal
+              <Text style={styles.star}>*</Text>
             </Text>
             <View style={styles.uploadContainer}>
               <TextInput
                 style={[styles.fileNameInput, styles.border]}
                 placeholder="Belum Upload"
-                value={sertifikatPSPTPath}
+                value={persetujuanPath}
                 editable={false}
               />
               <TouchableOpacity
                 style={styles.uploadButton}
-                onPress={imagePickerSertifikatPSPT}>
+                onPress={imagePickerPersetujuanSempro}>
                 <Icon name="camera" size={22} color="white" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.uploadButton}
-                onPress={pickerSertifikat}>
+                onPress={pickerPersetujuanSempro}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.inputTitle}>
+              Sertifikat Keahlian (3 Sertifikat)
+              <Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={sertifikatKeahlianPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerSertifikatKeahlian}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerSertifikatKeahlian}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.inputTitle}>
+              Form Menghadiri Sidang
+              <Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={menghadiriSidangPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerMenghadiriSidang}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerMenghadiriSidang}>
                 <Icon name="file-circle-plus" size={22} color="white" />
               </TouchableOpacity>
             </View>
           </View>
           <TouchableOpacity
-            style={[styles.floatingButtonSubmit]}
+            style={styles.floatingButtonSubmit}
             onPress={handleEdit}
             disabled={isSubmitting}>
             {isSubmitting ? (
@@ -721,6 +707,12 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#F5F5F5',
   },
+  btnSubmitContainer: {
+    backgroundColor: 'white',
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  star: {color: 'red'},
 });
 
-export default EditPengajuanSkripsi;
+export default EditSempro;

@@ -25,16 +25,15 @@ export default function Splash({navigation}) {
 
   return (
     <View style={styles.root}>
-      <View style={styles.imageContainer}>
-        <Image
-          source={{
-            uri: 'https://sttindonesia.ac.id/wp-content/uploads/2021/01/Logo-STTI-Tanjungpinang.png',
-          }}
-          style={{
-            width: 250,
-            height: 260,
-          }}
-        />
+      <View style={styles.imageRoot}>
+        <View style={styles.imageContainer}>
+          <Image
+            source={{
+              uri: 'https://sttindonesia.ac.id/wp-content/uploads/2021/01/Logo-STTI-Tanjungpinang.png',
+            }}
+            style={styles.imageStyling}
+          />
+        </View>
       </View>
       <View style={styles.textContainer}>
         <View style={styles.textWrapper}>
@@ -50,11 +49,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#7895CB',
   },
+  imageRoot: {},
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 4,
+    borderColor: 'whitesmoke',
+    padding: 40,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    shadowColor: 'black',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.2,
+    shadowRadius: 7,
+    elevation: 5,
+  },
+  imageStyling: {
+    width: 150,
+    height: 150,
+    resizeMode: 'contain',
   },
   textContainer: {
     position: 'absolute',
@@ -70,7 +85,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'black',
+    color: 'white',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,

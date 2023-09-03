@@ -16,7 +16,7 @@ const HomePengajuanSkripsi = ({navigation}) => {
 
     const unsubscribe = firestore()
       .collection('pengajuan')
-      .where('uid', '==', user.uid)
+      .where('user_uid', '==', user.uid)
       .where('jenisPengajuan', '==', 'Skripsi')
       .onSnapshot(querySnapshot => {
         const data = [];
@@ -88,9 +88,9 @@ const HomePengajuanSkripsi = ({navigation}) => {
           {
             backgroundColor:
               item.status === 'Belum Diverifikasi'
-                ? '#75C2F6'
+                ? '#FFC436'
                 : item.status === 'Sah'
-                ? '#AAFCA5'
+                ? '#A0C49D'
                 : item.status === 'Ditolak'
                 ? '#f87171'
                 : '#75C2F6',
@@ -98,7 +98,8 @@ const HomePengajuanSkripsi = ({navigation}) => {
         ]}>
         {item.status}
       </Text>
-      <Text style={styles.cardTitle}>{item.topik}</Text>
+      <Text style={styles.cardTopTitle}>Topik</Text>
+      <Text style={styles.cardTitle}>{item.topikPenelitian}</Text>
       <TouchableOpacity
         style={styles.detailButton}
         onPress={() => handleDetailPress(item.id)}>
@@ -138,23 +139,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 10,
+    backgroundColor: 'white',
   },
   scrollContainer: {
     marginTop: 30,
-  },
-  addButton: {
-    backgroundColor: '#59C1BD',
-    padding: 10,
-    width: '50%',
-    margin: 10,
-    marginBottom: 25,
-    marginTop: 15,
-    borderRadius: 5,
-    shadowColor: 'black',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 7,
-    elevation: 5,
   },
   textAddButton: {
     fontSize: 16,
@@ -176,18 +164,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    borderWidth: 2,
+    borderColor: 'whitesmoke',
   },
   cardTitle: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: 18,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    marginBottom: 20,
+    marginTop: 5,
+    color: 'gray',
+  },
+  cardTopTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
     color: 'black',
+    marginTop: 20,
   },
   cardStatus: {
     fontWeight: 'bold',
     marginBottom: 10,
     padding: 5,
-    minWidth: 30,
-    maxWidth: 200,
+    width: 'auto',
     textAlign: 'center',
     borderRadius: 10,
     color: 'white',
@@ -199,7 +198,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   detailButton: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 8,
     borderRadius: 5,
     marginTop: 5,
@@ -218,7 +217,7 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     padding: 15,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {
@@ -241,5 +240,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
 export default HomePengajuanSkripsi;

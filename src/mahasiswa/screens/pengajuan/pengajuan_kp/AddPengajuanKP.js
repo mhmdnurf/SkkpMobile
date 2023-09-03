@@ -5,10 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
-  SafeAreaView,
   RefreshControl,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
@@ -19,6 +17,11 @@ import firestore from '@react-native-firebase/firestore';
 import RNFS from 'react-native-fs';
 import {launchCamera} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/FontAwesome6';
+import {
+  ALERT_TYPE,
+  AlertNotificationRoot,
+  Dialog,
+} from 'react-native-alert-notification';
 
 const AddPengajuanKP = ({navigation}) => {
   const [judul, setJudul] = useState('');
@@ -191,7 +194,8 @@ const AddPengajuanKP = ({navigation}) => {
   const imagePickerTranskip = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
+      quality: 0.5,
+      cameraType: 'back',
     };
     try {
       const response = await launchCamera(options);
@@ -212,7 +216,8 @@ const AddPengajuanKP = ({navigation}) => {
   const imagePickerFormKrs = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
+      quality: 0.5,
+      cameraType: 'back',
     };
     try {
       const response = await launchCamera(options);
@@ -233,7 +238,8 @@ const AddPengajuanKP = ({navigation}) => {
   const imagePickerFormKP = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
+      quality: 0.5,
+      cameraType: 'back',
     };
     try {
       const response = await launchCamera(options);
@@ -254,7 +260,8 @@ const AddPengajuanKP = ({navigation}) => {
   const imagePickerSlip = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
+      quality: 0.5,
+      cameraType: 'back',
     };
     try {
       const response = await launchCamera(options);
@@ -352,28 +359,38 @@ const AddPengajuanKP = ({navigation}) => {
         await RNFS.copyFile(fileProporsal.uri, proporsalFilePath);
         const proporsalBlob = await RNFS.readFile(proporsalFilePath, 'base64');
         await proporsalReference.putString(proporsalBlob, 'base64');
-        const dokumenProporsal = await proporsalReference.getDownloadURL();
+        const dokumenProposal = await proporsalReference.getDownloadURL();
+
+        const berkasPersyaratan = {
+          transkipNilai: transkipNilai,
+          formKrs: formKrs,
+          formPendaftaranKP: formPendaftaranKP,
+          slipPembayaranKP: slipPembayaranKP,
+          dokumenProposal: dokumenProposal,
+        };
 
         // Push to Firestore
         const jadwalId = jadwalPengajuan[0].id;
         await firestore().collection('pengajuan').add({
           judul,
-          transkipNilai,
-          formKrs,
-          formPendaftaranKP,
-          slipPembayaranKP,
-          dokumenProporsal,
+          berkasPersyaratan,
           createdAt: new Date(),
-          uid: user.uid,
+          user_uid: user.uid,
           status: 'Belum Diverifikasi',
           catatan: '-',
-          dosenPembimbing: '-',
+          pembimbing_uid: '-',
           jenisPengajuan: 'Kerja Praktek',
-          periodePendaftaran: jadwalId,
+          jadwalPengajuan_uid: jadwalId,
         });
-        Alert.alert('Sukses', 'Data berhasil diupload!', [
-          {text: 'OK', onPress: () => navigation.goBack()},
-        ]);
+        Dialog.show({
+          type: ALERT_TYPE.SUCCESS,
+          title: 'Berhasil',
+          textBody: 'Pengajuan Kerja Praktek berhasil dilakukan',
+          button: 'Tutup',
+          onPressButton: () => {
+            navigation.goBack();
+          },
+        });
         console.log('Image uploaded successfully');
         console.log('Image URL: ', transkipNilai);
       } catch (error) {
@@ -388,7 +405,7 @@ const AddPengajuanKP = ({navigation}) => {
     });
   };
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <AlertNotificationRoot>
       <KeyboardAvoidingView
         style={{flex: 1}}
         behavior="height"
@@ -528,7 +545,7 @@ const AddPengajuanKP = ({navigation}) => {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </AlertNotificationRoot>
   );
 };
 
@@ -563,7 +580,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   uploadButton: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -576,7 +593,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   buttonAction: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -607,7 +624,7 @@ const styles = StyleSheet.create({
   },
   floatingButtonSubmit: {
     padding: 15,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     borderRadius: 10,
     shadowColor: '#000',
     marginVertical: 30,
@@ -621,6 +638,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   border: {
+    borderWidth: 4,
+    borderColor: '#F5F5F5',
+  },
+  picker: {
+    width: '100%',
+    marginBottom: 15,
+    borderRadius: 5,
     borderWidth: 4,
     borderColor: '#F5F5F5',
   },

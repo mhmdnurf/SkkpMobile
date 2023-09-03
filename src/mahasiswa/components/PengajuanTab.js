@@ -21,7 +21,7 @@ const PengajuanTab = () => {
           height: 2,
         },
         tabBarStyle: {
-          backgroundColor: '#59C1BD',
+          backgroundColor: '#7895CB',
         },
         tabBarLabelStyle: {
           color: 'white',

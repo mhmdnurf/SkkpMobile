@@ -4,57 +4,150 @@ import Icon from 'react-native-vector-icons/FontAwesome6';
 import firestore from '@react-native-firebase/firestore';
 
 export default function DataPendaftar() {
-  const [totalPendaftarKP, setTotalPendaftarKP] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [jumlahPendaftarKP, setJumlahPendaftarKP] = useState(0);
+  const [jumlahPendaftarSempro, setJumlahPendaftarSempro] = useState(0);
+  const [jumlahPendaftarKompre, setJumlahPendaftarKompre] = useState(0);
+  const [jumlahPendaftarSkripsi, setJumlahPendaftarSkripsi] = useState(0);
 
-  useEffect(() => {
-    const fetchTotalPendaftarKP = async () => {
-      try {
-        const querySnapshot = await firestore()
-          .collectionGroup('pengajuanKP')
-          .get();
+  const fetchKerjaPraktek = () => {
+    const jadwalSidangRef = firestore().collection('jadwalSidang');
+    const sidangRef = firestore().collection('sidang');
 
-        const totalPendaftar = querySnapshot.size;
-        setTotalPendaftarKP(totalPendaftar);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setIsLoading(false);
-      }
-    };
+    const unsubscribeKP = jadwalSidangRef
+      .where('status', '==', 'Aktif')
+      .onSnapshot(querySnapshot => {
+        const kerjaPraktekUIDs = querySnapshot.docs
+          .filter(doc => doc.data().jenisSidang.includes('Kerja Praktek'))
+          .map(doc => doc.id);
 
-    const unsubscribe = firestore()
-      .collectionGroup('pengajuanKP')
-      .onSnapshot(snapshot => {
-        const totalPendaftar = snapshot.size;
-        setTotalPendaftarKP(totalPendaftar);
+        sidangRef
+          .where('jenisSidang', '==', 'Kerja Praktek')
+          .onSnapshot(queryKerjaPraktek => {
+            const periodePendaftaran = queryKerjaPraktek.docs
+              .filter(doc =>
+                kerjaPraktekUIDs.includes(doc.data().jadwalSidang_uid),
+              )
+              .map(doc => doc.data().periodePendaftaran);
+
+            setJumlahPendaftarKP(periodePendaftaran.length);
+            setIsLoading(false);
+          });
       });
 
-    fetchTotalPendaftarKP();
+    return unsubscribeKP; // Mengembalikan fungsi untuk berhenti berlangganan
+  };
+
+  const fetchSempro = () => {
+    const jadwalSidangRef = firestore().collection('jadwalSidang');
+    const sidangRef = firestore().collection('sidang');
+
+    const unsubscribeSempro = jadwalSidangRef
+      .where('status', '==', 'Aktif')
+      .onSnapshot(querySnapshot => {
+        const semproUIDs = querySnapshot.docs
+          .filter(doc => doc.data().jenisSidang.includes('Seminar Proposal'))
+          .map(doc => doc.id);
+
+        sidangRef
+          .where('jenisSidang', '==', 'Seminar Proposal')
+          .onSnapshot(querySempro => {
+            const periodePendaftaran = querySempro.docs
+              .filter(doc => semproUIDs.includes(doc.data().jadwalSidang_uid))
+              .map(doc => doc.data().periodePendaftaran);
+
+            setJumlahPendaftarSempro(periodePendaftaran.length);
+            setIsLoading(false);
+          });
+      });
+
+    return unsubscribeSempro; // Mengembalikan fungsi untuk berhenti berlangganan
+  };
+
+  const fetchKompre = () => {
+    const jadwalSidangRef = firestore().collection('jadwalSidang');
+    const sidangRef = firestore().collection('sidang');
+
+    const unsubscribeKompre = jadwalSidangRef
+      .where('status', '==', 'Aktif')
+      .onSnapshot(querySnapshot => {
+        const kompreUIDs = querySnapshot.docs
+          .filter(doc => doc.data().jenisSidang.includes('Komprehensif'))
+          .map(doc => doc.id);
+
+        sidangRef
+          .where('jenisSidang', '==', 'Komprehensif')
+          .onSnapshot(queryKompre => {
+            const periodePendaftaran = queryKompre.docs
+              .filter(doc => kompreUIDs.includes(doc.data().jadwalSidang_uid))
+              .map(doc => doc.data().periodePendaftaran);
+
+            setJumlahPendaftarKompre(periodePendaftaran.length);
+            setIsLoading(false);
+          });
+      });
+
+    return unsubscribeKompre; // Mengembalikan fungsi untuk berhenti berlangganan
+  };
+
+  const fetchSkripsi = () => {
+    const jadwalSidangRef = firestore().collection('jadwalSidang');
+    const sidangRef = firestore().collection('sidang');
+
+    const unsubscribeSkripsi = jadwalSidangRef
+      .where('status', '==', 'Aktif')
+      .onSnapshot(querySnapshot => {
+        const skripsiUIDs = querySnapshot.docs
+          .filter(doc => doc.data().jenisSidang.includes('Skripsi'))
+          .map(doc => doc.id);
+
+        sidangRef
+          .where('jenisSidang', '==', 'Skripsi')
+          .onSnapshot(querySkripsi => {
+            const periodePendaftaran = querySkripsi.docs
+              .filter(doc => skripsiUIDs.includes(doc.data().jadwalSidang_uid))
+              .map(doc => doc.data().periodePendaftaran);
+
+            setJumlahPendaftarSkripsi(periodePendaftaran.length);
+            setIsLoading(false);
+          });
+      });
+
+    return unsubscribeSkripsi; // Mengembalikan fungsi untuk berhenti berlangganan
+  };
+
+  useEffect(() => {
+    const unsubscribeKP = fetchKerjaPraktek();
+    const unsubscribeSempro = fetchSempro();
+    const unsubscribeKompre = fetchKompre();
+    const unsubscribeSkripsi = fetchSkripsi();
     return () => {
-      unsubscribe();
+      unsubscribeKP();
+      unsubscribeSempro();
+      unsubscribeKompre();
+      unsubscribeSkripsi();
     };
   }, []);
 
   const data = [
     {
       title: 'Pendaftar Sidang KP',
-      number: isLoading ? 'Loading...' : totalPendaftarKP.toString(),
+      number: isLoading ? 'Loading...' : jumlahPendaftarKP.toString(),
       iconName: 'briefcase',
     },
     {
       title: 'Pendaftar Sempro',
-      number: isLoading ? 'Loading...' : totalPendaftarKP.toString(),
+      number: isLoading ? 'Loading...' : jumlahPendaftarSempro.toString(),
       iconName: 'copy',
     },
     {
       title: 'Pendaftar Sidang Komprehensif',
-      number: isLoading ? 'Loading...' : totalPendaftarKP.toString(),
+      number: isLoading ? 'Loading...' : jumlahPendaftarKompre.toString(),
       iconName: 'desktop',
     },
     {
       title: 'Pendaftar Sidang Akhir',
-      number: isLoading ? 'Loading...' : totalPendaftarKP.toString(),
+      number: isLoading ? 'Loading...' : jumlahPendaftarSkripsi.toString(),
       iconName: 'user-graduate',
     },
   ];
@@ -62,7 +155,7 @@ export default function DataPendaftar() {
   const renderItem = ({item}) => (
     <View style={styles.boxContainer}>
       <View style={{alignItems: 'flex-start'}}>
-        <Icon name={item.iconName} size={48} color="#A0E4CB" />
+        <Icon name={item.iconName} size={48} color="#A0BFE0" />
       </View>
       <View style={{alignItems: 'flex-end'}}>
         <Text style={styles.textTitle}>{item.title}</Text>
@@ -99,6 +192,6 @@ const styles = StyleSheet.create({
     shadowRadius: 7,
     elevation: 10,
   },
-  textTitle: {fontSize: 24, color: '#0D4C92', fontWeight: 'bold'},
-  textNumber: {fontSize: 36, color: '#0D4C92', fontWeight: 'bold'},
+  textTitle: {fontSize: 24, color: '#4A55A2', fontWeight: 'bold'},
+  textNumber: {fontSize: 36, color: '#4A55A2', fontWeight: 'bold'},
 });

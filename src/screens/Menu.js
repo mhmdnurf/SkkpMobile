@@ -15,20 +15,32 @@ export default function Menu({navigation}) {
   const [userData, setUserData] = useState([]);
 
   useEffect(() => {
-    const user = auth().currentUser;
-    if (user) {
-      const userRef = firestore().collection('users').doc(user.uid);
-      const unsubscribe = userRef.onSnapshot(doc => {
-        if (doc.exists) {
-          const data = doc.data();
-          setUserData(data);
-        } else {
-          console.log('Document not found');
-        }
-      });
+    const unsubscribe = auth().onAuthStateChanged(user => {
+      if (user) {
+        const userUid = user.uid;
+        const userRef = firestore().collection('users').doc(userUid);
 
-      return () => unsubscribe();
-    }
+        const unsubscribeSnapshot = userRef.onSnapshot(
+          doc => {
+            if (doc.exists) {
+              const data = doc.data();
+              setUserData(data);
+              // console.log('Data from Firestore:', data);
+            } else {
+              console.log('No such document!');
+            }
+          },
+          error => {
+            console.log('Error fetching document:', error);
+          },
+        );
+
+        return () => {
+          unsubscribe();
+          unsubscribeSnapshot();
+        };
+      }
+    });
   }, []);
 
   const handleSignOut = async () => {
@@ -62,19 +74,29 @@ export default function Menu({navigation}) {
       </View>
       <View style={styles.profileContainer}>
         <View style={styles.profileBox}>
-          <View style={styles.profileContent}>
-            <Text style={styles.profileTitle}>Profile</Text>
-            <Text style={styles.textTitleProfile}>NIM</Text>
-            <Text style={styles.textContent}>{userData.nim}</Text>
-            <Text style={styles.textTitleProfile}>Jurusan</Text>
-            <Text style={styles.textContent}>{userData.jurusan}</Text>
-            <Text style={styles.textTitleProfile}>Email</Text>
-            <Text style={styles.textContent}>{userData.email}</Text>
-            <Text style={styles.textTitleProfile}>Nomor HP</Text>
-            <Text style={styles.textContent}>{userData.nomorHP}</Text>
+          <Text style={styles.profileTitle}>Profile</Text>
+          <Text style={styles.textTitleProfile}>NIM</Text>
+          <Text style={styles.textContent}>{userData.nim}</Text>
+          <Text style={styles.textTitleProfile}>Jurusan</Text>
+          <Text style={styles.textContent}>{userData.jurusan}</Text>
+          <Text style={styles.textTitleProfile}>Email</Text>
+          <Text style={styles.textContent}>{userData.email}</Text>
+          <Text style={styles.textTitleProfile}>Nomor HP</Text>
+          <Text style={styles.textContent}>{userData.nomorHP}</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <TouchableOpacity
+              // onPress={}
+              style={[styles.buttonContainer]}>
+              <Text style={styles.buttonText}>Ubah Password</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={handleSignOut}
-              style={styles.buttonContainer}>
+              style={[styles.buttonLogoutContainer]}>
               <Text style={styles.buttonText}>Logout</Text>
             </TouchableOpacity>
           </View>
@@ -87,7 +109,7 @@ export default function Menu({navigation}) {
 const styles = StyleSheet.create({
   imageContainer: {
     height: 300,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -119,6 +141,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 150,
   },
   profileBox: {
     width: 375,
@@ -150,11 +173,24 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   buttonContainer: {
-    paddingHorizontal: 50,
+    paddingHorizontal: 30,
     paddingVertical: 10,
     margin: 25,
-    alignSelf: 'center',
-    backgroundColor: '#59C1BD',
+    // alignSelf: 'center',
+    backgroundColor: '#7895CB',
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  buttonLogoutContainer: {
+    paddingHorizontal: 30,
+    paddingVertical: 10,
+    margin: 25,
+    // alignSelf: 'center',
+    backgroundColor: '#BB2525',
     borderRadius: 5,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},

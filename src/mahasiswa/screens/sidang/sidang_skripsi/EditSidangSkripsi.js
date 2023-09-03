@@ -17,9 +17,9 @@ import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {launchCamera} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-import {ALERT_TYPE, Dialog} from 'react-native-alert-notification';
 
-const EditSidangKP = ({route, navigation}) => {
+const EditSidangSkripsi = ({route, navigation}) => {
+  const [judul, setJudul] = useState('');
   const [filePersetujuanKP, setFilePersetujuanKP] = useState(null);
   const [persetujuanPath, setPersetujuanPath] = useState('');
   const [filePenilaianPerusahaan, setFilePenilaianPerusahaan] = useState(null);
@@ -34,7 +34,6 @@ const EditSidangKP = ({route, navigation}) => {
   const [sertifikatPSPTPath, setSertifikatPSPTPath] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [jadwalPengajuan, setJadwalPengajuan] = useState([]);
-  const [berkasPersyaratan, setBerkasPersyaratan] = useState({});
   const {itemId} = route.params;
 
   useEffect(() => {
@@ -56,17 +55,13 @@ const EditSidangKP = ({route, navigation}) => {
       .then(documentSnapshot => {
         if (documentSnapshot.exists) {
           const data = documentSnapshot.data();
-          setBerkasPersyaratan(data.berkasPersyaratan);
-          setPersetujuanPath(data.berkasPersyaratan.persetujuanKP);
-          setPenilaianPerusahaanPath(
-            data.berkasPersyaratan.penilaianPerusahaan,
-          );
-          setPendaftaranKpPath(data.berkasPersyaratan.formPendaftaranKP);
-          setFormBimbinganPath(data.berkasPersyaratan.bimbinganKP);
-          setSertifikatSeminarPath(
-            data.berkasPersyaratan.fileSertifikatSeminar,
-          );
-          setSertifikatPSPTPath(data.berkasPersyaratan.fileSertifikatPSPT);
+          setJudul(data.judul);
+          setPersetujuanPath(data.persetujuanKP);
+          setPenilaianPerusahaanPath(data.penilaianPerusahaan);
+          setPendaftaranKpPath(data.formPendaftaranKP);
+          setFormBimbinganPath(data.bimbinganKP);
+          setSertifikatSeminarPath(data.fileSertifikatSeminar);
+          setSertifikatPSPTPath(data.fileSertifikatPSPT);
         } else {
           console.log('Pengajuan tidak ditemukan');
         }
@@ -464,48 +459,32 @@ const EditSidangKP = ({route, navigation}) => {
         editedAt: new Date(),
         status: 'Belum Diverifikasi',
         jadwalSidang_uid: jadwalId,
-        berkasPersyaratan: {
-          persetujuanKP: berkasPersyaratan.persetujuanKP,
-          penilaianPerusahaan: berkasPersyaratan.penilaianPerusahaan,
-          formPendaftaranKP: berkasPersyaratan.formPendaftaranKP,
-          bimbinganKP: berkasPersyaratan.bimbinganKP,
-          fileSertifikatSeminar: berkasPersyaratan.fileSertifikatSeminar,
-          fileSertifikatPSPT: berkasPersyaratan.fileSertifikatPSPT,
-        },
       };
 
       // Tambahkan URL dokumen jika diunggah
       if (persetujuanKP) {
-        updateData.berkasPersyaratan.persetujuanKP = persetujuanKP;
+        updateData.persetujuanKP = persetujuanKP;
       }
       if (penilaianPerusahaan) {
-        updateData.berkasPersyaratan.penilaianPerusahaan = penilaianPerusahaan;
+        updateData.penilaianPerusahaan = penilaianPerusahaan;
       }
       if (formPendaftaranKP) {
-        updateData.berkasPersyaratan.formPendaftaranKP = formPendaftaranKP;
+        updateData.formPendaftaranKP = formPendaftaranKP;
       }
       if (bimbinganKP) {
-        updateData.berkasPersyaratan.bimbinganKP = bimbinganKP;
+        updateData.bimbinganKP = bimbinganKP;
       }
       if (fileSertifikatSeminar) {
-        updateData.berkasPersyaratan.fileSertifikatSeminar =
-          fileSertifikatSeminar;
+        updateData.fileSertifikatSeminar = fileSertifikatSeminar;
       }
       if (fileSertifikatPSPT) {
-        updateData.berkasPersyaratan.fileSertifikatPSPT = fileSertifikatPSPT;
+        updateData.fileSertifikatPSPT = fileSertifikatPSPT;
       }
 
       await firestore().collection('sidang').doc(itemId).update(updateData);
 
-      Dialog.show({
-        type: ALERT_TYPE.SUCCESS,
-        title: 'Berhasil',
-        textBody: 'Data sidang Kerja Praktek berhasil diubah',
-        button: 'Tutup',
-        onPressButton: () => {
-          navigation.navigate('Sidang');
-        },
-      });
+      Alert.alert('Sukses', 'Data pengajuan berhasil diubah');
+      navigation.navigate('Sidang');
     } catch (error) {
       console.error('Error mengubah data pengajuan:', error);
       Alert.alert('Error', 'Terjadi kesalahan saat mengubah data pengajuan');
@@ -700,7 +679,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   uploadButton: {
-    backgroundColor: '#7895CB',
+    backgroundColor: '#59C1BD',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -713,7 +692,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   buttonAction: {
-    backgroundColor: '#7895CB',
+    backgroundColor: '#59C1BD',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -744,7 +723,7 @@ const styles = StyleSheet.create({
   },
   floatingButtonSubmit: {
     padding: 15,
-    backgroundColor: '#7895CB',
+    backgroundColor: '#59C1BD',
     borderRadius: 10,
     shadowColor: '#000',
     marginVertical: 30,
@@ -761,6 +740,19 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#F5F5F5',
   },
+  picker: {
+    width: '100%',
+    marginBottom: 15,
+    borderRadius: 5,
+    borderWidth: 4,
+    borderColor: '#F5F5F5',
+  },
+  btnSubmitContainer: {
+    backgroundColor: 'white',
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  star: {color: 'red'},
 });
 
-export default EditSidangKP;
+export default EditSidangSkripsi;

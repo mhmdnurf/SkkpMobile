@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   RefreshControl,
 } from 'react-native';
@@ -19,9 +18,13 @@ import firestore from '@react-native-firebase/firestore';
 import RNFS from 'react-native-fs';
 import {launchCamera} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/FontAwesome6';
+import {
+  ALERT_TYPE,
+  AlertNotificationRoot,
+  Dialog,
+} from 'react-native-alert-notification';
 
 export default function AddPengajuanSkripsi({navigation}) {
-  const [topik, setTopik] = useState('');
   const [fileFormTopik, setFormTopik] = useState(null);
   const [formTopikPath, setFormTopikPath] = useState('');
   const [fileFormKrs, setFileFormKrs] = useState(null);
@@ -31,12 +34,15 @@ export default function AddPengajuanSkripsi({navigation}) {
   const [fileSlipPembayaranSkripsi, setSlipPembayaranSkripsi] = useState(null);
   const [slipPembayaranSkripsiPath, setSlipPembayaranSkripsiPath] =
     useState('');
-  const [fileSertifikat, setSertifikat] = useState(null);
-  const [sertifikatPath, setSertifikatPath] = useState('');
+  const [sertifikatPSPT, setSertifikatPSPT] = useState(null);
+  const [sertifikatPSPTPath, setSertifikatPSPTPath] = useState('');
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [jadwalPengajuan, setJadwalPengajuan] = useState([]);
+  const [topikPenelitianOptions, setTopikPenelitianOptions] = useState([]);
+  const [pilihTopik, setPilihTopik] = useState('');
+  const [userJurusan, setUserJurusan] = useState('');
 
   useEffect(() => {
     const unsubscribe = firestore()
@@ -49,13 +55,37 @@ export default function AddPengajuanSkripsi({navigation}) {
           setJadwalPengajuan(data);
         });
       });
+    const unsubscribeUser = auth().onAuthStateChanged(async user => {
+      if (user) {
+        // Dapatkan data pengguna dari Firestore berdasarkan UID
+        const userDoc = await firestore()
+          .collection('users')
+          .doc(user.uid)
+          .get();
+        setUserJurusan(userDoc.data().jurusan); // Ambil informasi jurusan
+
+        // Simpan data pengguna dalam state
+      }
+    });
+    const unsubscribeTopik = firestore()
+      .collection('topikPenelitian')
+      .where('prodiTopik', 'array-contains', userJurusan)
+      .onSnapshot(querySnapshot => {
+        const topics = [];
+        querySnapshot.forEach(doc => {
+          topics.push(doc.data());
+        });
+        setTopikPenelitianOptions(topics);
+      });
+
+    console.log(userJurusan);
     if (
-      topik !== '' &&
+      pilihTopik !== '' &&
       transkipPath !== '' &&
       formKrsPath !== '' &&
       formTopikPath !== '' &&
       slipPembayaranSkripsiPath !== '' &&
-      sertifikatPath !== ''
+      sertifikatPSPTPath !== ''
     ) {
       setIsSubmitDisabled(false);
     } else {
@@ -63,14 +93,17 @@ export default function AddPengajuanSkripsi({navigation}) {
     }
     return () => {
       unsubscribe();
+      unsubscribeTopik();
+      unsubscribeUser();
     };
   }, [
-    topik,
+    pilihTopik,
     transkipPath,
     formKrsPath,
     formTopikPath,
     slipPembayaranSkripsiPath,
-    sertifikatPath,
+    sertifikatPSPTPath,
+    userJurusan,
   ]);
 
   const pickerTranskip = async () => {
@@ -180,8 +213,8 @@ export default function AddPengajuanSkripsi({navigation}) {
       console.log(result);
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
-      setSertifikatPath(selectedFileName);
-      setSertifikat({uri: selectedFile, name: result[0]});
+      setSertifikatPSPTPath(selectedFileName);
+      setSertifikatPSPT({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -195,7 +228,8 @@ export default function AddPengajuanSkripsi({navigation}) {
   const imagePickerTranskip = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
+      quality: 0.5,
+      cameraType: 'back',
     };
     try {
       const response = await launchCamera(options);
@@ -216,7 +250,8 @@ export default function AddPengajuanSkripsi({navigation}) {
   const imagePickerFormKrs = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
+      quality: 0.5,
+      cameraType: 'back',
     };
     try {
       const response = await launchCamera(options);
@@ -234,10 +269,33 @@ export default function AddPengajuanSkripsi({navigation}) {
     }
   };
 
+  const imagePickerSertifikatPSPT = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5,
+      cameraType: 'back',
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setSertifikatPSPTPath(selectedFileName);
+        setSertifikatPSPT({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
   const imagePickerFormTopik = async () => {
     const options = {
       mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
+      quality: 0.5,
+      cameraType: 'back',
     };
     try {
       const response = await launchCamera(options);
@@ -254,6 +312,28 @@ export default function AddPengajuanSkripsi({navigation}) {
       console.error('ImagePicker Error:', error);
     }
   };
+  const imagePickerPembayaran = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5,
+      cameraType: 'back',
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setSlipPembayaranSkripsiPath(selectedFileName);
+        setSlipPembayaranSkripsi({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     if (
@@ -261,7 +341,7 @@ export default function AddPengajuanSkripsi({navigation}) {
       fileFormKrs &&
       fileFormTopik &&
       fileSlipPembayaranSkripsi &&
-      fileSertifikat
+      sertifikatPSPTPath
     ) {
       const user = auth().currentUser;
 
@@ -316,35 +396,45 @@ export default function AddPengajuanSkripsi({navigation}) {
           pembayaranSkripsiBlob,
           'base64',
         );
-        const slipPembayaranSkripsi = await formKrsReference.getDownloadURL();
+        const slipPembayaranSkripsi =
+          await pembayaranSkripsiReference.getDownloadURL();
 
         // Proses Sertifikat PSPT
-        const sertifikatFilePath = `${RNFS.DocumentDirectoryPath}/${fileSertifikat.name}`;
-        await RNFS.copyFile(fileSertifikat.uri, sertifikatFilePath);
+        const sertifikatFilePath = `${RNFS.DocumentDirectoryPath}/${sertifikatPSPT.name}`;
+        await RNFS.copyFile(sertifikatPSPT.uri, sertifikatFilePath);
         const proporsalBlob = await RNFS.readFile(sertifikatFilePath, 'base64');
         await sertifikatReference.putString(proporsalBlob, 'base64');
-        const sertifikatPSPT = await sertifikatReference.getDownloadURL();
+        const fileSertifikatPSPT = await sertifikatReference.getDownloadURL();
 
         // Push to Firestore
         const jadwalId = jadwalPengajuan[0].id;
+        const berkasPersyaratan = {
+          formTopik: formTopik,
+          formKrs: formKrs,
+          transkipNilai: transkipNilai,
+          slipPembayaranSkripsi: slipPembayaranSkripsi,
+          fileSertifikatPSPT: fileSertifikatPSPT,
+        };
         await firestore().collection('pengajuan').add({
-          topik,
-          formTopik,
-          formKrs,
-          transkipNilai,
-          slipPembayaranSkripsi,
-          sertifikatPSPT,
+          topikPenelitian: pilihTopik,
+          berkasPersyaratan,
           createdAt: new Date(),
-          uid: user.uid,
+          user_uid: user.uid,
           status: 'Belum Diverifikasi',
           catatan: '-',
-          dosenPembimbing: '-',
+          pembimbing_uid: '-',
           jenisPengajuan: 'Skripsi',
-          periodePendaftaran: jadwalId,
+          jadwalPengajuan_uid: jadwalId,
         });
-        Alert.alert('Sukses', 'Data berhasil diupload!', [
-          {text: 'OK', onPress: () => navigation.goBack()},
-        ]);
+        Dialog.show({
+          type: ALERT_TYPE.SUCCESS,
+          title: 'Berhasil',
+          textBody: 'Pengajuan Skripsi berhasil dilakukan',
+          button: 'Tutup',
+          onPressButton: () => {
+            navigation.goBack();
+          },
+        });
         console.log('Image uploaded successfully');
       } catch (error) {
         console.error('Error uploading image:', error);
@@ -356,7 +446,7 @@ export default function AddPengajuanSkripsi({navigation}) {
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTopik('');
+    setPilihTopik('');
     setFileTranskipNilai(null);
     setTranskipPath('');
     setFileFormKrs(null);
@@ -365,158 +455,165 @@ export default function AddPengajuanSkripsi({navigation}) {
     setFormTopikPath('');
     setSlipPembayaranSkripsi(null);
     setSlipPembayaranSkripsiPath('');
-    setSertifikat(null);
-    setSertifikatPath('');
+    setSertifikatPSPT(null);
+    setSertifikatPSPTPath('');
     setRefreshing(false);
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{flex: 1}}
-      behavior="height"
-      keyboardVerticalOffset={0}>
-      <ScrollView
-        contentContainerStyle={{
-          flex: 1,
-          backgroundColor: 'white',
-        }}
-        keyboardShouldPersistTaps="handled"
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <View style={styles.container}>
-          <Text style={styles.inputTitle}>
-            Topik Penelitian<Text style={{color: 'red'}}>*</Text>
-          </Text>
-          <View style={styles.picker}>
-            <Picker
-              selectedValue={topik}
-              onValueChange={(itemValue, itemIndex) => setTopik(itemValue)}>
-              <Picker.Item label="Pilih Topik Penelitian" value="" />
-              <Picker.Item
-                label="Internet of Things"
-                value="Internet of Things"
-              />
-              <Picker.Item
-                label="Software Development"
-                value="Software Development"
-              />
-              <Picker.Item label="Software Testing" value="Software Testing" />
-            </Picker>
-          </View>
+    <AlertNotificationRoot>
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior="height"
+        keyboardVerticalOffset={0}>
+        <ScrollView
+          contentContainerStyle={{
+            flex: 1,
+            backgroundColor: 'white',
+          }}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }>
+          <View style={styles.container}>
+            <Text style={styles.inputTitle}>
+              Topik Penelitian<Text style={{color: 'red'}}>*</Text>
+            </Text>
+            <View style={styles.picker}>
+              <Picker
+                selectedValue={pilihTopik}
+                onValueChange={itemValue => setPilihTopik(itemValue)}>
+                <Picker.Item label="Pilih Topik Penelitian" value="" />
+                {topikPenelitianOptions.map(option => (
+                  <Picker.Item
+                    key={option.namaTopik}
+                    label={option.namaTopik}
+                    value={option.namaTopik}
+                  />
+                ))}
+              </Picker>
+            </View>
 
-          <Text style={styles.inputTitle}>
-            Form Pengajuan Topik<Text style={{color: 'red'}}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={formTopikPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerFormTopik}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.uploadButton} onPress={pickerTopik}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
+            <Text style={styles.inputTitle}>
+              Form Pengajuan Topik<Text style={{color: 'red'}}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={formTopikPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerFormTopik}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerTopik}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Form KRS<Text style={{color: 'red'}}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={formKrsPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerFormKrs}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.uploadButton} onPress={pickerKrs}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Transkip Nilai<Text style={{color: 'red'}}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={transkipPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerTranskip}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerTranskip}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Slip Pembayaran Skripsi<Text style={{color: 'red'}}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={slipPembayaranSkripsiPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerPembayaran}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerPembayaran}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Sertifikat PSPT<Text style={{color: 'red'}}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={sertifikatPSPTPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerSertifikatPSPT}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerSertifikat}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.inputTitle}>
-            Form KRS<Text style={{color: 'red'}}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={formKrsPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerFormKrs}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.uploadButton} onPress={pickerKrs}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Transkip Nilai<Text style={{color: 'red'}}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={transkipPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerTranskip}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerTranskip}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Slip Pembayaran Skripsi<Text style={{color: 'red'}}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={slipPembayaranSkripsiPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerFormKrs}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerPembayaran}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Sertifikat PSPT<Text style={{color: 'red'}}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={sertifikatPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerSertifikat}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <TouchableOpacity
-          style={[
-            styles.floatingButtonSubmit,
-            isSubmitDisabled && styles.disabledUploadButton,
-          ]}
-          onPress={handleSubmit}
-          disabled={isSubmitDisabled || isSubmitting}>
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text style={styles.uploadButtonText}>Submit</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <TouchableOpacity
+            style={[
+              styles.floatingButtonSubmit,
+              isSubmitDisabled && styles.disabledUploadButton,
+            ]}
+            onPress={handleSubmit}
+            disabled={isSubmitDisabled || isSubmitting}>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.uploadButtonText}>Submit</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </AlertNotificationRoot>
   );
 }
 
@@ -551,7 +648,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   uploadButton: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -564,7 +661,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   buttonAction: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -595,7 +692,7 @@ const styles = StyleSheet.create({
   },
   floatingButtonSubmit: {
     padding: 15,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     borderRadius: 10,
     shadowColor: '#000',
     marginVertical: 30,

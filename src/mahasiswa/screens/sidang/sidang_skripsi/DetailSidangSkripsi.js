@@ -13,14 +13,10 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
-import {
-  ALERT_TYPE,
-  AlertNotificationRoot,
-  Dialog,
-} from 'react-native-alert-notification';
+import {ALERT_TYPE, Dialog} from 'react-native-alert-notification';
 
 const user = auth().currentUser;
-const DetailSidangKP = ({route, navigation}) => {
+const DetailSidangSkripsi = ({route, navigation}) => {
   const {itemId} = route.params;
   const [pengajuanData, setPengajuanData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -224,100 +220,93 @@ const DetailSidangKP = ({route, navigation}) => {
     );
   }
   return (
-    <AlertNotificationRoot>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }>
-        {pengajuanData ? (
-          <>
-            <View style={styles.detailContainer}>
-              <Text style={styles.detailTitleText}>Tanggal Daftar</Text>
-              <Text style={styles.detailText}>
-                {pengajuanData.createdAt.toDate().toLocaleDateString()}
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }>
+      <Text style={styles.title}>{pengajuanData.pengajuanInfo.judul}</Text>
+      {pengajuanData ? (
+        <>
+          <View style={styles.detailContainer}>
+            <Text style={styles.detailTitleText}>Tanggal Daftar</Text>
+            <Text style={styles.detailText}>
+              {pengajuanData.createdAt.toDate().toLocaleDateString()}
+            </Text>
+            <Text style={styles.detailTitleText}>Status</Text>
+            <Text style={styles.detailText}>{pengajuanData.status}</Text>
+            <Text style={styles.detailTitleText}>Catatan</Text>
+            <Text style={styles.detailText}>{pengajuanData.catatan}</Text>
+            <Text style={styles.detailTitleText}>Dosen Pembimbing</Text>
+            <Text style={styles.detailText}>
+              {pengajuanData.dosenPembimbingInfo
+                ? pengajuanData.dosenPembimbingInfo.nama
+                : '-'}
+            </Text>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => handleOpenLink(pengajuanData.persetujuanKP)}>
+              <Text style={styles.linkButtonText}>Form Persetujuan KP</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => handleOpenLink(pengajuanData.penilaianPerusahaan)}>
+              <Text style={styles.linkButtonText}>
+                Form Penilaian Perusahaan
               </Text>
-              <Text style={styles.detailTitleText}>Status</Text>
-              <Text style={styles.detailText}>{pengajuanData.status}</Text>
-              <Text style={styles.detailTitleText}>Catatan</Text>
-              <Text style={styles.detailText}>{pengajuanData.catatan}</Text>
-              <Text style={styles.detailTitleText}>Dosen Pembimbing</Text>
-              <Text style={styles.detailText}>
-                {pengajuanData.dosenPembimbingInfo
-                  ? `${pengajuanData.dosenPembimbingInfo.nama} (${pengajuanData.dosenPembimbingInfo.nidn})`
-                  : '-'}
-              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => handleOpenLink(pengajuanData.formPendaftaranKP)}>
+              <Text style={styles.linkButtonText}>Form Pendaftaran KP</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => handleOpenLink(pengajuanData.bimbinganKP)}>
+              <Text style={styles.linkButtonText}>Form Bimbingan KP</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                handleOpenLink(pengajuanData.fileSertifikatSeminar)
+              }>
+              <Text style={styles.linkButtonText}>Sertifikat Seminar STTI</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => handleOpenLink(pengajuanData.fileSertifikatPSPT)}>
+              <Text style={styles.linkButtonText}>Sertifikat PSPT</Text>
+            </TouchableOpacity>
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-around',
+              }}>
               <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.persetujuanKP)}>
-                <Text style={styles.linkButtonText}>Form Persetujuan KP</Text>
+                style={styles.editButton}
+                onPress={handleEditButtonPress}>
+                <Text style={styles.editButtonText}>Edit Pengajuan</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(pengajuanData.penilaianPerusahaan)
-                }>
-                <Text style={styles.linkButtonText}>
-                  Form Penilaian Perusahaan
-                </Text>
+                style={styles.deleteButton}
+                onPress={handleDeleteButtonPress}>
+                <Text style={styles.deleteButtonText}>Hapus Pengajuan</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.formPendaftaranKP)}>
-                <Text style={styles.linkButtonText}>Form Pendaftaran KP</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.bimbinganKP)}>
-                <Text style={styles.linkButtonText}>Form Bimbingan KP</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(pengajuanData.fileSertifikatSeminar)
-                }>
-                <Text style={styles.linkButtonText}>
-                  Sertifikat Seminar STTI
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(pengajuanData.fileSertifikatPSPT)
-                }>
-                <Text style={styles.linkButtonText}>Sertifikat PSPT</Text>
-              </TouchableOpacity>
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'space-around',
-                }}>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={handleEditButtonPress}>
-                  <Text style={styles.editButtonText}>Edit Pengajuan</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={handleDeleteButtonPress}>
-                  <Text style={styles.deleteButtonText}>Hapus Pengajuan</Text>
-                </TouchableOpacity>
-              </View>
             </View>
-          </>
-        ) : (
-          <Text>Data pengajuan tidak ditemukan.</Text>
-        )}
-      </ScrollView>
-    </AlertNotificationRoot>
+          </View>
+        </>
+      ) : (
+        <Text>Data pengajuan tidak ditemukan.</Text>
+      )}
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    paddingTop: 10,
+    padding: 20,
     backgroundColor: 'white',
   },
   title: {
@@ -327,16 +316,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     backgroundColor: 'white',
     padding: 20,
+    borderRadius: 20,
+    shadowColor: 'black',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 7,
+    elevation: 5,
   },
   detailContainer: {
     marginTop: 20,
     paddingHorizontal: 20,
-    marginHorizontal: 10,
     backgroundColor: 'white',
     padding: 30,
-    borderRadius: 15,
-    borderColor: '#C5DFF8',
-    borderWidth: 4,
+    borderRadius: 20,
+    shadowColor: 'black',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 7,
+    elevation: 5,
   },
   detailText: {
     fontSize: 16,
@@ -351,7 +348,7 @@ const styles = StyleSheet.create({
   },
   editButton: {
     marginTop: 20,
-    backgroundColor: '#4A55A2',
+    backgroundColor: '#59C1BD',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -363,7 +360,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     marginTop: 20,
-    backgroundColor: '#FF6969',
+    backgroundColor: '#C70039',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -373,9 +370,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  separator: {
+    height: 1,
+    backgroundColor: '#CCCCCC',
+    marginVertical: 20,
+  },
   linkButton: {
     marginTop: 10,
-    backgroundColor: '#7895CB',
+    backgroundColor: '#59C1BD',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -387,4 +389,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DetailSidangKP;
+export default DetailSidangSkripsi;

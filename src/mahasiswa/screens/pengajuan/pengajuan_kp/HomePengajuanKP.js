@@ -1,5 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {Text, StyleSheet, TouchableOpacity, FlatList, View} from 'react-native';
+import {
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import {
@@ -7,17 +14,20 @@ import {
   Dialog,
   AlertNotificationRoot,
 } from 'react-native-alert-notification';
+import {useIsFocused} from '@react-navigation/native';
 
 const HomePengajuanKP = ({navigation}) => {
   const [userPengajuanData, setUserPengajuanData] = useState([]);
   const [jadwalPengajuanData, setJadwalPengajuanData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     const user = auth().currentUser;
 
     const unsubscribe = firestore()
       .collection('pengajuan')
-      .where('uid', '==', user.uid)
+      .where('user_uid', '==', user.uid)
       .where('jenisPengajuan', '==', 'Kerja Praktek')
       .onSnapshot(querySnapshot => {
         const data = [];
@@ -25,6 +35,7 @@ const HomePengajuanKP = ({navigation}) => {
           data.push({id: doc.id, ...doc.data()});
         });
         setUserPengajuanData(data);
+        setIsLoading(false);
       });
     const unsubscribeJadwal = firestore()
       .collection('jadwalPengajuan')
@@ -38,13 +49,14 @@ const HomePengajuanKP = ({navigation}) => {
           }
         });
         setJadwalPengajuanData(data);
+        setIsLoading(false);
       });
 
     return () => {
       unsubscribe();
       unsubscribeJadwal();
     };
-  }, []);
+  }, [isFocused]);
 
   const handleNavigateToAddPengajuanKP = () => {
     const activeJadwal = jadwalPengajuanData.find(
@@ -90,9 +102,9 @@ const HomePengajuanKP = ({navigation}) => {
           {
             backgroundColor:
               item.status === 'Belum Diverifikasi'
-                ? '#75C2F6'
+                ? '#FFC436'
                 : item.status === 'Sah'
-                ? '#AAFCA5'
+                ? '#A0C49D'
                 : item.status === 'Ditolak'
                 ? '#f87171'
                 : '#75C2F6',
@@ -100,6 +112,7 @@ const HomePengajuanKP = ({navigation}) => {
         ]}>
         {item.status}
       </Text>
+      <Text style={styles.cardTopTitle}>Judul</Text>
       <Text style={styles.cardTitle}>{item.judul}</Text>
       <TouchableOpacity
         style={styles.detailButton}
@@ -108,6 +121,14 @@ const HomePengajuanKP = ({navigation}) => {
       </TouchableOpacity>
     </View>
   );
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <AlertNotificationRoot>
@@ -140,23 +161,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 10,
+    backgroundColor: 'white',
   },
   scrollContainer: {
     marginTop: 30,
-  },
-  addButton: {
-    backgroundColor: '#59C1BD',
-    padding: 10,
-    width: '50%',
-    margin: 10,
-    marginBottom: 25,
-    marginTop: 15,
-    borderRadius: 5,
-    shadowColor: 'black',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 7,
-    elevation: 5,
   },
   textAddButton: {
     fontSize: 16,
@@ -178,18 +186,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    borderWidth: 2,
+    borderColor: 'whitesmoke',
   },
   cardTitle: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: 18,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    marginBottom: 20,
+    marginTop: 5,
+    color: 'gray',
+  },
+  cardTopTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
     color: 'black',
+    marginTop: 20,
   },
   cardStatus: {
     fontWeight: 'bold',
     marginBottom: 10,
     padding: 5,
-    minWidth: 30,
-    maxWidth: 200,
+    width: 'auto',
     textAlign: 'center',
     borderRadius: 10,
     color: 'white',
@@ -201,7 +220,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   detailButton: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 8,
     borderRadius: 5,
     marginTop: 5,
@@ -220,7 +239,7 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     padding: 15,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {

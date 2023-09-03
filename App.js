@@ -18,9 +18,22 @@ import EditPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/Edit
 import AddPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/AddPengajuanSkripsi';
 import DetailPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/DetailPengajuanSkripsi';
 import EditPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/EditPengajuanSkripsi';
-import messaging from '@react-native-firebase/messaging';
 import AddSidangKP from './src/mahasiswa/screens/sidang/sidang_kp/AddSidangKP';
 import DetailSidangKP from './src/mahasiswa/screens/sidang/sidang_kp/DetailSidangKP';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import messaging from '@react-native-firebase/messaging';
+import EditSidangKP from './src/mahasiswa/screens/sidang/sidang_kp/EditSidangKP';
+import AddSempro from './src/mahasiswa/screens/sidang/sidang_sempro/AddSempro';
+import DetailSempro from './src/mahasiswa/screens/sidang/sidang_sempro/DetailSempro';
+import EditSempro from './src/mahasiswa/screens/sidang/sidang_sempro/EditSempro';
+import DetailKompre from './src/mahasiswa/screens/sidang/sidang_kompre/DetailKompre';
+import EditKompre from './src/mahasiswa/screens/sidang/sidang_kompre/EditKompre';
+import DetailSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/DetailSidangSkripsi';
+import EditSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/EditSidangSkripsi';
+import AddKompre from './src/mahasiswa/screens/sidang/sidang_kompre/AddKompre';
+import AddSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/AddSidangSkripsi';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -28,8 +41,17 @@ const MainTabs = ({navigation}) => {
   useEffect(() => {
     messaging()
       .getToken()
-      .then(token => {
+      .then(async token => {
         console.log(token);
+
+        const user = auth().currentUser;
+        if (user) {
+          const userDocRef = firestore().collection('users').doc(user.uid);
+          await userDocRef.update({registrationToken: token});
+          console.log('Registration token updated in Firestore');
+        } else {
+          console.log('No user is currently logged in');
+        }
       })
       .catch(error => {
         console.log('Error getting device token:', error);
@@ -40,15 +62,15 @@ const MainTabs = ({navigation}) => {
       navigation.navigate('Pengajuan');
       // Tambahkan logika di sini untuk menampilkan notifikasi atau melakukan tindakan sesuai kebutuhan Anda.
     });
-  });
+  }, [navigation]);
 
   return (
     <>
-      <StatusBar backgroundColor="#99A98F" barStyle="light-content" />
+      <StatusBar backgroundColor="#A0BFE0" barStyle="light-content" />
       <Tab.Navigator
         initialRouteName="Home"
         screenOptions={{
-          tabBarActiveTintColor: '#59C1BD',
+          tabBarActiveTintColor: '#A0BFE0',
           tabBarInactiveTintColor: 'gray',
           tabBarLabelStyle: {
             fontSize: 12,
@@ -67,16 +89,6 @@ const MainTabs = ({navigation}) => {
             headerShown: false,
           }}
         />
-
-        <Tab.Screen
-          name="Notifikasi"
-          component={NotifikasiTab}
-          options={{
-            tabBarIcon: ({color, size}) => (
-              <Icon name="envelope" color={color} size={size} />
-            ),
-          }}
-        />
         <Tab.Screen
           name="Menu"
           component={Menu}
@@ -84,6 +96,10 @@ const MainTabs = ({navigation}) => {
             tabBarIcon: ({color, size}) => (
               <Icon name="list" color={color} size={size} />
             ),
+            headerStyle: {
+              backgroundColor: '#C5DFF8',
+            },
+            headerShown: false,
           }}
         />
       </Tab.Navigator>
@@ -97,7 +113,7 @@ const App = () => {
       <Stack.Navigator
         initialRouteName="Splash"
         screenOptions={{
-          tabBarActiveTintColor: '#30A2FF',
+          tabBarActiveTintColor: '#7895CB',
           headerShown: false,
           tabBarStyle: {
             backgroundColor: 'white',
@@ -120,7 +136,7 @@ const App = () => {
             ),
             title: 'Pengajuan Proposal',
             headerStyle: {
-              backgroundColor: '#59C1BD',
+              backgroundColor: '#7895CB',
             },
             headerTintColor: 'white',
             headerShown: 'true',
@@ -135,7 +151,7 @@ const App = () => {
             ),
             title: 'Pendaftaran Sidang',
             headerStyle: {
-              backgroundColor: '#59C1BD',
+              backgroundColor: '#7895CB',
             },
             headerTintColor: 'white',
             headerShown: 'true',
@@ -148,7 +164,7 @@ const App = () => {
             headerShown: true,
             title: 'Buat Pengajuan KP',
             headerStyle: {
-              backgroundColor: '#59C1BD',
+              backgroundColor: '#7895CB',
             },
             headerTintColor: 'white',
           }}
@@ -160,7 +176,7 @@ const App = () => {
             headerShown: true,
             title: 'Detail Pengajuan Kerja Praktek',
             headerStyle: {
-              backgroundColor: '#59C1BD',
+              backgroundColor: '#7895CB',
             },
             headerTintColor: 'white',
           }}
@@ -180,7 +196,7 @@ const App = () => {
             headerShown: true,
             title: 'Buat Pengajuan Skripsi',
             headerStyle: {
-              backgroundColor: '#59C1BD',
+              backgroundColor: '#7895CB',
             },
             headerTintColor: 'white',
           }}
@@ -188,24 +204,178 @@ const App = () => {
         <Stack.Screen
           name="DetailPengajuanSkripsi"
           component={DetailPengajuanSkripsi}
-          options={{headerShown: true, title: 'Detail Pengajuan Skripsi'}}
+          options={{
+            headerShown: true,
+            title: 'Detail Pengajuan Skripsi',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
         />
         <Stack.Screen
           name="EditPengajuanSkripsi"
           component={EditPengajuanSkripsi}
-          options={{headerShown: true, title: 'Edit Pengajuan Skripsi'}}
+          options={{
+            headerShown: true,
+            title: 'Edit Pengajuan Skripsi',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
         />
 
         {/* Sidang KP */}
         <Stack.Screen
           name="AddSidangKP"
           component={AddSidangKP}
-          options={{headerShown: true, title: 'Daftar Sidang KP'}}
+          options={{
+            headerShown: true,
+            title: 'Daftar Sidang KP',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
         />
         <Stack.Screen
           name="DetailSidangKP"
           component={DetailSidangKP}
-          options={{headerShown: true, title: 'Daftar Sidang KP'}}
+          options={{
+            headerShown: true,
+            title: 'Detail Sidang KP',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="EditSidangKP"
+          component={EditSidangKP}
+          options={{
+            headerShown: true,
+            title: 'Edit Sidang KP',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+
+        {/* Sidang Sempro */}
+        <Stack.Screen
+          name="AddSempro"
+          component={AddSempro}
+          options={{
+            headerShown: true,
+            title: 'Daftar Sidang Sempro',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="DetailSempro"
+          component={DetailSempro}
+          options={{
+            headerShown: true,
+            title: 'Detail Sidang Sempro',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="EditSempro"
+          component={EditSempro}
+          options={{
+            headerShown: true,
+            title: 'Edit Sidang Sempro',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+
+        {/* Sidang Kompre */}
+        <Stack.Screen
+          name="AddKompre"
+          component={AddKompre}
+          options={{
+            headerShown: true,
+            title: 'Daftar Sidang Komprehensif',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="DetailKompre"
+          component={DetailKompre}
+          options={{
+            headerShown: true,
+            title: 'Detail Sidang Komprehensif',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="EditKompre"
+          component={EditKompre}
+          options={{
+            headerShown: true,
+            title: 'Edit Sidang Komprehensif',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+
+        {/* Sidang Skripsi */}
+        <Stack.Screen
+          name="AddSidangSkripsi"
+          component={AddSidangSkripsi}
+          options={{
+            headerShown: true,
+            title: 'Daftar Sidang Skripsi',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="DetailSidangSkripsi"
+          component={DetailSidangSkripsi}
+          options={{
+            headerShown: true,
+            title: 'Detail Sidang Skripsi',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="EditSidangSkripsi"
+          component={EditSidangSkripsi}
+          options={{
+            headerShown: true,
+            title: 'Edit Sidang Skripsi',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

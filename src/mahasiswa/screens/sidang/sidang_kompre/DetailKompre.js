@@ -18,14 +18,15 @@ import {
   AlertNotificationRoot,
   Dialog,
 } from 'react-native-alert-notification';
+
 const user = auth().currentUser;
-const DetailPengajuanKP = ({route, navigation}) => {
+const DetailSempro = ({route, navigation}) => {
   const {itemId} = route.params;
   const [pengajuanData, setPengajuanData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [jadwalPengajuanData, setJadwalPengajuanData] = useState([]);
-  const [statusPengajuan, setStatusPengajuan] = useState('');
+  const [statusPendaftaran, setStatusPendaftaran] = useState('');
 
   const getUserInfo = async uid => {
     try {
@@ -43,30 +44,52 @@ const DetailPengajuanKP = ({route, navigation}) => {
       return null;
     }
   };
+  const getPengajuanInfo = async uid => {
+    try {
+      const userDocSnapshot = await firestore()
+        .collection('pengajuan')
+        .doc(uid)
+        .get();
+
+      if (userDocSnapshot.exists) {
+        return userDocSnapshot.data();
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+      return null;
+    }
+  };
 
   const fetchPengajuanData = async () => {
     try {
       const documentSnapshot = await firestore()
-        .collection('pengajuan')
+        .collection('sidang')
         .doc(itemId)
         .get();
 
       if (documentSnapshot.exists) {
         const data = documentSnapshot.data();
-        const dosenPembimbingInfo = await getUserInfo(data.pembimbing_uid);
+        const pengajuanInfo = await getPengajuanInfo(data.pengajuan_uid);
+        const dosenPembimbingInfo = await getUserInfo(
+          pengajuanInfo.pembimbing_uid,
+        );
+
         setPengajuanData({
           id: documentSnapshot.id,
           ...data,
           dosenPembimbingInfo: dosenPembimbingInfo,
+          pengajuanInfo: pengajuanInfo,
         });
-        setStatusPengajuan(data.status);
+        console.log(pengajuanData);
+        setStatusPendaftaran(data.status);
       } else {
-        console.log('Pengajuan tidak ditemukan');
+        console.log('Pendaftaran tidak ditemukan');
       }
       setIsLoading(false);
       setRefreshing(false);
     } catch (error) {
-      console.error('Error mengambil data pengajuan:', error);
+      console.error('Error mengambil data pendaftaran:', error);
       setIsLoading(false);
       setRefreshing(false);
     }
@@ -75,13 +98,13 @@ const DetailPengajuanKP = ({route, navigation}) => {
   useEffect(() => {
     fetchPengajuanData();
     const unsubscribeJadwal = firestore()
-      .collection('jadwalPengajuan')
+      .collection('jadwalSidang')
       .where('status', '==', 'Aktif')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {
           const jadwalData = doc.data();
-          if (jadwalData.jenisPengajuan.includes('Kerja Praktek')) {
+          if (jadwalData.jenisSidang.includes('Kerja Praktek')) {
             data.push(jadwalData);
           }
         });
@@ -91,51 +114,41 @@ const DetailPengajuanKP = ({route, navigation}) => {
       unsubscribeJadwal();
     };
   }, [itemId]);
+
   const handleEditButtonPress = () => {
     const activeJadwal = jadwalPengajuanData.find(
       item =>
-        item.status === 'Aktif' &&
-        item.jenisPengajuan.includes('Kerja Praktek'),
+        item.status === 'Aktif' && item.jenisSidang.includes('Kerja Praktek'),
     );
     if (!activeJadwal) {
       Dialog.show({
         type: ALERT_TYPE.WARNING,
         title: 'Peringatan',
-        textBody: 'Pengajuan Kerja Praktek belum dibuka saat ini.',
+        textBody: 'Sidang Komprehensif belum dibuka saat ini.',
         button: 'Tutup',
       });
-    } else if (!activeJadwal && statusPengajuan === 'Ditolak') {
+    } else if (statusPendaftaran === 'Sah') {
       Dialog.show({
         type: ALERT_TYPE.WARNING,
         title: 'Peringatan',
-        textBody: 'Pengajuan Kerja Praktek belum dibuka saat ini.',
-        button: 'Tutup',
-      });
-    } else if (statusPengajuan === 'Sah') {
-      Dialog.show({
-        type: ALERT_TYPE.WARNING,
-        title: 'Peringatan',
-        textBody: 'Pengajuan anda telah disahkan',
+        textBody: 'Pendaftaran anda telah disahkan',
         button: 'Tutup',
       });
     } else {
-      navigation.navigate('EditPengajuanKP', {itemId});
+      navigation.navigate('EditKompre', {itemId});
     }
   };
   const handleDeleteButtonPress = () => {
-    if (statusPengajuan === 'Sah') {
+    if (statusPendaftaran === 'Sah') {
       Dialog.show({
         type: ALERT_TYPE.WARNING,
         title: 'Peringatan',
-        textBody: 'Pengajuan anda telah disahkan',
+        textBody: 'Pendaftaran anda telah disahkan',
         button: 'Tutup',
       });
     } else {
-      const transkipNilaiFileName = `persyaratan/pengajuanKP/transkipNilai/${user.uid}`;
-      const formKrsFileName = `persyaratan/pengajuanKP/formKRS/${user.uid}`;
-      const pendaftaranKpFileName = `persyaratan/pengajuanKP/formPendaftaranKP/${user.uid}`;
-      const pembayaranKpFileName = `persyaratan/pengajuanKP/slipPembayaranKP/${user.uid}`;
-      const proporsalFileName = `persyaratan/pengajuanKP/proporsalKP/${user.uid}`;
+      const sintakFileName = `persyaratan/sidangKompre/SINTAK/${user.uid}`;
+      const persetujuanKompreFileName = `persyaratan/sidangKompre/formPersetujuanKompre/${user.uid}`;
       Alert.alert(
         'Konfirmasi Hapus',
         'Apakah Anda yakin ingin menghapus data pengajuan?',
@@ -150,29 +163,26 @@ const DetailPengajuanKP = ({route, navigation}) => {
             onPress: async () => {
               try {
                 // Menghapus file dari Firebase Storage
-                await storage().ref(transkipNilaiFileName).delete();
-                await storage().ref(formKrsFileName).delete();
-                await storage().ref(pendaftaranKpFileName).delete();
-                await storage().ref(pembayaranKpFileName).delete();
-                await storage().ref(proporsalFileName).delete();
+                await storage().ref(sintakFileName).delete();
+                await storage().ref(persetujuanKompreFileName).delete();
 
                 // Menghapus dokumen dari Firestore
-                await firestore().collection('pengajuan').doc(itemId).delete();
+                await firestore().collection('sidang').doc(itemId).delete();
 
                 Dialog.show({
                   type: ALERT_TYPE.SUCCESS,
                   title: 'Berhasil',
-                  textBody: 'Pengajuan berhasil dihapus',
+                  textBody: 'Pendaftaran sidang berhasil dihapus',
                   button: 'Tutup',
                   onPressButton: () => {
-                    navigation.navigate('Pengajuan');
+                    navigation.navigate('Sidang');
                   },
                 });
               } catch (error) {
-                console.error('Error menghapus data pengajuan:', error);
+                console.error('Error menghapus data sidang:', error);
                 Alert.alert(
                   'Error',
-                  'Terjadi kesalahan saat menghapus data pengajuan',
+                  'Terjadi kesalahan saat menghapus data sidang',
                 );
               }
             },
@@ -212,7 +222,6 @@ const DetailPengajuanKP = ({route, navigation}) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }>
-        {/* <Text style={styles.title}>{pengajuanData.judul}</Text> */}
         {pengajuanData ? (
           <>
             <View style={styles.detailContainer}>
@@ -230,47 +239,19 @@ const DetailPengajuanKP = ({route, navigation}) => {
                   ? `${pengajuanData.dosenPembimbingInfo.nama} (${pengajuanData.dosenPembimbingInfo.nidn})`
                   : '-'}
               </Text>
-
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(pengajuanData.berkasPersyaratan.transkipNilai)
-                }>
-                <Text style={styles.linkButtonText}>Transkip Nilai</Text>
+                onPress={() => handleOpenLink(pengajuanData.persetujuanKompre)}>
+                <Text style={styles.linkButtonText}>
+                  Form Persetujuan Kompre
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(pengajuanData.berkasPersyaratan.formKrs)
-                }>
-                <Text style={styles.linkButtonText}>Form KRS</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(
-                    pengajuanData.berkasPersyaratan.formPendaftaranKP,
-                  )
-                }>
-                <Text style={styles.linkButtonText}>Form Pendaftaran KP</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(
-                    pengajuanData.berkasPersyaratan.slipPembayaranKP,
-                  )
-                }>
-                <Text style={styles.linkButtonText}>Slip Pembayaran KP</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(
-                    pengajuanData.berkasPersyaratan.dokumenProposal,
-                  )
-                }>
-                <Text style={styles.linkButtonText}>Dokumen Proposal</Text>
+                onPress={() => handleOpenLink(pengajuanData.sintak)}>
+                <Text style={styles.linkButtonText}>
+                  Transkip Aktivitas Kemahasiswaan
+                </Text>
               </TouchableOpacity>
               <View
                 style={{
@@ -372,4 +353,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DetailPengajuanKP;
+export default DetailSempro;

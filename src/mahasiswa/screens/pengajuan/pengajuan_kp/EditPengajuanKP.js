@@ -8,7 +8,6 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
-  SafeAreaView,
   KeyboardAvoidingView,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
@@ -18,6 +17,11 @@ import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {launchCamera} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/FontAwesome6';
+import {
+  ALERT_TYPE,
+  AlertNotificationRoot,
+  Dialog,
+} from 'react-native-alert-notification';
 
 const EditPengajuanKP = ({route, navigation}) => {
   const [judul, setJudul] = useState('');
@@ -32,6 +36,7 @@ const EditPengajuanKP = ({route, navigation}) => {
   const [fileProporsal, setFileProporsal] = useState(null);
   const [fileProporsalPath, setFileProporsalPath] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [berkasPersyaratan, setBerkasPersyaratan] = useState({});
   const [jadwalPengajuan, setJadwalPengajuan] = useState([]);
   const {itemId} = route.params;
 
@@ -55,11 +60,12 @@ const EditPengajuanKP = ({route, navigation}) => {
         if (documentSnapshot.exists) {
           const data = documentSnapshot.data();
           setJudul(data.judul);
-          setTranskipPath(data.transkipNilai);
-          setFormKrsPath(data.formKrs);
-          setPendaftaranKpPath(data.formPendaftaranKP);
-          setSlipPembayaranKpPath(data.slipPembayaranKP);
-          setFileProporsalPath(data.dokumenProporsal);
+          setBerkasPersyaratan(data.berkasPersyaratan);
+          setTranskipPath(data.berkasPersyaratan.transkipNilai);
+          setFormKrsPath(data.berkasPersyaratan.formKrs);
+          setPendaftaranKpPath(data.berkasPersyaratan.formPendaftaranKP);
+          setSlipPembayaranKpPath(data.berkasPersyaratan.slipPembayaranKP);
+          setFileProporsalPath(data.berkasPersyaratan.dokumenProposal);
         } else {
           console.log('Pengajuan tidak ditemukan');
         }
@@ -171,11 +177,7 @@ const EditPengajuanKP = ({route, navigation}) => {
   const pickerProporsal = async () => {
     try {
       const result = await DocumentPicker.pick({
-        type: [
-          DocumentPicker.types.images,
-          DocumentPicker.types.pdf,
-          DocumentPicker.types.docx,
-        ],
+        type: [DocumentPicker.types.docx],
       });
       console.log(result);
       const selectedFile = result[0].uri;
@@ -356,30 +358,44 @@ const EditPengajuanKP = ({route, navigation}) => {
         judul: judul,
         editedAt: new Date(),
         status: 'Belum Diverifikasi',
-        periodePendaftaran: jadwalId,
+        jadwalPengajuan_uid: jadwalId,
+        berkasPersyaratan: {
+          transkipNilai: berkasPersyaratan.transkipNilai,
+          formKrs: berkasPersyaratan.formKrs,
+          formPendaftaranKP: berkasPersyaratan.formPendaftaranKP,
+          slipPembayaranKP: berkasPersyaratan.slipPembayaranKP,
+          dokumenProposal: berkasPersyaratan.dokumenProposal,
+        },
       };
 
-      // Tambahkan URL dokumen jika diunggah
+      // Hanya pilih properti yang akan diubah
       if (transkipNilai) {
-        updateData.transkipNilai = transkipNilai;
+        updateData.berkasPersyaratan.transkipNilai = transkipNilai;
       }
       if (formKrs) {
-        updateData.formKrs = formKrs;
+        updateData.berkasPersyaratan.formKrs = formKrs;
       }
       if (formPendaftaranKP) {
-        updateData.formPendaftaranKP = formPendaftaranKP;
+        updateData.berkasPersyaratan.formPendaftaranKP = formPendaftaranKP;
       }
       if (slipPembayaranKP) {
-        updateData.slipPembayaranKP = slipPembayaranKP;
+        updateData.berkasPersyaratan.slipPembayaranKP = slipPembayaranKP;
       }
       if (dokumenProporsal) {
-        updateData.dokumenProporsal = dokumenProporsal;
+        updateData.berkasPersyaratan.dokumenProposal = dokumenProporsal;
       }
 
       await firestore().collection('pengajuan').doc(itemId).update(updateData);
 
-      Alert.alert('Sukses', 'Data pengajuan berhasil diubah');
-      navigation.navigate('Pengajuan');
+      Dialog.show({
+        type: ALERT_TYPE.SUCCESS,
+        title: 'Berhasil',
+        textBody: 'Data pengajuan Kerja Praktek berhasil diubah',
+        button: 'Tutup',
+        onPressButton: () => {
+          navigation.navigate('Pengajuan');
+        },
+      });
     } catch (error) {
       console.error('Error mengubah data pengajuan:', error);
       Alert.alert('Error', 'Terjadi kesalahan saat mengubah data pengajuan');
@@ -389,7 +405,7 @@ const EditPengajuanKP = ({route, navigation}) => {
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <AlertNotificationRoot>
       <KeyboardAvoidingView
         style={{flex: 1}}
         behavior="height"
@@ -523,7 +539,7 @@ const EditPengajuanKP = ({route, navigation}) => {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </AlertNotificationRoot>
   );
 };
 
@@ -558,7 +574,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   uploadButton: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -571,7 +587,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   buttonAction: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -602,7 +618,7 @@ const styles = StyleSheet.create({
   },
   floatingButtonSubmit: {
     padding: 15,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     borderRadius: 10,
     shadowColor: '#000',
     marginVertical: 30,
