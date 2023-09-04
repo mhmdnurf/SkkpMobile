@@ -4,10 +4,10 @@ import {
   TextInput,
   Text,
   StyleSheet,
-  Alert,
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +17,7 @@ import {
   AlertNotificationRoot,
   Dialog,
 } from 'react-native-alert-notification';
+import firestore from '@react-native-firebase/firestore';
 
 const Login = ({navigation}) => {
   const [email, setEmail] = useState('');
@@ -40,10 +41,36 @@ const Login = ({navigation}) => {
         email,
         password,
       );
-      console.log('User logged in successfully!');
-      const userToken = userCredential.user.uid;
-      await AsyncStorage.setItem('userToken', userToken);
-      navigation.navigate('Homepage');
+
+      const userDoc = firestore()
+        .collection('users')
+        .doc(userCredential.user.uid);
+
+      try {
+        const docSnapshot = await userDoc.get();
+
+        if (docSnapshot.exists) {
+          const userData = docSnapshot.data();
+          console.log(userData);
+
+          const userRole = userData.role;
+          if (userRole === 'Mahasiswa') {
+            console.log('User logged in successfully!');
+            const userToken = userCredential.user.uid;
+            await AsyncStorage.setItem('userToken', userToken);
+            navigation.navigate('Homepage');
+          } else {
+            Dialog.show({
+              type: ALERT_TYPE.DANGER,
+              title: 'Peringatan',
+              textBody: 'Anda bukan Mahasiswa',
+              button: 'Tutup',
+            });
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
     } catch (error) {
       if (error.code === 'auth/user-not-found') {
         Dialog.show({

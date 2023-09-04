@@ -41,6 +41,7 @@ const EditSidangKP = ({route, navigation}) => {
     const unsubscribe = firestore()
       .collection('jadwalSidang')
       .where('status', '==', 'Aktif')
+      .where('jenisSidang', 'array-contains', 'Kerja Praktek')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {

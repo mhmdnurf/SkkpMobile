@@ -44,6 +44,7 @@ const AddPengajuanKP = ({navigation}) => {
     const unsubscribe = firestore()
       .collection('jadwalPengajuan')
       .where('status', '==', 'Aktif')
+      .where('jenisPengajuan', 'array-contains', 'Kerja Praktek')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {

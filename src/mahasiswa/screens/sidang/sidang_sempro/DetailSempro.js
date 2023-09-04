@@ -147,12 +147,11 @@ const DetailSempro = ({route, navigation}) => {
         button: 'Tutup',
       });
     } else {
-      const persetujuanKPFileName = `persyaratan/sidangKP/formPersetujuanKP/${user.uid}`;
-      const penilaianPerusahaanFileName = `persyaratan/sidangKP/penilaianPerusahaan/${user.uid}`;
-      const pendaftaranKpFileName = `persyaratan/sidangKP/formPendaftaranKP/${user.uid}`;
-      const bimbinganKPFileName = `persyaratan/sidangKP/formBimbinganKP/${user.uid}`;
-      const sertifikatSeminarFileName = `persyaratan/sidangKP/sertifikatSeminar/${user.uid}`;
-      const sertifikatPSPTFileName = `persyaratan/sidangKP/sertifikatPSPT/${user.uid}`;
+      const transkipNilaiFileName = `persyaratan/sidangSempro/transkipNilai/${user.uid}`;
+      const pendaftaranSemproFileName = `persyaratan/sidangSempro/formPendaftaran/${user.uid}`;
+      const persetujuanSemproFileName = `persyaratan/sidangSempro/formPersetujuan/${user.uid}`;
+      const sertifikatKeahlianFileName = `persyaratan/sidangSempro/sertifikatKeahlian/${user.uid}`;
+      const menghadiriSidangFileName = `persyaratan/sidangSempro/formMenghadiriSidang/${user.uid}`;
       Alert.alert(
         'Konfirmasi Hapus',
         'Apakah Anda yakin ingin menghapus data pengajuan?',
@@ -167,18 +166,24 @@ const DetailSempro = ({route, navigation}) => {
             onPress: async () => {
               try {
                 // Menghapus file dari Firebase Storage
-                await storage().ref(persetujuanKPFileName).delete();
-                await storage().ref(penilaianPerusahaanFileName).delete();
-                await storage().ref(pendaftaranKpFileName).delete();
-                await storage().ref(bimbinganKPFileName).delete();
-                await storage().ref(sertifikatSeminarFileName).delete();
-                await storage().ref(sertifikatPSPTFileName).delete();
+                await storage().ref(transkipNilaiFileName).delete();
+                await storage().ref(pendaftaranSemproFileName).delete();
+                await storage().ref(persetujuanSemproFileName).delete();
+                await storage().ref(sertifikatKeahlianFileName).delete();
+                await storage().ref(menghadiriSidangFileName).delete();
 
                 // Menghapus dokumen dari Firestore
                 await firestore().collection('sidang').doc(itemId).delete();
 
-                Alert.alert('Sukses', 'Data sidang berhasil dihapus');
-                navigation.navigate('Sidang');
+                Dialog.show({
+                  type: ALERT_TYPE.SUCCESS,
+                  title: 'Berhasil',
+                  textBody: 'Pendaftaran Seminar Proposal berhasil dihapus',
+                  button: 'Tutup',
+                  onPressButton: () => {
+                    navigation.navigate('Sidang');
+                  },
+                });
               } catch (error) {
                 console.error('Error menghapus data sidang:', error);
                 Alert.alert(
@@ -237,24 +242,34 @@ const DetailSempro = ({route, navigation}) => {
               <Text style={styles.detailTitleText}>Dosen Pembimbing</Text>
               <Text style={styles.detailText}>
                 {pengajuanData.dosenPembimbingInfo
-                  ? pengajuanData.dosenPembimbingInfo.nama
+                  ? `${pengajuanData.dosenPembimbingInfo.nama} (${pengajuanData.dosenPembimbingInfo.nidn})`
                   : '-'}
               </Text>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.transkipNilai)}>
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.transkipNilai)
+                }>
                 <Text style={styles.linkButtonText}>Transkip Sementara</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.pendaftaranSempro)}>
+                onPress={() =>
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.pendaftaranSempro,
+                  )
+                }>
                 <Text style={styles.linkButtonText}>
                   Form Pendaftaran Sempro
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.persetujuanSempro)}>
+                onPress={() =>
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.persetujuanSempro,
+                  )
+                }>
                 <Text style={styles.linkButtonText}>
                   Form Persetujuan Sempro
                 </Text>
@@ -262,14 +277,18 @@ const DetailSempro = ({route, navigation}) => {
               <TouchableOpacity
                 style={styles.linkButton}
                 onPress={() =>
-                  handleOpenLink(pengajuanData.fileSertifikatKeahlian)
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.fileSertifikatKeahlian,
+                  )
                 }>
                 <Text style={styles.linkButtonText}>Sertifikat Keahlian</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
                 onPress={() =>
-                  handleOpenLink(pengajuanData.fileMenghadiriSidang)
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.fileMenghadiriSidang,
+                  )
                 }>
                 <Text style={styles.linkButtonText}>
                   Form Menghadiri Sidang
@@ -330,12 +349,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
+    textTransform: 'uppercase',
   },
   detailTitleText: {
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
     fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   editButton: {
     marginTop: 20,

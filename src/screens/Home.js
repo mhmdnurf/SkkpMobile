@@ -4,6 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import DataPendaftar from '../components/DataPendaftar';
@@ -25,38 +26,10 @@ export default function Home({navigation}) {
   const [tanggalSidangSempro, setTanggalSidangSempro] = useState(null);
   const [tanggalSidangKompre, setTanggalSidangKompre] = useState(null);
   const [tanggalSidangSkripsi, setTanggalSidangSkripsi] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = auth().onAuthStateChanged(user => {
-      if (user) {
-        const userUid = user.uid;
-        const userRef = firestore().collection('users').doc(userUid);
-
-        const unsubscribeSnapshot = userRef.onSnapshot(
-          doc => {
-            if (doc.exists) {
-              const userData = doc.data();
-              const nama = userData.nama;
-              setUserName(nama);
-            } else {
-              console.log('No such document!');
-            }
-          },
-          error => {
-            console.log('Error fetching document:', error);
-          },
-        );
-
-        return () => {
-          unsubscribeSnapshot();
-        };
-      } else {
-        setUserName('');
-      }
-    });
-
+  const fetchJadwalSidang = () => {
     const jadwalSidangRef = firestore().collection('jadwalSidang');
-
     const unsubscribeSidang = jadwalSidangRef
       .where('status', '==', 'Aktif')
       .onSnapshot(querySnapshot => {
@@ -92,16 +65,64 @@ export default function Home({navigation}) {
         } else {
           setTanggalBukaKP(null);
           setTanggalTutupKP(null);
+          setTanggalSidangKP(null);
+          setTanggalBukaSempro(null);
+          setTanggalTutupSempro(null);
+          setTanggalTutupSempro(null);
+          setTanggalSidangSempro(null);
+          setTanggalBukaKompre(null);
+          setTanggalTutupKompre(null);
+          setTanggalSidangKompre(null);
+          setTanggalBukaSkripsi(null);
+          setTanggalTutupSkripsi(null);
+          setTanggalSidangSkripsi(null);
         }
       });
 
-    console.log(tanggalBukaKP);
+    return unsubscribeSidang;
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchJadwalSidang();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged(user => {
+      if (user) {
+        const userUid = user.uid;
+        const userRef = firestore().collection('users').doc(userUid);
+
+        const unsubscribeSnapshot = userRef.onSnapshot(
+          doc => {
+            if (doc.exists) {
+              const userData = doc.data();
+              const nama = userData.nama;
+              setUserName(nama);
+            } else {
+              console.log('No such document!');
+            }
+          },
+          error => {
+            console.log('Error fetching document:', error);
+          },
+        );
+
+        return () => {
+          unsubscribeSnapshot();
+        };
+      } else {
+        setUserName('');
+      }
+    });
+
+    const unsubscribeSidang = fetchJadwalSidang();
 
     return () => {
       unsubscribe();
       unsubscribeSidang();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePengajuan = () => {
@@ -113,7 +134,15 @@ export default function Home({navigation}) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#0D4C92']}
+        />
+      }>
       <View style={styles.pendaftarContainer}>
         <View>
           <Text style={styles.userTitle}>Welcome Back,</Text>

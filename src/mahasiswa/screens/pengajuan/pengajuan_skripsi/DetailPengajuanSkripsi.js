@@ -159,8 +159,15 @@ const DetailPengajuanSkripsi = ({route, navigation}) => {
                 // Menghapus dokumen dari Firestore
                 await firestore().collection('pengajuan').doc(itemId).delete();
 
-                Alert.alert('Sukses', 'Data pengajuan berhasil dihapus');
-                navigation.navigate('Pengajuan');
+                Dialog.show({
+                  type: ALERT_TYPE.SUCCESS,
+                  title: 'Berhasil',
+                  textBody: 'Pengajuan Skripsi berhasil dihapus',
+                  button: 'Tutup',
+                  onPressButton: () => {
+                    navigation.navigate('Pengajuan');
+                  },
+                });
               } catch (error) {
                 console.error('Error menghapus data pengajuan:', error);
                 Alert.alert(
@@ -219,7 +226,7 @@ const DetailPengajuanSkripsi = ({route, navigation}) => {
               <Text style={styles.detailTitleText}>Dosen Pembimbing</Text>
               <Text style={styles.detailText}>
                 {pengajuanData.dosenPembimbingInfo
-                  ? pengajuanData.dosenPembimbingInfo.nama
+                  ? `${pengajuanData.dosenPembimbingInfo.nama} (${pengajuanData.dosenPembimbingInfo.nidn})`
                   : '-'}
               </Text>
               <TouchableOpacity
@@ -308,12 +315,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
+    textTransform: 'uppercase',
   },
   detailTitleText: {
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
     fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   editButton: {
     marginTop: 20,

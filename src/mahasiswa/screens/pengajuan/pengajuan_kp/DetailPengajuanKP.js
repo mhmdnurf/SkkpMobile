@@ -162,7 +162,7 @@ const DetailPengajuanKP = ({route, navigation}) => {
                 Dialog.show({
                   type: ALERT_TYPE.SUCCESS,
                   title: 'Berhasil',
-                  textBody: 'Pengajuan berhasil dihapus',
+                  textBody: 'Pengajuan Kerja Praktek berhasil dihapus',
                   button: 'Tutup',
                   onPressButton: () => {
                     navigation.navigate('Pengajuan');
@@ -327,12 +327,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
+    textTransform: 'uppercase',
   },
   detailTitleText: {
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
     fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   editButton: {
     marginTop: 20,

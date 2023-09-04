@@ -52,12 +52,13 @@ const AddKompre = ({navigation}) => {
     const unsubscribeJadwal = firestore()
       .collection('jadwalSidang')
       .where('status', '==', 'Aktif')
+      .where('jenisSidang', 'array-contains', 'Komprehensif')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {
           data.push({id: doc.id, ...doc.data()});
-          setJadwalSidang(data);
         });
+        setJadwalSidang(data);
       });
 
     if (

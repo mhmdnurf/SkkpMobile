@@ -1,14 +1,15 @@
-import {View, Text, FlatList, StyleSheet} from 'react-native';
+import {View, Text, FlatList, StyleSheet, RefreshControl} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 import firestore from '@react-native-firebase/firestore';
 
-export default function DataPendaftar() {
+export default function DataPendaftar({onRefresh}) {
   const [isLoading, setIsLoading] = useState(true);
   const [jumlahPendaftarKP, setJumlahPendaftarKP] = useState(0);
   const [jumlahPendaftarSempro, setJumlahPendaftarSempro] = useState(0);
   const [jumlahPendaftarKompre, setJumlahPendaftarKompre] = useState(0);
   const [jumlahPendaftarSkripsi, setJumlahPendaftarSkripsi] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchKerjaPraktek = () => {
     const jadwalSidangRef = firestore().collection('jadwalSidang');
@@ -171,6 +172,13 @@ export default function DataPendaftar() {
       renderItem={renderItem}
       keyExtractor={(item, index) => index.toString()}
       showsHorizontalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#0D4C92']}
+        />
+      }
     />
   );
 }

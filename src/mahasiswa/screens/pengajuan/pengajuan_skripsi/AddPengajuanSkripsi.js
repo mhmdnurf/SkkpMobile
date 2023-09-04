@@ -48,6 +48,7 @@ export default function AddPengajuanSkripsi({navigation}) {
     const unsubscribe = firestore()
       .collection('jadwalPengajuan')
       .where('status', '==', 'Aktif')
+      .where('jenisPengajuan', 'array-contains', 'Skripsi')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {

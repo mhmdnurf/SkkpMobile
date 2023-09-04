@@ -89,7 +89,7 @@ const HomeSidangSkripsi = ({navigation}) => {
   };
 
   const handleDetailPress = itemId => {
-    navigation.navigate('DetailSempro', {itemId});
+    navigation.navigate('DetailSidangSkripsi', {itemId});
   };
 
   const renderPengajuanItem = ({item}) => (
@@ -100,9 +100,9 @@ const HomeSidangSkripsi = ({navigation}) => {
           {
             backgroundColor:
               item.status === 'Belum Diverifikasi'
-                ? '#75C2F6'
+                ? '#FFC436'
                 : item.status === 'Sah'
-                ? '#AAFCA5'
+                ? '#A0C49D'
                 : item.status === 'Ditolak'
                 ? '#f87171'
                 : '#75C2F6',

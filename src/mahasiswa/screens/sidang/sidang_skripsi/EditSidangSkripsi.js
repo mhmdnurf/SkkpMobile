@@ -5,10 +5,10 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   ScrollView,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
@@ -17,35 +17,48 @@ import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {launchCamera} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/FontAwesome6';
+import {
+  ALERT_TYPE,
+  AlertNotificationRoot,
+  Dialog,
+} from 'react-native-alert-notification';
 
 const EditSidangSkripsi = ({route, navigation}) => {
   const [judul, setJudul] = useState('');
-  const [filePersetujuanKP, setFilePersetujuanKP] = useState(null);
+  const [fileIjazah, setFileIjazah] = useState(null);
+  const [ijazahPath, setIjazahPath] = useState('');
+  const [fileTranskipNilai, setFileTranskipNilai] = useState(null);
+  const [transkipPath, setTranskipPath] = useState('');
+  const [filePendaftaranSidang, setFilePendaftaranSidang] = useState(null);
+  const [pendaftaranSidangPath, setPendaftaranSidangPath] = useState('');
+  const [filePersetujuanSidang, setFilePersetujuanSidang] = useState(null);
   const [persetujuanPath, setPersetujuanPath] = useState('');
-  const [filePenilaianPerusahaan, setFilePenilaianPerusahaan] = useState(null);
-  const [penilaianPerusahaanPath, setPenilaianPerusahaanPath] = useState('');
-  const [filePendaftaranKp, setFilePendaftaranKp] = useState(null);
-  const [pendaftaranKpPath, setPendaftaranKpPath] = useState('');
-  const [formBimbinganKP, setFormBimbinganKP] = useState(null);
-  const [formBimbinganPath, setFormBimbinganPath] = useState('');
-  const [sertifikatSeminar, setSertifikatSeminar] = useState(null);
-  const [sertifikatSeminarPath, setSertifikatSeminarPath] = useState('');
-  const [sertifikatPSPT, setSertifikatPSPT] = useState(null);
-  const [sertifikatPSPTPath, setSertifikatPSPTPath] = useState('');
+  const [buktiLunas, setBuktiLunas] = useState(null);
+  const [buktiLunasPath, setBuktiLunasPath] = useState('');
+  const [fileLembarRevisi, setFileLembarRevisi] = useState(null);
+  const [lembarRevisiPath, setLembarRevisiPath] = useState('');
+  const [scanKTP, setScanKTP] = useState(null);
+  const [scanKTPPath, setScanKTPPath] = useState('');
+  const [scanKK, setScanKK] = useState(null);
+  const [scanKKPath, setScanKKPath] = useState('');
+  const [fileBimbinganSkripsi, setFileBimbinganSkripsi] = useState(null);
+  const [bimbinganSkripsiPath, setBimbinganSkripsiPath] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [jadwalPengajuan, setJadwalPengajuan] = useState([]);
+  const [jadwalSidang, setJadwalSidang] = useState([]);
+  const [berkasPersyaratan, setBerkasPersyaratan] = useState({});
   const {itemId} = route.params;
 
   useEffect(() => {
     const unsubscribe = firestore()
       .collection('jadwalSidang')
       .where('status', '==', 'Aktif')
+      .where('jenisSidang', 'array-contains', 'Skripsi')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {
           data.push({id: doc.id, ...doc.data()});
-          setJadwalPengajuan(data);
         });
+        setJadwalSidang(data);
       });
 
     firestore()
@@ -56,12 +69,16 @@ const EditSidangSkripsi = ({route, navigation}) => {
         if (documentSnapshot.exists) {
           const data = documentSnapshot.data();
           setJudul(data.judul);
-          setPersetujuanPath(data.persetujuanKP);
-          setPenilaianPerusahaanPath(data.penilaianPerusahaan);
-          setPendaftaranKpPath(data.formPendaftaranKP);
-          setFormBimbinganPath(data.bimbinganKP);
-          setSertifikatSeminarPath(data.fileSertifikatSeminar);
-          setSertifikatPSPTPath(data.fileSertifikatPSPT);
+          setBerkasPersyaratan(data.berkasPersyaratan);
+          setIjazahPath(data.berkasPersyaratan.ijazah);
+          setTranskipPath(data.berkasPersyaratan.transkipNilai);
+          setPendaftaranSidangPath(data.berkasPersyaratan.pendaftaranSkripsi);
+          setPersetujuanPath(data.berkasPersyaratan.persetujuanSkripsi);
+          setBuktiLunasPath(data.berkasPersyaratan.fileBuktiLunas);
+          setLembarRevisiPath(data.berkasPersyaratan.lembarRevisi);
+          setScanKTPPath(data.berkasPersyaratan.ktp);
+          setScanKKPath(data.berkasPersyaratan.kk);
+          setBimbinganSkripsiPath(data.berkasPersyaratan.bimbinganSkripsi);
         } else {
           console.log('Pengajuan tidak ditemukan');
         }
@@ -74,7 +91,79 @@ const EditSidangSkripsi = ({route, navigation}) => {
     };
   }, [itemId]);
 
-  const pickerPersetujuanKP = async () => {
+  const pickerIjazah = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [
+          DocumentPicker.types.images,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.docx,
+        ],
+      });
+      console.log(result);
+      const selectedFile = result[0].uri;
+      const selectedFileName = result[0].name;
+      setIjazahPath(selectedFileName);
+      setFileIjazah({uri: selectedFile, name: result[0]});
+      console.log('Nama Berkas:', selectedFileName);
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        console.log('Pengguna membatalkan pemilihan dokumen');
+      } else {
+        console.log('Error memilih dokumen:', error.message);
+      }
+    }
+  };
+
+  const pickerTranskipNilai = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [
+          DocumentPicker.types.images,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.docx,
+        ],
+      });
+      console.log(result);
+      const selectedFile = result[0].uri;
+      const selectedFileName = result[0].name;
+      setTranskipPath(selectedFileName);
+      setFileTranskipNilai({uri: selectedFile, name: result[0]});
+      console.log('Nama Berkas:', selectedFileName);
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        console.log('Pengguna membatalkan pemilihan dokumen');
+      } else {
+        console.log('Error memilih dokumen:', error.message);
+      }
+    }
+  };
+
+  const pickerPendaftaranSidang = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [
+          DocumentPicker.types.images,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.docx,
+        ],
+      });
+      console.log(result);
+      const selectedFile = result[0].uri;
+      const selectedFileName = result[0].name;
+      setPendaftaranSidangPath(selectedFileName);
+      setFilePendaftaranSidang({uri: selectedFile, name: result[0]});
+      console.log('Nama Berkas:', selectedFileName);
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        console.log('Pengguna membatalkan pemilihan dokumen');
+      } else {
+        console.log('Error memilih dokumen:', error.message);
+      }
+    }
+  };
+
+  const pickerPersetujuanSidang = async () => {
     try {
       const result = await DocumentPicker.pick({
         type: [
@@ -87,7 +176,7 @@ const EditSidangSkripsi = ({route, navigation}) => {
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
       setPersetujuanPath(selectedFileName);
-      setFilePersetujuanKP({uri: selectedFile, name: result[0]});
+      setFilePersetujuanSidang({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -98,79 +187,7 @@ const EditSidangSkripsi = ({route, navigation}) => {
     }
   };
 
-  const pickerNilaiPerusahaan = async () => {
-    try {
-      const result = await DocumentPicker.pick({
-        type: [
-          DocumentPicker.types.images,
-          DocumentPicker.types.pdf,
-          DocumentPicker.types.docx,
-        ],
-      });
-      console.log(result);
-      const selectedFile = result[0].uri;
-      const selectedFileName = result[0].name;
-      setPenilaianPerusahaanPath(selectedFileName);
-      setFilePenilaianPerusahaan({uri: selectedFile, name: result[0]});
-      console.log('Nama Berkas:', selectedFileName);
-    } catch (error) {
-      if (DocumentPicker.isCancel(error)) {
-        console.log('Pengguna membatalkan pemilihan dokumen');
-      } else {
-        console.log('Error memilih dokumen:', error.message);
-      }
-    }
-  };
-
-  const pickerPendaftaranKp = async () => {
-    try {
-      const result = await DocumentPicker.pick({
-        type: [
-          DocumentPicker.types.images,
-          DocumentPicker.types.pdf,
-          DocumentPicker.types.docx,
-        ],
-      });
-      console.log(result);
-      const selectedFile = result[0].uri;
-      const selectedFileName = result[0].name;
-      setPendaftaranKpPath(selectedFileName);
-      setFilePendaftaranKp({uri: selectedFile, name: result[0]});
-      console.log('Nama Berkas:', selectedFileName);
-    } catch (error) {
-      if (DocumentPicker.isCancel(error)) {
-        console.log('Pengguna membatalkan pemilihan dokumen');
-      } else {
-        console.log('Error memilih dokumen:', error.message);
-      }
-    }
-  };
-
-  const pickerBimbinganKP = async () => {
-    try {
-      const result = await DocumentPicker.pick({
-        type: [
-          DocumentPicker.types.images,
-          DocumentPicker.types.pdf,
-          DocumentPicker.types.docx,
-        ],
-      });
-      console.log(result);
-      const selectedFile = result[0].uri;
-      const selectedFileName = result[0].name;
-      setFormBimbinganPath(selectedFileName);
-      setFormBimbinganKP({uri: selectedFile, name: result[0]});
-      console.log('Nama Berkas:', selectedFileName);
-    } catch (error) {
-      if (DocumentPicker.isCancel(error)) {
-        console.log('Pengguna membatalkan pemilihan dokumen');
-      } else {
-        console.log('Error memilih dokumen:', error.message);
-      }
-    }
-  };
-
-  const pickerSertifikatSeminar = async () => {
+  const pickerBuktiLunas = async () => {
     try {
       const result = await DocumentPicker.pick({
         type: [
@@ -181,8 +198,8 @@ const EditSidangSkripsi = ({route, navigation}) => {
       });
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
-      setSertifikatSeminarPath(selectedFileName);
-      setSertifikatSeminar({uri: selectedFile, name: result[0]});
+      setBuktiLunasPath(selectedFileName);
+      setBuktiLunas({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -193,7 +210,7 @@ const EditSidangSkripsi = ({route, navigation}) => {
     }
   };
 
-  const pickerSertifikatPSPT = async () => {
+  const pickerLembarRevisi = async () => {
     try {
       const result = await DocumentPicker.pick({
         type: [
@@ -204,8 +221,8 @@ const EditSidangSkripsi = ({route, navigation}) => {
       });
       const selectedFile = result[0].uri;
       const selectedFileName = result[0].name;
-      setSertifikatPSPTPath(selectedFileName);
-      setSertifikatPSPT({uri: selectedFile, name: result[0]});
+      setLembarRevisiPath(selectedFileName);
+      setFileLembarRevisi({uri: selectedFile, name: result[0]});
       console.log('Nama Berkas:', selectedFileName);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
@@ -216,7 +233,139 @@ const EditSidangSkripsi = ({route, navigation}) => {
     }
   };
 
-  const imagePickerPersetujuanKP = async () => {
+  const pickerKTP = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [
+          DocumentPicker.types.images,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.docx,
+        ],
+      });
+      const selectedFile = result[0].uri;
+      const selectedFileName = result[0].name;
+      setScanKTPPath(selectedFileName);
+      setScanKTP({uri: selectedFile, name: result[0]});
+      console.log('Nama Berkas:', selectedFileName);
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        console.log('Pengguna membatalkan pemilihan dokumen');
+      } else {
+        console.log('Error memilih dokumen:', error.message);
+      }
+    }
+  };
+
+  const pickerKK = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [
+          DocumentPicker.types.images,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.docx,
+        ],
+      });
+      const selectedFile = result[0].uri;
+      const selectedFileName = result[0].name;
+      setScanKKPath(selectedFileName);
+      setScanKK({uri: selectedFile, name: result[0]});
+      console.log('Nama Berkas:', selectedFileName);
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        console.log('Pengguna membatalkan pemilihan dokumen');
+      } else {
+        console.log('Error memilih dokumen:', error.message);
+      }
+    }
+  };
+
+  const pickerBimbingan = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [
+          DocumentPicker.types.images,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.docx,
+        ],
+      });
+      const selectedFile = result[0].uri;
+      const selectedFileName = result[0].name;
+      setBimbinganSkripsiPath(selectedFileName);
+      setFileBimbinganSkripsi({uri: selectedFile, name: result[0]});
+      console.log('Nama Berkas:', selectedFileName);
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        console.log('Pengguna membatalkan pemilihan dokumen');
+      } else {
+        console.log('Error memilih dokumen:', error.message);
+      }
+    }
+  };
+
+  const imagePickerIjazah = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setIjazahPath(selectedFileName);
+        setFileIjazah({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
+  const imagePickerTranskipNilai = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setTranskipPath(selectedFileName);
+        setFileTranskipNilai({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
+  const imagePickerPendaftaranSkripsi = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.5, // Kualitas gambar (0 - 1)
+    };
+    try {
+      const response = await launchCamera(options);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else {
+        const selectedFile = response.assets[0].uri;
+        const selectedFileName = response.assets[0].fileName;
+        setPendaftaranSidangPath(selectedFileName);
+        setFilePendaftaranSidang({uri: selectedFile, name: selectedFileName});
+        console.log('Selected Image URI:', selectedFile);
+      }
+    } catch (error) {
+      console.error('ImagePicker Error:', error);
+    }
+  };
+
+  const imagePickerPersetujuanSkripsi = async () => {
     const options = {
       mediaType: 'photo',
       quality: 0.5, // Kualitas gambar (0 - 1)
@@ -229,7 +378,7 @@ const EditSidangSkripsi = ({route, navigation}) => {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
         setPersetujuanPath(selectedFileName);
-        setFilePersetujuanKP({uri: selectedFile, name: selectedFileName});
+        setFilePersetujuanSidang({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -237,7 +386,7 @@ const EditSidangSkripsi = ({route, navigation}) => {
     }
   };
 
-  const imagePickerNilaiPerusahaan = async () => {
+  const imagePickerLunas = async () => {
     const options = {
       mediaType: 'photo',
       quality: 0.5, // Kualitas gambar (0 - 1)
@@ -249,8 +398,8 @@ const EditSidangSkripsi = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setPenilaianPerusahaanPath(selectedFileName);
-        setFilePenilaianPerusahaan({uri: selectedFile, name: selectedFileName});
+        setBuktiLunasPath(selectedFileName);
+        setBuktiLunas({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -258,7 +407,7 @@ const EditSidangSkripsi = ({route, navigation}) => {
     }
   };
 
-  const imagePickerFormKP = async () => {
+  const imagePickerRevisi = async () => {
     const options = {
       mediaType: 'photo',
       quality: 0.5, // Kualitas gambar (0 - 1)
@@ -270,8 +419,8 @@ const EditSidangSkripsi = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setPendaftaranKpPath(selectedFileName);
-        setFilePendaftaranKp({uri: selectedFile, name: selectedFileName});
+        setLembarRevisiPath(selectedFileName);
+        setFileLembarRevisi({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -279,7 +428,7 @@ const EditSidangSkripsi = ({route, navigation}) => {
     }
   };
 
-  const imagePickerBimbinganKP = async () => {
+  const imagePickerKTP = async () => {
     const options = {
       mediaType: 'photo',
       quality: 0.5, // Kualitas gambar (0 - 1)
@@ -291,8 +440,8 @@ const EditSidangSkripsi = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setFormBimbinganPath(selectedFileName);
-        setFormBimbinganKP({uri: selectedFile, name: selectedFileName});
+        setScanKTPPath(selectedFileName);
+        setScanKTP({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -300,7 +449,7 @@ const EditSidangSkripsi = ({route, navigation}) => {
     }
   };
 
-  const imagePickerSertifikatSeminar = async () => {
+  const imagePickerKK = async () => {
     const options = {
       mediaType: 'photo',
       quality: 0.5, // Kualitas gambar (0 - 1)
@@ -312,8 +461,8 @@ const EditSidangSkripsi = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setSertifikatSeminarPath(selectedFileName);
-        setSertifikatSeminar({uri: selectedFile, name: selectedFileName});
+        setScanKKPath(selectedFileName);
+        setScanKK({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -321,7 +470,7 @@ const EditSidangSkripsi = ({route, navigation}) => {
     }
   };
 
-  const imagePickerSertifikatPSPT = async () => {
+  const imagePickerBimbingan = async () => {
     const options = {
       mediaType: 'photo',
       quality: 0.5, // Kualitas gambar (0 - 1)
@@ -333,8 +482,8 @@ const EditSidangSkripsi = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setSertifikatPSPTPath(selectedFileName);
-        setSertifikatPSPT({uri: selectedFile, name: selectedFileName});
+        setBimbinganSkripsiPath(selectedFileName);
+        setFileBimbinganSkripsi({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -346,305 +495,447 @@ const EditSidangSkripsi = ({route, navigation}) => {
     setIsSubmitting(true);
     try {
       const user = auth().currentUser;
-      const persetujuanKPFileName = `persyaratan/sidangKP/formPersetujuanKP/${user.uid}`;
-      const penilaianPerusahaanFileName = `persyaratan/sidangKP/penilaianPerusahaan/${user.uid}`;
-      const pendaftaranKpFileName = `persyaratan/sidangKP/formPendaftaranKP/${user.uid}`;
-      const bimbinganKPFileName = `persyaratan/sidangKP/formBimbinganKP/${user.uid}`;
-      const sertifikatSeminarFileName = `persyaratan/sidangKP/sertifikatSeminar/${user.uid}`;
-      const sertifikatPSPTFileName = `persyaratan/sidangKP/sertifikatPSPT/${user.uid}`;
-      const persetujuanKPReference = storage().ref(persetujuanKPFileName);
-      const penilaianPerusahaanReference = storage().ref(
-        penilaianPerusahaanFileName,
-      );
-      const pendaftaranKpReference = storage().ref(pendaftaranKpFileName);
-      const bimbinganKPReference = storage().ref(bimbinganKPFileName);
-      const sertifikatSeminarReference = storage().ref(
-        sertifikatSeminarFileName,
-      );
-      const sertifikatPSPTReference = storage().ref(sertifikatPSPTFileName);
+      const ijazahFileName = `persyaratan/sidangSkripsi/ijazah/${user.uid}`;
+      const transkipNilaiFileName = `persyaratan/sidangSkripsi/transkipNilai/${user.uid}`;
+      const pendaftaranSkripsiFileName = `persyaratan/sidangSkripsi/formPendaftaran/${user.uid}`;
+      const persetujuanSkripsiFileName = `persyaratan/sidangSkripsi/formPersetujuan/${user.uid}`;
+      const buktiLunasFileName = `persyaratan/sidangSkripsi/buktiLunas/${user.uid}`;
+      const lembarRevisiFileName = `persyaratan/sidangSkripsi/lembarRevisi/${user.uid}`;
+      const ktpFileName = `persyaratan/sidangSkripsi/ktp/${user.uid}`;
+      const kkFileName = `persyaratan/sidangSkripsi/kk/${user.uid}`;
+      const bimbinganSkripsiFileName = `persyaratan/sidangSkripsi/formBimbingan/${user.uid}`;
 
-      // Inisialisasi variabel untuk URL dokumen (jika diunggah)
-      let persetujuanKP = null;
-      let penilaianPerusahaan = null;
-      let formPendaftaranKP = null;
-      let bimbinganKP = null;
-      let fileSertifikatSeminar = null;
-      let fileSertifikatPSPT = null;
+      const ijazahReference = storage().ref(ijazahFileName);
+      const transkipNilaiReference = storage().ref(transkipNilaiFileName);
+      const pendaftaranSkripsiReference = storage().ref(
+        pendaftaranSkripsiFileName,
+      );
+      const persetujuanSkripsiReference = storage().ref(
+        persetujuanSkripsiFileName,
+      );
+      const buktiLunasReference = storage().ref(buktiLunasFileName);
+      const lembarRevisiReference = storage().ref(lembarRevisiFileName);
+      const ktpReference = storage().ref(ktpFileName);
+      const kkReference = storage().ref(kkFileName);
+      const bimbinganSkripsiReference = storage().ref(bimbinganSkripsiFileName);
 
-      // Proses Transkip Nilai
-      if (filePersetujuanKP) {
-        const persetujuanKPFilePath = `${RNFS.DocumentDirectoryPath}/${filePersetujuanKP.name}`;
-        await RNFS.copyFile(filePersetujuanKP.uri, persetujuanKPFilePath);
-        const persetujuanKpBlob = await RNFS.readFile(
-          persetujuanKPFilePath,
-          'base64',
-        );
-        await persetujuanKPReference.putString(persetujuanKpBlob, 'base64');
-        persetujuanKP = await persetujuanKPReference.getDownloadURL();
+      let ijazah = null;
+      let transkipNilai = null;
+      let pendaftaranSkripsi = null;
+      let persetujuanSkripsi = null;
+      let fileBuktiLunas = null;
+      let lembarRevisi = null;
+      let ktp = null;
+      let kk = null;
+      let bimbinganSkripsi = null;
+
+      // Proses Sertifikat Keahlian
+      if (fileIjazah) {
+        const ijazahFilePath = `${RNFS.DocumentDirectoryPath}/${fileIjazah.name}`;
+        await RNFS.copyFile(fileIjazah.uri, ijazahFilePath);
+        const ijazahBlob = await RNFS.readFile(ijazahFilePath, 'base64');
+        await ijazahReference.putString(ijazahBlob, 'base64');
+        ijazah = await ijazahReference.getDownloadURL();
       }
 
-      // Proses Form KRS
-      if (filePenilaianPerusahaan) {
-        const penilaianPerusahaanFilePath = `${RNFS.DocumentDirectoryPath}/${filePenilaianPerusahaan.name}`;
+      if (fileTranskipNilai) {
+        // Proses Transkip Nilai
+        const transkipNilaiFilePath = `${RNFS.DocumentDirectoryPath}/${fileTranskipNilai.name}`;
+        await RNFS.copyFile(fileTranskipNilai.uri, transkipNilaiFilePath);
+        const transkipNilaiBlob = await RNFS.readFile(
+          transkipNilaiFilePath,
+          'base64',
+        );
+        await transkipNilaiReference.putString(transkipNilaiBlob, 'base64');
+        transkipNilai = await transkipNilaiReference.getDownloadURL();
+      }
+
+      if (filePendaftaranSidang) {
+        const pendaftaranSkripsiFilePath = `${RNFS.DocumentDirectoryPath}/${filePendaftaranSidang.name}`;
         await RNFS.copyFile(
-          filePenilaianPerusahaan.uri,
-          penilaianPerusahaanFilePath,
+          filePendaftaranSidang.uri,
+          pendaftaranSkripsiFilePath,
         );
-        const penilaianPerusahaanBlob = await RNFS.readFile(
-          penilaianPerusahaanFilePath,
+        const pendaftaranSkripsiBlob = await RNFS.readFile(
+          pendaftaranSkripsiFilePath,
           'base64',
         );
-        await penilaianPerusahaanReference.putString(
-          penilaianPerusahaanBlob,
+        await pendaftaranSkripsiReference.putString(
+          pendaftaranSkripsiBlob,
           'base64',
         );
-        penilaianPerusahaan =
-          await penilaianPerusahaanReference.getDownloadURL();
+        pendaftaranSkripsi = await pendaftaranSkripsiReference.getDownloadURL();
       }
 
-      // Proses Form Pendaftaran KP
-      if (filePendaftaranKp) {
-        const pendaftaranKpFilePath = `${RNFS.DocumentDirectoryPath}/${filePendaftaranKp.name}`;
-        await RNFS.copyFile(filePendaftaranKp.uri, pendaftaranKpFilePath);
-        const pendaftaranKpBlob = await RNFS.readFile(
-          pendaftaranKpFilePath,
+      if (filePersetujuanSidang) {
+        // Proses Form Persetujuan Sempro
+        const persetujuanSkripsiFilePath = `${RNFS.DocumentDirectoryPath}/${filePersetujuanSidang.name}`;
+        await RNFS.copyFile(
+          filePersetujuanSidang.uri,
+          persetujuanSkripsiFilePath,
+        );
+        const persetujuanSkripsiBlob = await RNFS.readFile(
+          persetujuanSkripsiFilePath,
           'base64',
         );
-        await pendaftaranKpReference.putString(pendaftaranKpBlob, 'base64');
-        formPendaftaranKP = await pendaftaranKpReference.getDownloadURL();
+        await persetujuanSkripsiReference.putString(
+          persetujuanSkripsiBlob,
+          'base64',
+        );
+        persetujuanSkripsi = await persetujuanSkripsiReference.getDownloadURL();
       }
 
-      // Proses Slip Pembayaran KP
-      if (formBimbinganKP) {
-        const bimbinganKPFilePath = `${RNFS.DocumentDirectoryPath}/${formBimbinganKP.name}`;
-        await RNFS.copyFile(formBimbinganKP.uri, bimbinganKPFilePath);
-        const bimbinganKPBlob = await RNFS.readFile(
-          bimbinganKPFilePath,
+      if (buktiLunas) {
+        // Proses Form Menghadiri Sidang
+        const buktiLunasFilePath = `${RNFS.DocumentDirectoryPath}/${buktiLunas.name}`;
+        await RNFS.copyFile(buktiLunas.uri, buktiLunasFilePath);
+        const buktiLunasBlob = await RNFS.readFile(
+          buktiLunasFilePath,
           'base64',
         );
-        await bimbinganKPReference.putString(bimbinganKPBlob, 'base64');
-        bimbinganKP = await bimbinganKPReference.getDownloadURL();
+        await buktiLunasReference.putString(buktiLunasBlob, 'base64');
+        fileBuktiLunas = await buktiLunasReference.getDownloadURL();
       }
 
-      // Proses Dokumen Proporsal
-      if (sertifikatSeminar) {
-        const sertifikatSeminarFilePath = `${RNFS.DocumentDirectoryPath}/${sertifikatSeminar.name}`;
-        await RNFS.copyFile(sertifikatSeminar.uri, sertifikatSeminarFilePath);
-        const sertifikatSeminarBlob = await RNFS.readFile(
-          sertifikatSeminarFilePath,
+      if (fileLembarRevisi) {
+        // Proses Lembar Revisi
+        const lembarRevisiFilePath = `${RNFS.DocumentDirectoryPath}/${fileLembarRevisi.name}`;
+        await RNFS.copyFile(fileLembarRevisi.uri, lembarRevisiFilePath);
+        const lembarRevisiBlob = await RNFS.readFile(
+          lembarRevisiFilePath,
           'base64',
         );
-        await sertifikatSeminarReference.putString(
-          sertifikatSeminarBlob,
-          'base64',
-        );
-        fileSertifikatSeminar =
-          await sertifikatSeminarReference.getDownloadURL();
+        await lembarRevisiReference.putString(lembarRevisiBlob, 'base64');
+        lembarRevisi = await lembarRevisiReference.getDownloadURL();
       }
 
-      // Sertifikat PSPT
-      if (sertifikatPSPT) {
-        const sertifikatPSPTFilePath = `${RNFS.DocumentDirectoryPath}/${sertifikatPSPT.name}`;
-        await RNFS.copyFile(sertifikatPSPT.uri, sertifikatPSPTFilePath);
-        const sertifikatPSPTBlob = await RNFS.readFile(
-          sertifikatPSPTFilePath,
+      if (scanKTP) {
+        // Proses KTP
+        const ktpFilePath = `${RNFS.DocumentDirectoryPath}/${scanKTP.name}`;
+        await RNFS.copyFile(scanKTP.uri, ktpFilePath);
+        const ktpBlob = await RNFS.readFile(ktpFilePath, 'base64');
+        await ktpReference.putString(ktpBlob, 'base64');
+        ktp = await ktpReference.getDownloadURL();
+      }
+
+      if (scanKK) {
+        // Proses KK
+        const kkFilePath = `${RNFS.DocumentDirectoryPath}/${scanKK.name}`;
+        await RNFS.copyFile(scanKK.uri, kkFilePath);
+        const kkBlob = await RNFS.readFile(kkFilePath, 'base64');
+        await kkReference.putString(kkBlob, 'base64');
+        kk = await kkReference.getDownloadURL();
+      }
+
+      if (fileBimbinganSkripsi) {
+        // Proses KK
+        const bimbinganSkripsiFilePath = `${RNFS.DocumentDirectoryPath}/${fileBimbinganSkripsi.name}`;
+        await RNFS.copyFile(fileBimbinganSkripsi.uri, bimbinganSkripsiFilePath);
+        const bimbinganSkripsiBlob = await RNFS.readFile(
+          bimbinganSkripsiFilePath,
           'base64',
         );
-        await sertifikatPSPTReference.putString(sertifikatPSPTBlob, 'base64');
-        fileSertifikatPSPT = await sertifikatPSPTReference.getDownloadURL();
+        await bimbinganSkripsiReference.putString(
+          bimbinganSkripsiBlob,
+          'base64',
+        );
+        bimbinganSkripsi = await bimbinganSkripsiReference.getDownloadURL();
       }
-      const jadwalId = jadwalPengajuan[0].id;
-      // Push to Firestore
+      const jadwalId = jadwalSidang[0].id;
       const updateData = {
+        judul: judul,
         editedAt: new Date(),
         status: 'Belum Diverifikasi',
         jadwalSidang_uid: jadwalId,
+        berkasPersyaratan: {
+          ijazah: berkasPersyaratan.ijazah,
+          transkipNilai: berkasPersyaratan.transkipNilai,
+          pendaftaranSkripsi: berkasPersyaratan.pendaftaranSkripsi,
+          persetujuanSkripsi: berkasPersyaratan.persetujuanSkripsi,
+          fileBuktiLunas: berkasPersyaratan.fileBuktiLunas,
+          lembarRevisi: berkasPersyaratan.lembarRevisi,
+          ktp: berkasPersyaratan.ktp,
+          kk: berkasPersyaratan.kk,
+          bimbinganSkripsi: berkasPersyaratan.bimbinganSkripsi,
+        },
       };
-
-      // Tambahkan URL dokumen jika diunggah
-      if (persetujuanKP) {
-        updateData.persetujuanKP = persetujuanKP;
+      if (ijazah) {
+        updateData.berkasPersyaratan.ijazah = ijazah;
       }
-      if (penilaianPerusahaan) {
-        updateData.penilaianPerusahaan = penilaianPerusahaan;
+      if (transkipNilai) {
+        updateData.berkasPersyaratan.transkipNilai = transkipNilai;
       }
-      if (formPendaftaranKP) {
-        updateData.formPendaftaranKP = formPendaftaranKP;
+      if (pendaftaranSkripsi) {
+        updateData.berkasPersyaratan.pendaftaranSkripsi = pendaftaranSkripsi;
       }
-      if (bimbinganKP) {
-        updateData.bimbinganKP = bimbinganKP;
+      if (persetujuanSkripsi) {
+        updateData.berkasPersyaratan.persetujuanSkripsi = persetujuanSkripsi;
       }
-      if (fileSertifikatSeminar) {
-        updateData.fileSertifikatSeminar = fileSertifikatSeminar;
+      if (fileBuktiLunas) {
+        updateData.berkasPersyaratan.fileBuktiLunas = fileBuktiLunas;
       }
-      if (fileSertifikatPSPT) {
-        updateData.fileSertifikatPSPT = fileSertifikatPSPT;
+      if (lembarRevisi) {
+        updateData.berkasPersyaratan.lembarRevisi = lembarRevisi;
       }
-
+      if (ktp) {
+        updateData.berkasPersyaratan.ktp = ktp;
+      }
+      if (kk) {
+        updateData.berkasPersyaratan.kk = kk;
+      }
+      if (bimbinganSkripsi) {
+        updateData.berkasPersyaratan.bimbinganSkripsi = bimbinganSkripsi;
+      }
       await firestore().collection('sidang').doc(itemId).update(updateData);
-
-      Alert.alert('Sukses', 'Data pengajuan berhasil diubah');
-      navigation.navigate('Sidang');
+      Dialog.show({
+        type: ALERT_TYPE.SUCCESS,
+        title: 'Berhasil',
+        textBody: 'Data sidang Skripsi berhasil diubah',
+        button: 'Tutup',
+        onPressButton: () => {
+          navigation.navigate('Sidang');
+        },
+      });
     } catch (error) {
-      console.error('Error mengubah data pengajuan:', error);
-      Alert.alert('Error', 'Terjadi kesalahan saat mengubah data pengajuan');
+      console.error('Error mengubah data sidang:', error);
+      Alert.alert('Error', 'Terjadi kesalahan saat mengubah data sidang');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{flex: 1}}
-      behavior="height"
-      keyboardVerticalOffset={0}>
-      <ScrollView
-        contentContainerStyle={{
-          backgroundColor: 'white',
-        }}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.container}>
-          <Text style={styles.inputTitle}>
-            Form Persetujuan KP<Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={persetujuanPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerPersetujuanKP}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerPersetujuanKP}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
+    <AlertNotificationRoot>
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior="height"
+        keyboardVerticalOffset={0}>
+        <ScrollView
+          contentContainerStyle={{
+            backgroundColor: 'white',
+          }}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.container}>
+            <Text style={styles.inputTitle}>
+              Judul<Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                placeholder="Masukkan Judul"
+                style={[styles.input, styles.border]}
+                multiline
+                numberOfLines={3}
+                value={judul}
+                onChangeText={text => setJudul(text)}
+              />
+            </View>
+            <Text style={styles.inputTitle}>
+              Ijazah SMA/SMK<Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={ijazahPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerIjazah}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerIjazah}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Transkip Nilai<Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={transkipPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerTranskipNilai}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerTranskipNilai}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.inputTitle}>
+              Form Pendaftaran Sidang<Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={pendaftaranSidangPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerPendaftaranSkripsi}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerPendaftaranSidang}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.inputTitle}>
+              Form Persetujuan<Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={persetujuanPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerPersetujuanSkripsi}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerPersetujuanSidang}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.inputTitle}>
+              Bukti Lunas Sidang
+              <Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={buktiLunasPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerLunas}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerBuktiLunas}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Lembar Revisi
+              <Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={lembarRevisiPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerRevisi}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerLembarRevisi}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Scan KTP Berwarna
+              <Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={scanKTPPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerKTP}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.uploadButton} onPress={pickerKTP}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Scan KK Berwarna
+              <Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={scanKKPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerKK}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.uploadButton} onPress={pickerKK}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inputTitle}>
+              Form Bimbingan Skripsi
+              <Text style={styles.star}>*</Text>
+            </Text>
+            <View style={styles.uploadContainer}>
+              <TextInput
+                style={[styles.fileNameInput, styles.border]}
+                placeholder="Belum Upload"
+                value={bimbinganSkripsiPath}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={imagePickerBimbingan}>
+                <Icon name="camera" size={22} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={pickerBimbingan}>
+                <Icon name="file-circle-plus" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.inputTitle}>
-            Form Penilaian Perusahaan<Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={penilaianPerusahaanPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerNilaiPerusahaan}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerNilaiPerusahaan}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Form Pendaftaran KP<Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={pendaftaranKpPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerFormKP}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerPendaftaranKp}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Form Bimbingan KP<Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={formBimbinganPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerBimbinganKP}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerBimbinganKP}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Sertifikat Seminar STTI (2 Sertifikat)
-            <Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={sertifikatSeminarPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerSertifikatSeminar}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerSertifikatSeminar}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.inputTitle}>
-            Sertifikat PSPT
-            <Text style={styles.star}>*</Text>
-          </Text>
-          <View style={styles.uploadContainer}>
-            <TextInput
-              style={[styles.fileNameInput, styles.border]}
-              placeholder="Belum Upload"
-              value={sertifikatPSPTPath}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={imagePickerSertifikatPSPT}>
-              <Icon name="camera" size={22} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickerSertifikatPSPT}>
-              <Icon name="file-circle-plus" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <TouchableOpacity
-          style={styles.floatingButtonSubmit}
-          onPress={handleEdit}
-          disabled={isSubmitting}>
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text style={styles.uploadButtonText}>Submit</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <TouchableOpacity
+            style={styles.floatingButtonSubmit}
+            onPress={handleEdit}
+            disabled={isSubmitting}>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.uploadButtonText}>Submit</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </AlertNotificationRoot>
   );
 };
 
@@ -679,7 +970,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   uploadButton: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -692,7 +983,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   buttonAction: {
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     padding: 15,
     marginLeft: 5,
     borderRadius: 5,
@@ -723,7 +1014,7 @@ const styles = StyleSheet.create({
   },
   floatingButtonSubmit: {
     padding: 15,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     borderRadius: 10,
     shadowColor: '#000',
     marginVertical: 30,

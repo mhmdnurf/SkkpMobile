@@ -100,7 +100,7 @@ const DetailSidangSkripsi = ({route, navigation}) => {
         const data = [];
         querySnapshot.forEach(doc => {
           const jadwalData = doc.data();
-          if (jadwalData.jenisSidang.includes('Kerja Praktek')) {
+          if (jadwalData.jenisSidang.includes('Skripsi')) {
             data.push(jadwalData);
           }
         });
@@ -113,21 +113,20 @@ const DetailSidangSkripsi = ({route, navigation}) => {
 
   const handleEditButtonPress = () => {
     const activeJadwal = jadwalPengajuanData.find(
-      item =>
-        item.status === 'Aktif' && item.jenisSidang.includes('Kerja Praktek'),
+      item => item.status === 'Aktif' && item.jenisSidang.includes('Skripsi'),
     );
     if (!activeJadwal) {
       Dialog.show({
         type: ALERT_TYPE.WARNING,
         title: 'Peringatan',
-        textBody: 'Sidang Kerja Praktek belum dibuka saat ini.',
+        textBody: 'Sidang Skripsi belum dibuka saat ini.',
         button: 'Tutup',
       });
     } else if (!activeJadwal && statusPendaftaran === 'Ditolak') {
       Dialog.show({
         type: ALERT_TYPE.WARNING,
         title: 'Peringatan',
-        textBody: 'Sidang Kerja Praktek belum dibuka saat ini.',
+        textBody: 'Sidang Skripsi belum dibuka saat ini.',
         button: 'Tutup',
       });
     } else if (statusPendaftaran === 'Sah') {
@@ -138,7 +137,7 @@ const DetailSidangSkripsi = ({route, navigation}) => {
         button: 'Tutup',
       });
     } else {
-      navigation.navigate('EditSidangKP', {itemId});
+      navigation.navigate('EditSidangSkripsi', {itemId});
     }
   };
   const handleDeleteButtonPress = () => {
@@ -150,12 +149,15 @@ const DetailSidangSkripsi = ({route, navigation}) => {
         button: 'Tutup',
       });
     } else {
-      const persetujuanKPFileName = `persyaratan/sidangKP/formPersetujuanKP/${user.uid}`;
-      const penilaianPerusahaanFileName = `persyaratan/sidangKP/penilaianPerusahaan/${user.uid}`;
-      const pendaftaranKpFileName = `persyaratan/sidangKP/formPendaftaranKP/${user.uid}`;
-      const bimbinganKPFileName = `persyaratan/sidangKP/formBimbinganKP/${user.uid}`;
-      const sertifikatSeminarFileName = `persyaratan/sidangKP/sertifikatSeminar/${user.uid}`;
-      const sertifikatPSPTFileName = `persyaratan/sidangKP/sertifikatPSPT/${user.uid}`;
+      const ijazahFileName = `persyaratan/sidangSkripsi/ijazah/${user.uid}`;
+      const transkipNilaiFileName = `persyaratan/sidangSkripsi/transkipNilai/${user.uid}`;
+      const pendaftaranSkripsiFileName = `persyaratan/sidangSkripsi/formPendaftaran/${user.uid}`;
+      const persetujuanSkripsiFileName = `persyaratan/sidangSkripsi/formPersetujuan/${user.uid}`;
+      const buktiLunasFileName = `persyaratan/sidangSkripsi/buktiLunas/${user.uid}`;
+      const lembarRevisiFileName = `persyaratan/sidangSkripsi/lembarRevisi/${user.uid}`;
+      const ktpFileName = `persyaratan/sidangSkripsi/ktp/${user.uid}`;
+      const kkFileName = `persyaratan/sidangSkripsi/kk/${user.uid}`;
+      const bimbinganSkripsiFileName = `persyaratan/sidangSkripsi/formBimbingan/${user.uid}`;
       Alert.alert(
         'Konfirmasi Hapus',
         'Apakah Anda yakin ingin menghapus data pengajuan?',
@@ -170,18 +172,28 @@ const DetailSidangSkripsi = ({route, navigation}) => {
             onPress: async () => {
               try {
                 // Menghapus file dari Firebase Storage
-                await storage().ref(persetujuanKPFileName).delete();
-                await storage().ref(penilaianPerusahaanFileName).delete();
-                await storage().ref(pendaftaranKpFileName).delete();
-                await storage().ref(bimbinganKPFileName).delete();
-                await storage().ref(sertifikatSeminarFileName).delete();
-                await storage().ref(sertifikatPSPTFileName).delete();
+                await storage().ref(ijazahFileName).delete();
+                await storage().ref(transkipNilaiFileName).delete();
+                await storage().ref(pendaftaranSkripsiFileName).delete();
+                await storage().ref(persetujuanSkripsiFileName).delete();
+                await storage().ref(buktiLunasFileName).delete();
+                await storage().ref(lembarRevisiFileName).delete();
+                await storage().ref(ktpFileName).delete();
+                await storage().ref(kkFileName).delete();
+                await storage().ref(bimbinganSkripsiFileName).delete();
 
                 // Menghapus dokumen dari Firestore
                 await firestore().collection('sidang').doc(itemId).delete();
 
-                Alert.alert('Sukses', 'Data sidang berhasil dihapus');
-                navigation.navigate('Sidang');
+                Dialog.show({
+                  type: ALERT_TYPE.SUCCESS,
+                  title: 'Berhasil',
+                  textBody: 'Pendaftaran Sidang Skripsi berhasil dihapus',
+                  button: 'Tutup',
+                  onPressButton: () => {
+                    navigation.navigate('Sidang');
+                  },
+                });
               } catch (error) {
                 console.error('Error menghapus data sidang:', error);
                 Alert.alert(
@@ -225,7 +237,6 @@ const DetailSidangSkripsi = ({route, navigation}) => {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }>
-      <Text style={styles.title}>{pengajuanData.pengajuanInfo.judul}</Text>
       {pengajuanData ? (
         <>
           <View style={styles.detailContainer}>
@@ -240,42 +251,79 @@ const DetailSidangSkripsi = ({route, navigation}) => {
             <Text style={styles.detailTitleText}>Dosen Pembimbing</Text>
             <Text style={styles.detailText}>
               {pengajuanData.dosenPembimbingInfo
-                ? pengajuanData.dosenPembimbingInfo.nama
+                ? `${pengajuanData.dosenPembimbingInfo.nama} (${pengajuanData.dosenPembimbingInfo.nidn})`
                 : '-'}
             </Text>
             <TouchableOpacity
               style={styles.linkButton}
-              onPress={() => handleOpenLink(pengajuanData.persetujuanKP)}>
-              <Text style={styles.linkButtonText}>Form Persetujuan KP</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() => handleOpenLink(pengajuanData.penilaianPerusahaan)}>
-              <Text style={styles.linkButtonText}>
-                Form Penilaian Perusahaan
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() => handleOpenLink(pengajuanData.formPendaftaranKP)}>
-              <Text style={styles.linkButtonText}>Form Pendaftaran KP</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() => handleOpenLink(pengajuanData.bimbinganKP)}>
-              <Text style={styles.linkButtonText}>Form Bimbingan KP</Text>
+              onPress={() =>
+                handleOpenLink(pengajuanData.berkasPersyaratan.ijazah)
+              }>
+              <Text style={styles.linkButtonText}>Ijazah SMA/SMK</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.linkButton}
               onPress={() =>
-                handleOpenLink(pengajuanData.fileSertifikatSeminar)
+                handleOpenLink(pengajuanData.berkasPersyaratan.transkipNilai)
               }>
-              <Text style={styles.linkButtonText}>Sertifikat Seminar STTI</Text>
+              <Text style={styles.linkButtonText}>Transkip Nilai</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.linkButton}
-              onPress={() => handleOpenLink(pengajuanData.fileSertifikatPSPT)}>
-              <Text style={styles.linkButtonText}>Sertifikat PSPT</Text>
+              onPress={() =>
+                handleOpenLink(
+                  pengajuanData.berkasPersyaratan.pendaftaranSkripsi,
+                )
+              }>
+              <Text style={styles.linkButtonText}>
+                Form Pendaftaran Sidang Skripsi
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                handleOpenLink(
+                  pengajuanData.berkasPersyaratan.persetujuanSkripsi,
+                )
+              }>
+              <Text style={styles.linkButtonText}>
+                Form Persetujuan Skripsi
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                handleOpenLink(pengajuanData.berkasPersyaratan.fileBuktiLunas)
+              }>
+              <Text style={styles.linkButtonText}>Bukti Lunas Sidang</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                handleOpenLink(pengajuanData.berkasPersyaratan.lembarRevisi)
+              }>
+              <Text style={styles.linkButtonText}>Lembar Revisi</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                handleOpenLink(pengajuanData.berkasPersyaratan.ktp)
+              }>
+              <Text style={styles.linkButtonText}>Scan KTP Berwarna</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                handleOpenLink(pengajuanData.berkasPersyaratan.kk)
+              }>
+              <Text style={styles.linkButtonText}>Scan KK Berwarna</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                handleOpenLink(pengajuanData.berkasPersyaratan.bimbinganSkripsi)
+              }>
+              <Text style={styles.linkButtonText}>Form Bimbingan Skripsi</Text>
             </TouchableOpacity>
             <View
               style={{
@@ -286,12 +334,12 @@ const DetailSidangSkripsi = ({route, navigation}) => {
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={handleEditButtonPress}>
-                <Text style={styles.editButtonText}>Edit Pengajuan</Text>
+                <Text style={styles.editButtonText}>Edit Pendaftaran</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={handleDeleteButtonPress}>
-                <Text style={styles.deleteButtonText}>Hapus Pengajuan</Text>
+                <Text style={styles.deleteButtonText}>Hapus Pendaftaran</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -306,7 +354,7 @@ const DetailSidangSkripsi = ({route, navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 20,
+    paddingTop: 10,
     backgroundColor: 'white',
   },
   title: {
@@ -316,39 +364,33 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     backgroundColor: 'white',
     padding: 20,
-    borderRadius: 20,
-    shadowColor: 'black',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 7,
-    elevation: 5,
   },
   detailContainer: {
     marginTop: 20,
     paddingHorizontal: 20,
+    marginHorizontal: 10,
     backgroundColor: 'white',
     padding: 30,
-    borderRadius: 20,
-    shadowColor: 'black',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 7,
-    elevation: 5,
+    borderRadius: 15,
+    borderColor: '#C5DFF8',
+    borderWidth: 4,
   },
   detailText: {
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
+    textTransform: 'uppercase',
   },
   detailTitleText: {
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
     fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   editButton: {
     marginTop: 20,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#4A55A2',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -360,7 +402,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     marginTop: 20,
-    backgroundColor: '#C70039',
+    backgroundColor: '#FF6969',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -370,14 +412,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  separator: {
-    height: 1,
-    backgroundColor: '#CCCCCC',
-    marginVertical: 20,
-  },
   linkButton: {
     marginTop: 10,
-    backgroundColor: '#59C1BD',
+    backgroundColor: '#7895CB',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,

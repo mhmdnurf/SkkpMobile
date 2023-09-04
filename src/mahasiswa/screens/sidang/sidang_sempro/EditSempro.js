@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   ScrollView,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -44,12 +43,13 @@ const EditSempro = ({route, navigation}) => {
     const unsubscribe = firestore()
       .collection('jadwalSidang')
       .where('status', '==', 'Aktif')
+      .where('jenisSidang', '==', 'Seminar Proposal')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {
           data.push({id: doc.id, ...doc.data()});
-          setJadwalPengajuan(data);
         });
+        setJadwalPengajuan(data);
       });
 
     firestore()

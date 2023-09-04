@@ -184,8 +184,15 @@ const DetailSidangKP = ({route, navigation}) => {
                 // Menghapus dokumen dari Firestore
                 await firestore().collection('sidang').doc(itemId).delete();
 
-                Alert.alert('Sukses', 'Data sidang berhasil dihapus');
-                navigation.navigate('Sidang');
+                Dialog.show({
+                  type: ALERT_TYPE.SUCCESS,
+                  title: 'Berhasil',
+                  textBody: 'Pendaftaran Sidang Kerja Praktek berhasil dihapus',
+                  button: 'Tutup',
+                  onPressButton: () => {
+                    navigation('Sidang');
+                  },
+                });
               } catch (error) {
                 console.error('Error menghapus data sidang:', error);
                 Alert.alert(
@@ -249,13 +256,17 @@ const DetailSidangKP = ({route, navigation}) => {
               </Text>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.persetujuanKP)}>
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.persetujuanKP)
+                }>
                 <Text style={styles.linkButtonText}>Form Persetujuan KP</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
                 onPress={() =>
-                  handleOpenLink(pengajuanData.penilaianPerusahaan)
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.penilaianPerusahaan,
+                  )
                 }>
                 <Text style={styles.linkButtonText}>
                   Form Penilaian Perusahaan
@@ -263,18 +274,26 @@ const DetailSidangKP = ({route, navigation}) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.formPendaftaranKP)}>
+                onPress={() =>
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.formPendaftaranKP,
+                  )
+                }>
                 <Text style={styles.linkButtonText}>Form Pendaftaran KP</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.bimbinganKP)}>
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.bimbinganKP)
+                }>
                 <Text style={styles.linkButtonText}>Form Bimbingan KP</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
                 onPress={() =>
-                  handleOpenLink(pengajuanData.fileSertifikatSeminar)
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.fileSertifikatSeminar,
+                  )
                 }>
                 <Text style={styles.linkButtonText}>
                   Sertifikat Seminar STTI
@@ -283,7 +302,9 @@ const DetailSidangKP = ({route, navigation}) => {
               <TouchableOpacity
                 style={styles.linkButton}
                 onPress={() =>
-                  handleOpenLink(pengajuanData.fileSertifikatPSPT)
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.fileSertifikatPSPT,
+                  )
                 }>
                 <Text style={styles.linkButtonText}>Sertifikat PSPT</Text>
               </TouchableOpacity>
@@ -342,12 +363,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
+    textTransform: 'uppercase',
   },
   detailTitleText: {
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
     fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   editButton: {
     marginTop: 20,

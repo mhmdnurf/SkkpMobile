@@ -59,6 +59,7 @@ const AddSempro = ({navigation}) => {
     const unsubscribeJadwal = firestore()
       .collection('jadwalSidang')
       .where('status', '==', 'Aktif')
+      .where('jenisSidang', 'array-contains', 'Seminar Proposal')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {
@@ -226,8 +227,8 @@ const AddSempro = ({navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setPersetujuanPath(selectedFileName);
-        setFilePersetujuanSempro({uri: selectedFile, name: selectedFileName});
+        setTranskipPath(selectedFileName);
+        setFileTranskipNilai({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -247,8 +248,8 @@ const AddSempro = ({navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setTranskipPath(selectedFileName);
-        setFileTranskipNilai({uri: selectedFile, name: selectedFileName});
+        setPendaftaranSemproPath(selectedFileName);
+        setFilePendaftaranSempro({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -268,8 +269,8 @@ const AddSempro = ({navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setPendaftaranSemproPath(selectedFileName);
-        setFilePendaftaranSempro({uri: selectedFile, name: selectedFileName});
+        setPersetujuanPath(selectedFileName);
+        setFilePersetujuanSempro({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {

@@ -104,7 +104,7 @@ const DetailSempro = ({route, navigation}) => {
         const data = [];
         querySnapshot.forEach(doc => {
           const jadwalData = doc.data();
-          if (jadwalData.jenisSidang.includes('Kerja Praktek')) {
+          if (jadwalData.jenisSidang.includes('Komprehensif')) {
             data.push(jadwalData);
           }
         });
@@ -118,7 +118,7 @@ const DetailSempro = ({route, navigation}) => {
   const handleEditButtonPress = () => {
     const activeJadwal = jadwalPengajuanData.find(
       item =>
-        item.status === 'Aktif' && item.jenisSidang.includes('Kerja Praktek'),
+        item.status === 'Aktif' && item.jenisSidang.includes('Komprehensif'),
     );
     if (!activeJadwal) {
       Dialog.show({
@@ -172,7 +172,7 @@ const DetailSempro = ({route, navigation}) => {
                 Dialog.show({
                   type: ALERT_TYPE.SUCCESS,
                   title: 'Berhasil',
-                  textBody: 'Pendaftaran sidang berhasil dihapus',
+                  textBody: 'Pendaftaran Sidang Komprehensif berhasil dihapus',
                   button: 'Tutup',
                   onPressButton: () => {
                     navigation.navigate('Sidang');
@@ -241,14 +241,20 @@ const DetailSempro = ({route, navigation}) => {
               </Text>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.persetujuanKompre)}>
+                onPress={() =>
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.persetujuanKompre,
+                  )
+                }>
                 <Text style={styles.linkButtonText}>
                   Form Persetujuan Kompre
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.sintak)}>
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.sintak)
+                }>
                 <Text style={styles.linkButtonText}>
                   Transkip Aktivitas Kemahasiswaan
                 </Text>
@@ -308,12 +314,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
+    textTransform: 'uppercase',
   },
   detailTitleText: {
     fontSize: 16,
     marginBottom: 8,
     color: 'black',
     fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   editButton: {
     marginTop: 20,
