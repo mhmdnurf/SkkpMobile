@@ -59,6 +59,28 @@ export default function Menu({navigation}) {
     }
   };
 
+  const handleResetPassword = async () => {
+    // const user = auth().currentUser;
+    // if (user) {
+    //   user
+    //     .updateEmail('mhmd.nurfat@gmail.com')
+    //     .then(() => {
+    //       console.log('Email berhasil diubah');
+    //     })
+    //     .catch(error => {
+    //       console.log('Gagal mengubah email:', error.message);
+    //     });
+    // }
+    try {
+      const email = userData.email;
+      console.log(email);
+      await auth().sendPasswordResetEmail(email);
+      console.log('Email reset password telah dikirim.');
+    } catch (error) {
+      console.log('Error mengirim email reset password:', error);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={{backgroundColor: 'white'}}>
       <View style={styles.imageContainer}>
@@ -86,11 +108,11 @@ export default function Menu({navigation}) {
           <View
             style={{
               flexDirection: 'row',
-              justifyContent: 'space-between',
+              justifyContent: 'space-around',
               alignItems: 'center',
             }}>
             <TouchableOpacity
-              // onPress={}
+              onPress={handleResetPassword}
               style={[styles.buttonContainer]}>
               <Text style={styles.buttonText}>Ubah Password</Text>
             </TouchableOpacity>
@@ -186,7 +208,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   buttonLogoutContainer: {
-    paddingHorizontal: 30,
+    paddingHorizontal: 60,
     paddingVertical: 10,
     margin: 25,
     // alignSelf: 'center',

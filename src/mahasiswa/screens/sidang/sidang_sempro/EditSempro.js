@@ -8,6 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
@@ -35,7 +36,7 @@ const EditSempro = ({route, navigation}) => {
   const [formMenghadiriSidang, setFormMenghadiriSidang] = useState(null);
   const [menghadiriSidangPath, setMenghadiriSidangPath] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [jadwalPengajuan, setJadwalPengajuan] = useState([]);
+  const [jadwalSidang, setJadwalSidang] = useState([]);
   const [berkasPersyaratan, setBerkasPersyaratan] = useState({});
   const {itemId} = route.params;
 
@@ -43,13 +44,13 @@ const EditSempro = ({route, navigation}) => {
     const unsubscribe = firestore()
       .collection('jadwalSidang')
       .where('status', '==', 'Aktif')
-      .where('jenisSidang', '==', 'Seminar Proposal')
+      .where('jenisSidang', 'array-contains', 'Seminar Proposal')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {
           data.push({id: doc.id, ...doc.data()});
+          setJadwalSidang(data);
         });
-        setJadwalPengajuan(data);
       });
 
     firestore()
@@ -211,8 +212,8 @@ const EditSempro = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setPersetujuanPath(selectedFileName);
-        setFilePersetujuanSempro({uri: selectedFile, name: selectedFileName});
+        setTranskipPath(selectedFileName);
+        setFileTranskipNilai({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -232,8 +233,8 @@ const EditSempro = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setTranskipPath(selectedFileName);
-        setFileTranskipNilai({uri: selectedFile, name: selectedFileName});
+        setPendaftaranSemproPath(selectedFileName);
+        setFilePendaftaranSempro({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -253,8 +254,8 @@ const EditSempro = ({route, navigation}) => {
       } else {
         const selectedFile = response.assets[0].uri;
         const selectedFileName = response.assets[0].fileName;
-        setPendaftaranSemproPath(selectedFileName);
-        setFilePendaftaranSempro({uri: selectedFile, name: selectedFileName});
+        setPersetujuanPath(selectedFileName);
+        setFilePersetujuanSempro({uri: selectedFile, name: selectedFileName});
         console.log('Selected Image URI:', selectedFile);
       }
     } catch (error) {
@@ -379,7 +380,7 @@ const EditSempro = ({route, navigation}) => {
         persetujuanSempro = await persetujuanSemproReference.getDownloadURL();
       }
 
-      if (fileSertifikatKeahlian) {
+      if (sertifikatKeahlian) {
         // Proses Sertifikat Keahlian
         const sertifikatKeahlianFilePath = `${RNFS.DocumentDirectoryPath}/${sertifikatKeahlian.name}`;
         await RNFS.copyFile(sertifikatKeahlian.uri, sertifikatKeahlianFilePath);
@@ -395,7 +396,7 @@ const EditSempro = ({route, navigation}) => {
           await sertifikatKeahlianReference.getDownloadURL();
       }
 
-      if (fileMenghadiriSidang) {
+      if (formMenghadiriSidang) {
         // Proses Form Menghadiri Sidang
         const menghadiriSidangFilePath = `${RNFS.DocumentDirectoryPath}/${formMenghadiriSidang.name}`;
         await RNFS.copyFile(formMenghadiriSidang.uri, menghadiriSidangFilePath);
@@ -409,7 +410,7 @@ const EditSempro = ({route, navigation}) => {
         );
         fileMenghadiriSidang = await menghadiriSidangReference.getDownloadURL();
       }
-      const jadwalId = jadwalPengajuan[0].id;
+      const jadwalId = jadwalSidang[0].id;
       const updateData = {
         judul: judul,
         editedAt: new Date(),
@@ -451,7 +452,12 @@ const EditSempro = ({route, navigation}) => {
           navigation.navigate('Sidang');
         },
       });
-    } catch (error) {}
+    } catch (error) {
+      console.error('Error mengubah data pengajuan:', error);
+      Alert.alert('Error', 'Terjadi kesalahan saat mengubah data pengajuan');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

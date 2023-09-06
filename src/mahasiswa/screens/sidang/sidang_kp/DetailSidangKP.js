@@ -190,7 +190,7 @@ const DetailSidangKP = ({route, navigation}) => {
                   textBody: 'Pendaftaran Sidang Kerja Praktek berhasil dihapus',
                   button: 'Tutup',
                   onPressButton: () => {
-                    navigation('Sidang');
+                    navigation.navigate('Sidang');
                   },
                 });
               } catch (error) {

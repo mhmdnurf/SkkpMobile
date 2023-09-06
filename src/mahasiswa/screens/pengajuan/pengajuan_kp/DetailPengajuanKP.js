@@ -18,7 +18,7 @@ import {
   AlertNotificationRoot,
   Dialog,
 } from 'react-native-alert-notification';
-const user = auth().currentUser;
+
 const DetailPengajuanKP = ({route, navigation}) => {
   const {itemId} = route.params;
   const [pengajuanData, setPengajuanData] = useState([]);
@@ -123,6 +123,7 @@ const DetailPengajuanKP = ({route, navigation}) => {
     }
   };
   const handleDeleteButtonPress = () => {
+    const user = auth().currentUser;
     if (statusPengajuan === 'Sah') {
       Dialog.show({
         type: ALERT_TYPE.WARNING,

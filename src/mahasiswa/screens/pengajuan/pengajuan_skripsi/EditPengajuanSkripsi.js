@@ -71,6 +71,7 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
     const unsubscribe = firestore()
       .collection('jadwalPengajuan')
       .where('status', '==', 'Aktif')
+      .where('jenisPengajuan', 'array-contains', 'Skripsi')
       .onSnapshot(querySnapshot => {
         const data = [];
         querySnapshot.forEach(doc => {
@@ -414,8 +415,11 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       if (sertifikatPSPT) {
         const sertifikatFilePath = `${RNFS.DocumentDirectoryPath}/${sertifikatPSPT.name}`;
         await RNFS.copyFile(sertifikatPSPT.uri, sertifikatFilePath);
-        const proporsalBlob = await RNFS.readFile(sertifikatFilePath, 'base64');
-        await sertifikatReference.putString(proporsalBlob, 'base64');
+        const sertifikatBlob = await RNFS.readFile(
+          sertifikatFilePath,
+          'base64',
+        );
+        await sertifikatReference.putString(sertifikatBlob, 'base64');
         fileSertifikatPSPT = await sertifikatReference.getDownloadURL();
       }
       const jadwalId = jadwalPengajuan[0].id;

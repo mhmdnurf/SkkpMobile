@@ -13,9 +13,12 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
-import {ALERT_TYPE, Dialog} from 'react-native-alert-notification';
+import {
+  ALERT_TYPE,
+  AlertNotificationRoot,
+  Dialog,
+} from 'react-native-alert-notification';
 
-const user = auth().currentUser;
 const DetailSidangSkripsi = ({route, navigation}) => {
   const {itemId} = route.params;
   const [pengajuanData, setPengajuanData] = useState([]);
@@ -141,6 +144,7 @@ const DetailSidangSkripsi = ({route, navigation}) => {
     }
   };
   const handleDeleteButtonPress = () => {
+    const user = auth().currentUser;
     if (statusPendaftaran === 'Sah') {
       Dialog.show({
         type: ALERT_TYPE.WARNING,
@@ -194,6 +198,7 @@ const DetailSidangSkripsi = ({route, navigation}) => {
                     navigation.navigate('Sidang');
                   },
                 });
+                console.log('Berhasil');
               } catch (error) {
                 console.error('Error menghapus data sidang:', error);
                 Alert.alert(
@@ -232,122 +237,128 @@ const DetailSidangSkripsi = ({route, navigation}) => {
     );
   }
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-      }>
-      {pengajuanData ? (
-        <>
-          <View style={styles.detailContainer}>
-            <Text style={styles.detailTitleText}>Tanggal Daftar</Text>
-            <Text style={styles.detailText}>
-              {pengajuanData.createdAt.toDate().toLocaleDateString()}
-            </Text>
-            <Text style={styles.detailTitleText}>Status</Text>
-            <Text style={styles.detailText}>{pengajuanData.status}</Text>
-            <Text style={styles.detailTitleText}>Catatan</Text>
-            <Text style={styles.detailText}>{pengajuanData.catatan}</Text>
-            <Text style={styles.detailTitleText}>Dosen Pembimbing</Text>
-            <Text style={styles.detailText}>
-              {pengajuanData.dosenPembimbingInfo
-                ? `${pengajuanData.dosenPembimbingInfo.nama} (${pengajuanData.dosenPembimbingInfo.nidn})`
-                : '-'}
-            </Text>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() =>
-                handleOpenLink(pengajuanData.berkasPersyaratan.ijazah)
-              }>
-              <Text style={styles.linkButtonText}>Ijazah SMA/SMK</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() =>
-                handleOpenLink(pengajuanData.berkasPersyaratan.transkipNilai)
-              }>
-              <Text style={styles.linkButtonText}>Transkip Nilai</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() =>
-                handleOpenLink(
-                  pengajuanData.berkasPersyaratan.pendaftaranSkripsi,
-                )
-              }>
-              <Text style={styles.linkButtonText}>
-                Form Pendaftaran Sidang Skripsi
+    <AlertNotificationRoot>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }>
+        {pengajuanData ? (
+          <>
+            <View style={styles.detailContainer}>
+              <Text style={styles.detailTitleText}>Tanggal Daftar</Text>
+              <Text style={styles.detailText}>
+                {pengajuanData.createdAt.toDate().toLocaleDateString()}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() =>
-                handleOpenLink(
-                  pengajuanData.berkasPersyaratan.persetujuanSkripsi,
-                )
-              }>
-              <Text style={styles.linkButtonText}>
-                Form Persetujuan Skripsi
+              <Text style={styles.detailTitleText}>Status</Text>
+              <Text style={styles.detailText}>{pengajuanData.status}</Text>
+              <Text style={styles.detailTitleText}>Catatan</Text>
+              <Text style={styles.detailText}>{pengajuanData.catatan}</Text>
+              <Text style={styles.detailTitleText}>Dosen Pembimbing</Text>
+              <Text style={styles.detailText}>
+                {pengajuanData.dosenPembimbingInfo
+                  ? `${pengajuanData.dosenPembimbingInfo.nama} (${pengajuanData.dosenPembimbingInfo.nidn})`
+                  : '-'}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() =>
-                handleOpenLink(pengajuanData.berkasPersyaratan.fileBuktiLunas)
-              }>
-              <Text style={styles.linkButtonText}>Bukti Lunas Sidang</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() =>
-                handleOpenLink(pengajuanData.berkasPersyaratan.lembarRevisi)
-              }>
-              <Text style={styles.linkButtonText}>Lembar Revisi</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() =>
-                handleOpenLink(pengajuanData.berkasPersyaratan.ktp)
-              }>
-              <Text style={styles.linkButtonText}>Scan KTP Berwarna</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() =>
-                handleOpenLink(pengajuanData.berkasPersyaratan.kk)
-              }>
-              <Text style={styles.linkButtonText}>Scan KK Berwarna</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() =>
-                handleOpenLink(pengajuanData.berkasPersyaratan.bimbinganSkripsi)
-              }>
-              <Text style={styles.linkButtonText}>Form Bimbingan Skripsi</Text>
-            </TouchableOpacity>
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-around',
-              }}>
               <TouchableOpacity
-                style={styles.editButton}
-                onPress={handleEditButtonPress}>
-                <Text style={styles.editButtonText}>Edit Pendaftaran</Text>
+                style={styles.linkButton}
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.ijazah)
+                }>
+                <Text style={styles.linkButtonText}>Ijazah SMA/SMK</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={handleDeleteButtonPress}>
-                <Text style={styles.deleteButtonText}>Hapus Pendaftaran</Text>
+                style={styles.linkButton}
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.transkipNilai)
+                }>
+                <Text style={styles.linkButtonText}>Transkip Nilai</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() =>
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.pendaftaranSkripsi,
+                  )
+                }>
+                <Text style={styles.linkButtonText}>
+                  Form Pendaftaran Sidang Skripsi
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() =>
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.persetujuanSkripsi,
+                  )
+                }>
+                <Text style={styles.linkButtonText}>
+                  Form Persetujuan Skripsi
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.fileBuktiLunas)
+                }>
+                <Text style={styles.linkButtonText}>Bukti Lunas Sidang</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.lembarRevisi)
+                }>
+                <Text style={styles.linkButtonText}>Lembar Revisi</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.ktp)
+                }>
+                <Text style={styles.linkButtonText}>Scan KTP Berwarna</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.kk)
+                }>
+                <Text style={styles.linkButtonText}>Scan KK Berwarna</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() =>
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.bimbinganSkripsi,
+                  )
+                }>
+                <Text style={styles.linkButtonText}>
+                  Form Bimbingan Skripsi
+                </Text>
+              </TouchableOpacity>
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'space-around',
+                }}>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={handleEditButtonPress}>
+                  <Text style={styles.editButtonText}>Edit Pendaftaran</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDeleteButtonPress}>
+                  <Text style={styles.deleteButtonText}>Hapus Pendaftaran</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </>
-      ) : (
-        <Text>Data pengajuan tidak ditemukan.</Text>
-      )}
-    </ScrollView>
+          </>
+        ) : (
+          <Text>Data pengajuan tidak ditemukan.</Text>
+        )}
+      </ScrollView>
+    </AlertNotificationRoot>
   );
 };
 

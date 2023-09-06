@@ -19,7 +19,6 @@ import {
   Dialog,
 } from 'react-native-alert-notification';
 
-const user = auth().currentUser;
 const DetailSempro = ({route, navigation}) => {
   const {itemId} = route.params;
   const [pengajuanData, setPengajuanData] = useState([]);
@@ -104,7 +103,7 @@ const DetailSempro = ({route, navigation}) => {
         const data = [];
         querySnapshot.forEach(doc => {
           const jadwalData = doc.data();
-          if (jadwalData.jenisSidang.includes('Kerja Praktek')) {
+          if (jadwalData.jenisSidang.includes('Seminar Proposal')) {
             data.push(jadwalData);
           }
         });
@@ -118,7 +117,8 @@ const DetailSempro = ({route, navigation}) => {
   const handleEditButtonPress = () => {
     const activeJadwal = jadwalPengajuanData.find(
       item =>
-        item.status === 'Aktif' && item.jenisSidang.includes('Kerja Praktek'),
+        item.status === 'Aktif' &&
+        item.jenisSidang.includes('Seminar Proposal'),
     );
     if (!activeJadwal) {
       Dialog.show({
@@ -139,6 +139,7 @@ const DetailSempro = ({route, navigation}) => {
     }
   };
   const handleDeleteButtonPress = () => {
+    const user = auth().currentUser;
     if (statusPendaftaran === 'Sah') {
       Dialog.show({
         type: ALERT_TYPE.WARNING,

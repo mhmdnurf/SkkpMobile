@@ -231,23 +231,31 @@ const DetailPengajuanSkripsi = ({route, navigation}) => {
               </Text>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.formTopik)}>
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.formTopik)
+                }>
                 <Text style={styles.linkButtonText}>Form Pengajuan Topik</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.formKrs)}>
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.formKrs)
+                }>
                 <Text style={styles.linkButtonText}>Form KRS</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => handleOpenLink(pengajuanData.transkipNilai)}>
+                onPress={() =>
+                  handleOpenLink(pengajuanData.berkasPersyaratan.transkipNilai)
+                }>
                 <Text style={styles.linkButtonText}>Transkip Sementara</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
                 onPress={() =>
-                  handleOpenLink(pengajuanData.slipPembayaranSkripsi)
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.slipPembayaranSkripsi,
+                  )
                 }>
                 <Text style={styles.linkButtonText}>
                   Slip Pembayaran Skripsi
@@ -256,7 +264,9 @@ const DetailPengajuanSkripsi = ({route, navigation}) => {
               <TouchableOpacity
                 style={styles.linkButton}
                 onPress={() =>
-                  handleOpenLink(pengajuanData.fileSertifikatPSPT)
+                  handleOpenLink(
+                    pengajuanData.berkasPersyaratan.fileSertifikatPSPT,
+                  )
                 }>
                 <Text style={styles.linkButtonText}>Sertifikat PSPT</Text>
               </TouchableOpacity>

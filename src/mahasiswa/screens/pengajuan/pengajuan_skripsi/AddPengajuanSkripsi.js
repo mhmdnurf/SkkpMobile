@@ -403,8 +403,11 @@ export default function AddPengajuanSkripsi({navigation}) {
         // Proses Sertifikat PSPT
         const sertifikatFilePath = `${RNFS.DocumentDirectoryPath}/${sertifikatPSPT.name}`;
         await RNFS.copyFile(sertifikatPSPT.uri, sertifikatFilePath);
-        const proporsalBlob = await RNFS.readFile(sertifikatFilePath, 'base64');
-        await sertifikatReference.putString(proporsalBlob, 'base64');
+        const sertifikatBlob = await RNFS.readFile(
+          sertifikatFilePath,
+          'base64',
+        );
+        await sertifikatReference.putString(sertifikatBlob, 'base64');
         const fileSertifikatPSPT = await sertifikatReference.getDownloadURL();
 
         // Push to Firestore
