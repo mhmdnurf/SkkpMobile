@@ -85,7 +85,9 @@ const Register = ({navigation}) => {
           'https://firebasestorage.googleapis.com/v0/b/skkp-mobile.appspot.com/o/undraw_Male_avatar_g98d.png?alt=media&token=9f76fc44-dc93-43c8-bbd2-914a9822205d',
       });
 
-      // navigation.navigate('Login');
+      setTimeout(() => {
+        navigation.navigate('Login');
+      }, 2000);
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
         Dialog.show({

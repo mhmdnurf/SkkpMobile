@@ -9,7 +9,6 @@ import Register from './src/screens/Register';
 import Home from './src/screens/Home';
 import PengajuanTab from './src/mahasiswa/components/PengajuanTab';
 import SidangTab from './src/mahasiswa/components/SidangTab';
-import NotifikasiTab from './src/components/NotifikasiTab';
 import Menu from './src/screens/Menu';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 import AddPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/AddPengajuanKP';
