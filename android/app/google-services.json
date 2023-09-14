@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "844645560252",
-    "project_id": "skkp-mobile",
-    "storage_bucket": "skkp-mobile.appspot.com"
+    "project_number": "",
+    "project_id": "",
+    "storage_bucket": ""
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:844645560252:android:22c56c33875b043826c5b9",
+        "mobilesdk_app_id": "",
         "android_client_info": {
-          "package_name": "com.skkpmobile"
+          "package_name": ""
         }
       },
       "oauth_client": [
         {
-          "client_id": "844645560252-d555sisl39gcvsopi8emhja0ghuagaqi.apps.googleusercontent.com",
+          "client_id": "",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAZwC8w2NaumSES-FCLWGYzK415o-KiLQc"
+          "current_key": ""
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "844645560252-d555sisl39gcvsopi8emhja0ghuagaqi.apps.googleusercontent.com",
+              "client_id": "",
               "client_type": 3
             }
           ]
