@@ -60,17 +60,6 @@ export default function Menu({navigation}) {
   };
 
   const handleResetPassword = async () => {
-    // const user = auth().currentUser;
-    // if (user) {
-    //   user
-    //     .updateEmail('mhmd.nurfat@gmail.com')
-    //     .then(() => {
-    //       console.log('Email berhasil diubah');
-    //     })
-    //     .catch(error => {
-    //       console.log('Gagal mengubah email:', error.message);
-    //     });
-    // }
     try {
       const email = userData.email;
       console.log(email);

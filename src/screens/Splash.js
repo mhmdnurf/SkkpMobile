@@ -4,24 +4,26 @@ import React, {useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Splash({navigation}) {
-  useEffect(() => {
-    checkLoginStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const checkLoginStatus = async () => {
     try {
       const userToken = await AsyncStorage.getItem('userToken');
       if (userToken) {
-        navigation.navigate('Homepage');
+        navigation.replace('Homepage');
       } else {
-        navigation.navigate('Login');
+        navigation.replace('Login');
       }
     } catch (error) {
       console.log('Error checking login status:', error);
-      navigation.navigate('Login');
+      navigation.replace('Login');
     }
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkLoginStatus();
+    }, 3000);
+    return () => clearInterval(interval);
+  });
 
   return (
     <View style={styles.root}>
