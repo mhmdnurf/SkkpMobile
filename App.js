@@ -32,6 +32,7 @@ import DetailSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/D
 import EditSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/EditSidangSkripsi';
 import AddKompre from './src/mahasiswa/screens/sidang/sidang_kompre/AddKompre';
 import AddSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/AddSidangSkripsi';
+import Sign from './src/screens/Sign';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();

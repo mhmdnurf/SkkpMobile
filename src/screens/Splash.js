@@ -1,5 +1,5 @@
 // SplashScreen.js
-import {Image, Text, View, StyleSheet} from 'react-native';
+import {Image, Text, View, StyleSheet, StatusBar} from 'react-native';
 import React, {useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -26,23 +26,26 @@ export default function Splash({navigation}) {
   });
 
   return (
-    <View style={styles.root}>
-      <View style={styles.imageRoot}>
-        <View style={styles.imageContainer}>
-          <Image
-            source={{
-              uri: 'https://sttindonesia.ac.id/wp-content/uploads/2021/01/Logo-STTI-Tanjungpinang.png',
-            }}
-            style={styles.imageStyling}
-          />
+    <>
+      <StatusBar barStyle={'light-content'} backgroundColor={'#7895CB'} />
+      <View style={styles.root}>
+        <View style={styles.imageRoot}>
+          <View style={styles.imageContainer}>
+            <Image
+              source={{
+                uri: 'https://sttindonesia.ac.id/wp-content/uploads/2021/01/Logo-STTI-Tanjungpinang.png',
+              }}
+              style={styles.imageStyling}
+            />
+          </View>
+        </View>
+        <View style={styles.textContainer}>
+          <View style={styles.textWrapper}>
+            <Text style={styles.text}>SKKP Mobile</Text>
+          </View>
         </View>
       </View>
-      <View style={styles.textContainer}>
-        <View style={styles.textWrapper}>
-          <Text style={styles.text}>SKKP Mobile</Text>
-        </View>
-      </View>
-    </View>
+    </>
   );
 }
 

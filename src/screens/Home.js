@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
+  StatusBar,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import DataPendaftar from '../components/DataPendaftar';
@@ -134,256 +135,259 @@ export default function Home({navigation}) {
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={['#0D4C92']}
-        />
-      }>
-      <View style={styles.pendaftarContainer}>
-        <View>
-          <Text style={styles.userTitle}>Welcome Back,</Text>
-          <Text style={styles.userName}>{userName}</Text>
-        </View>
-        <DataPendaftar />
-      </View>
-      <View style={styles.menuContainer}>
-        <TouchableOpacity style={styles.buttonMenu} onPress={handlePengajuan}>
-          <Icon
-            name="file-circle-plus"
-            size={30}
-            color="#7895CB"
-            style={styles.iconMenu}
+    <>
+      <StatusBar barStyle={'default'} backgroundColor={'#4A55A2'} />
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#0D4C92']}
           />
-          <Text style={styles.iconText}>Pengajuan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.buttonMenu} onPress={handleSidang}>
-          <Icon
-            name="calendar"
-            size={30}
-            color="#7895CB"
-            style={styles.iconMenu}
-          />
-          <Text style={styles.iconText}>Sidang</Text>
-        </TouchableOpacity>
-      </View>
-      <View
-        style={{
-          backgroundColor: '#4A55A2',
-          marginTop: 20,
-        }}>
-        <View style={styles.titleContainer}>
-          <Icon name="bell" size={36} color="white" />
-          <Text style={styles.pengumumanTitle}>Pengumuman</Text>
-        </View>
-        <View style={styles.boxContainer}>
-          <View style={{flex: 1, flexDirection: 'row'}}>
-            <Icon name="info" size={16} color="#4A55A2" />
-            <Text style={styles.judulPengumuman}>
-              INFORMASI SEMINAR PROPORSAL !
-            </Text>
+        }>
+        <View style={styles.pendaftarContainer}>
+          <View>
+            <Text style={styles.userTitle}>Welcome Back,</Text>
+            <Text style={styles.userName}>{userName}</Text>
           </View>
-          {tanggalBukaSempro && tanggalTutupSempro ? (
-            <>
-              <Text style={styles.textPengumuman}>
-                Diberitahukan kepada mahasiswa/i Seminar Proposal akan diadakan
-                pada tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalSidangSempro)}
-                </Text>
-              </Text>
-              <Text style={styles.textPengumuman}>
-                Pendaftaran dibuka Tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalBukaSempro)}
-                </Text>
-              </Text>
-              <Text style={styles.textPengumuman}>
-                Pendaftaran ditutup Tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalTutupSempro)}
-                </Text>
-              </Text>
-            </>
-          ) : (
-            <Text style={styles.closeTitle}>Pendaftaran sedang ditutup</Text>
-          )}
+          <DataPendaftar />
         </View>
-        <View style={styles.boxContainer}>
-          <View style={{flex: 1, flexDirection: 'row'}}>
-            <Icon name="info" size={16} color="#4A55A2" />
-            <Text style={styles.judulPengumuman}>
-              INFORMASI SIDANG AKHIR SKRIPSI !
-            </Text>
+        <View style={styles.menuContainer}>
+          <TouchableOpacity style={styles.buttonMenu} onPress={handlePengajuan}>
+            <Icon
+              name="file-circle-plus"
+              size={30}
+              color="#7895CB"
+              style={styles.iconMenu}
+            />
+            <Text style={styles.iconText}>Pengajuan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.buttonMenu} onPress={handleSidang}>
+            <Icon
+              name="calendar"
+              size={30}
+              color="#7895CB"
+              style={styles.iconMenu}
+            />
+            <Text style={styles.iconText}>Sidang</Text>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={{
+            backgroundColor: '#4A55A2',
+            marginTop: 20,
+          }}>
+          <View style={styles.titleContainer}>
+            <Icon name="bell" size={36} color="white" />
+            <Text style={styles.pengumumanTitle}>Pengumuman</Text>
           </View>
-          {tanggalBukaSkripsi && tanggalTutupSkripsi ? (
-            <>
-              <Text style={styles.textPengumuman}>
-                Diberitahukan kepada mahasiswa/i Sidang Skripsi akan diadakan
-                pada tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalSidangSkripsi)}
-                </Text>
+          <View style={styles.boxContainer}>
+            <View style={{flex: 1, flexDirection: 'row'}}>
+              <Icon name="info" size={16} color="#4A55A2" />
+              <Text style={styles.judulPengumuman}>
+                INFORMASI SEMINAR PROPORSAL !
               </Text>
-              <Text style={styles.textPengumuman}>
-                Pendaftaran dibuka Tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalBukaSkripsi)}
+            </View>
+            {tanggalBukaSempro && tanggalTutupSempro ? (
+              <>
+                <Text style={styles.textPengumuman}>
+                  Diberitahukan kepada mahasiswa/i Seminar Proposal akan
+                  diadakan pada tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalSidangSempro)}
+                  </Text>
                 </Text>
-              </Text>
-              <Text style={styles.textPengumuman}>
-                Pendaftaran ditutup Tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalTutupSkripsi)}
+                <Text style={styles.textPengumuman}>
+                  Pendaftaran dibuka Tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalBukaSempro)}
+                  </Text>
                 </Text>
-              </Text>
-            </>
-          ) : (
-            <Text style={styles.closeTitle}>Pendaftaran sedang ditutup</Text>
-          )}
-        </View>
-        <View style={styles.boxContainer}>
-          <View style={{flex: 1, flexDirection: 'row'}}>
-            <Icon name="info" size={16} color="#4A55A2" />
-            <Text style={styles.judulPengumuman}>
-              INFORMASI SIDANG KERJA PRAKTEK !
-            </Text>
+                <Text style={styles.textPengumuman}>
+                  Pendaftaran ditutup Tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalTutupSempro)}
+                  </Text>
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.closeTitle}>Pendaftaran sedang ditutup</Text>
+            )}
           </View>
-          {tanggalBukaKP && tanggalTutupKP ? (
-            <>
-              <Text style={styles.textPengumuman}>
-                Diberitahukan kepada mahasiswa/i Sidang Kerja Praktek akan
-                diadakan pada tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalSidangKP)}
-                </Text>
+          <View style={styles.boxContainer}>
+            <View style={{flex: 1, flexDirection: 'row'}}>
+              <Icon name="info" size={16} color="#4A55A2" />
+              <Text style={styles.judulPengumuman}>
+                INFORMASI SIDANG AKHIR SKRIPSI !
               </Text>
-              <Text style={styles.textPengumuman}>
-                Pendaftaran dibuka Tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalBukaKP)}
+            </View>
+            {tanggalBukaSkripsi && tanggalTutupSkripsi ? (
+              <>
+                <Text style={styles.textPengumuman}>
+                  Diberitahukan kepada mahasiswa/i Sidang Skripsi akan diadakan
+                  pada tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalSidangSkripsi)}
+                  </Text>
                 </Text>
-              </Text>
-              <Text style={styles.textPengumuman}>
-                Pendaftaran ditutup Tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalTutupKP)}
+                <Text style={styles.textPengumuman}>
+                  Pendaftaran dibuka Tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalBukaSkripsi)}
+                  </Text>
                 </Text>
-              </Text>
-            </>
-          ) : (
-            <Text style={styles.closeTitle}>Pendaftaran sedang ditutup</Text>
-          )}
-        </View>
-        <View style={styles.lastBoxContainer}>
-          <View style={{flex: 1, flexDirection: 'row'}}>
-            <Icon name="info" size={16} color="#4A55A2" />
-            <Text style={styles.judulPengumuman}>
-              INFORMASI SIDANG KOMPREHENSIF !
-            </Text>
+                <Text style={styles.textPengumuman}>
+                  Pendaftaran ditutup Tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalTutupSkripsi)}
+                  </Text>
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.closeTitle}>Pendaftaran sedang ditutup</Text>
+            )}
           </View>
-          {tanggalBukaKompre && tanggalTutupKompre ? (
-            <>
-              <Text style={styles.textPengumuman}>
-                Diberitahukan kepada mahasiswa/i Sidang Komprehensif akan
-                diadakan pada tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalSidangKompre)}
-                </Text>
+          <View style={styles.boxContainer}>
+            <View style={{flex: 1, flexDirection: 'row'}}>
+              <Icon name="info" size={16} color="#4A55A2" />
+              <Text style={styles.judulPengumuman}>
+                INFORMASI SIDANG KERJA PRAKTEK !
               </Text>
-              <Text style={styles.textPengumuman}>
-                Pendaftaran dibuka Tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalBukaKompre)}
+            </View>
+            {tanggalBukaKP && tanggalTutupKP ? (
+              <>
+                <Text style={styles.textPengumuman}>
+                  Diberitahukan kepada mahasiswa/i Sidang Kerja Praktek akan
+                  diadakan pada tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalSidangKP)}
+                  </Text>
                 </Text>
-              </Text>
-              <Text style={styles.textPengumuman}>
-                Pendaftaran ditutup Tanggal :{' '}
-                <Text style={styles.judulPengumuman}>
-                  {' '}
-                  {new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(tanggalTutupKompre)}
+                <Text style={styles.textPengumuman}>
+                  Pendaftaran dibuka Tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalBukaKP)}
+                  </Text>
                 </Text>
+                <Text style={styles.textPengumuman}>
+                  Pendaftaran ditutup Tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalTutupKP)}
+                  </Text>
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.closeTitle}>Pendaftaran sedang ditutup</Text>
+            )}
+          </View>
+          <View style={styles.lastBoxContainer}>
+            <View style={{flex: 1, flexDirection: 'row'}}>
+              <Icon name="info" size={16} color="#4A55A2" />
+              <Text style={styles.judulPengumuman}>
+                INFORMASI SIDANG KOMPREHENSIF !
               </Text>
-            </>
-          ) : (
-            <Text style={styles.closeTitle}>Pendaftaran sedang ditutup</Text>
-          )}
+            </View>
+            {tanggalBukaKompre && tanggalTutupKompre ? (
+              <>
+                <Text style={styles.textPengumuman}>
+                  Diberitahukan kepada mahasiswa/i Sidang Komprehensif akan
+                  diadakan pada tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalSidangKompre)}
+                  </Text>
+                </Text>
+                <Text style={styles.textPengumuman}>
+                  Pendaftaran dibuka Tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalBukaKompre)}
+                  </Text>
+                </Text>
+                <Text style={styles.textPengumuman}>
+                  Pendaftaran ditutup Tanggal :{' '}
+                  <Text style={styles.judulPengumuman}>
+                    {' '}
+                    {new Intl.DateTimeFormat('id-ID', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(tanggalTutupKompre)}
+                  </Text>
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.closeTitle}>Pendaftaran sedang ditutup</Text>
+            )}
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
 

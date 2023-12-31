@@ -1,33 +1,62 @@
 {
   "project_info": {
-    "project_number": "",
-    "project_id": "",
-    "storage_bucket": ""
+    "project_number": "844645560252",
+    "project_id": "skkp-mobile",
+    "storage_bucket": "skkp-mobile.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "",
+        "mobilesdk_app_id": "1:844645560252:android:2899d4b77c11156226c5b9",
         "android_client_info": {
-          "package_name": ""
+          "package_name": "com.skkpdosen"
         }
       },
       "oauth_client": [
         {
-          "client_id": "",
+          "client_id": "844645560252-d555sisl39gcvsopi8emhja0ghuagaqi.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": ""
+          "current_key": "AIzaSyAZwC8w2NaumSES-FCLWGYzK415o-KiLQc"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "",
+              "client_id": "844645560252-d555sisl39gcvsopi8emhja0ghuagaqi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:844645560252:android:22c56c33875b043826c5b9",
+        "android_client_info": {
+          "package_name": "com.skkpmobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "844645560252-d555sisl39gcvsopi8emhja0ghuagaqi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZwC8w2NaumSES-FCLWGYzK415o-KiLQc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "844645560252-d555sisl39gcvsopi8emhja0ghuagaqi.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

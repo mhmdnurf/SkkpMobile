@@ -1,22 +1,20 @@
 import React from 'react';
 import {
-  View,
-  Text,
   StyleSheet,
-  StatusBar,
+  Text,
   ScrollView,
+  StatusBar,
+  View,
   Pressable,
 } from 'react-native';
-import useLogin from '../hooks/useLogin';
-import {AlertNotificationRoot} from 'react-native-alert-notification';
-import Logo from '../assets/login.svg';
 import InputField from '../components/InputField';
+import Logo from '../assets/login.svg';
 
-const Login = ({navigation}) => {
-  const {email, setEmail, password, setPassword, isLoading, handleLogin} =
-    useLogin();
+const Sign = () => {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
   return (
-    <AlertNotificationRoot>
+    <>
       <StatusBar backgroundColor="white" barStyle={'dark-content'} />
       <ScrollView style={styles.container}>
         <View style={styles.logoContainer}>
@@ -44,12 +42,8 @@ const Login = ({navigation}) => {
           <Text style={styles.forgot}>Forgot Password?</Text>
         </Pressable>
         <View style={styles.btnLogin}>
-          <Pressable onPress={handleLogin}>
-            {isLoading ? (
-              <Text style={styles.btnText}>Loading..</Text>
-            ) : (
-              <Text style={styles.btnText}>Login</Text>
-            )}
+          <Pressable>
+            <Text style={styles.btnText}>Login</Text>
           </Pressable>
         </View>
         <View style={styles.daftarContainer}>
@@ -64,9 +58,11 @@ const Login = ({navigation}) => {
           </Text>
         </View>
       </ScrollView>
-    </AlertNotificationRoot>
+    </>
   );
 };
+
+export default Sign;
 
 const styles = StyleSheet.create({
   container: {
@@ -140,5 +136,3 @@ const styles = StyleSheet.create({
   },
   textFooter: {color: '#6F7789', fontWeight: 'bold'},
 });
-
-export default Login;

@@ -50,7 +50,7 @@ export default function Menu({navigation}) {
         await auth().signOut();
         await AsyncStorage.removeItem('userToken');
         console.log('User signed out!');
-        navigation.navigate('Login');
+        navigation.replace('Login');
       } else {
         console.log('No user is currently signed in.');
       }
