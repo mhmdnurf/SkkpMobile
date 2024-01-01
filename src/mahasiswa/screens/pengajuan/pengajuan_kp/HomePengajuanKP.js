@@ -6,6 +6,7 @@ import {
   FlatList,
   View,
   ActivityIndicator,
+  Pressable,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
@@ -15,6 +16,8 @@ import {
   AlertNotificationRoot,
 } from 'react-native-alert-notification';
 import {useIsFocused} from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/FontAwesome6';
+import Logo from '../../../../assets/pengajuan_kp.svg';
 
 const HomePengajuanKP = ({navigation}) => {
   const [userPengajuanData, setUserPengajuanData] = useState([]);
@@ -96,24 +99,28 @@ const HomePengajuanKP = ({navigation}) => {
 
   const renderPengajuanItem = ({item}) => (
     <View key={item.id} style={styles.card}>
-      <Text
-        style={[
-          styles.cardStatus,
-          {
-            backgroundColor:
-              item.status === 'Belum Diverifikasi'
-                ? '#FFC436'
-                : item.status === 'Sah'
-                ? '#A0C49D'
-                : item.status === 'Ditolak'
-                ? '#f87171'
-                : '#75C2F6',
-          },
-        ]}>
-        {item.status}
-      </Text>
-      <Text style={styles.cardTopTitle}>Judul</Text>
+      <View
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexDirection: 'row',
+          alignItems: 'center',
+        }}>
+        <Text style={styles.cardTopTitle}>Judul</Text>
+        <View style={styles.cardStatus}>
+          {item.status === 'Belum Diverifikasi' && (
+            <Icon name="exclamation-circle" size={30} color="#F6C358" />
+          )}
+          {item.status === 'Sah' && (
+            <Icon name="square-check" size={30} color="#176B87" />
+          )}
+          {item.status === 'Ditolak' && (
+            <Icon name="times-circle" size={30} color="#BF3131" />
+          )}
+        </View>
+      </View>
       <Text style={styles.cardTitle}>{item.judul}</Text>
+
       <TouchableOpacity
         style={styles.detailButton}
         onPress={() => handleDetailPress(item.id)}>
@@ -133,6 +140,10 @@ const HomePengajuanKP = ({navigation}) => {
   return (
     <AlertNotificationRoot>
       <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerTitle}>Pengajuan Kerja Praktek</Text>
+          <Logo width={300} height={200} style={{alignSelf: 'center'}} />
+        </View>
         {userPengajuanData.length > 0 ? (
           <FlatList
             style={styles.scrollContainer}
@@ -146,11 +157,11 @@ const HomePengajuanKP = ({navigation}) => {
           </View>
         )}
         <View style={styles.wrapperButton}>
-          <TouchableOpacity
+          <Pressable
             style={styles.floatingButton}
             onPress={handleNavigateToAddPengajuanKP}>
             <Text style={{color: 'white', fontSize: 18}}>Buat Pengajuan</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </AlertNotificationRoot>
@@ -160,8 +171,19 @@ const HomePengajuanKP = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
     backgroundColor: 'white',
+  },
+  headerContainer: {
+    minHeight: 275,
+    backgroundColor: '#176B87',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    marginTop: 20,
+    marginBottom: 10,
+    color: 'white',
+    textAlign: 'center',
   },
   scrollContainer: {
     marginTop: 30,
@@ -187,7 +209,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     borderWidth: 2,
-    borderColor: 'whitesmoke',
+    borderColor: '#EEF5FF',
   },
   cardTitle: {
     fontSize: 18,
@@ -195,23 +217,22 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 20,
     marginTop: 5,
-    color: 'gray',
+    color: '#EEC759',
   },
   cardTopTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     textTransform: 'uppercase',
-    color: 'black',
+    color: '#176B87',
     marginTop: 20,
   },
   cardStatus: {
-    fontWeight: 'bold',
-    marginBottom: 10,
-    padding: 5,
-    width: 'auto',
+    fontWeight: '600',
     textAlign: 'center',
-    borderRadius: 10,
     color: 'white',
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    borderRadius: 5,
   },
   titleData: {
     fontSize: 20,
@@ -219,11 +240,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'white',
   },
+
   detailButton: {
-    backgroundColor: '#7895CB',
+    backgroundColor: '#86B6F6',
     padding: 8,
     borderRadius: 5,
     marginTop: 5,
+    elevation: 2,
   },
   detailButtonText: {
     fontSize: 14,
@@ -239,15 +262,8 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     padding: 15,
-    backgroundColor: '#7895CB',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    backgroundColor: '#176B87',
+    borderRadius: 8,
     elevation: 5,
   },
   noDataContainer: {

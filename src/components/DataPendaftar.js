@@ -199,6 +199,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 7,
     elevation: 10,
+    marginTop: 25,
   },
   textTitle: {fontSize: 24, color: '#4A55A2', fontWeight: 'bold'},
   textNumber: {fontSize: 36, color: '#4A55A2', fontWeight: 'bold'},

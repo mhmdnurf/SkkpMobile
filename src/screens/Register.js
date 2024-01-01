@@ -1,12 +1,11 @@
 import React, {useState} from 'react';
 import {
   View,
-  TextInput,
-  Alert,
   StyleSheet,
   ActivityIndicator,
-  TouchableOpacity,
   Text,
+  ScrollView,
+  Pressable,
 } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import {Picker} from '@react-native-picker/picker';
@@ -16,6 +15,7 @@ import {
   AlertNotificationRoot,
   Dialog,
 } from 'react-native-alert-notification';
+import InputRegister from '../components/InputRegister';
 
 const Register = ({navigation}) => {
   const [nim, setNim] = useState('');
@@ -38,7 +38,7 @@ const Register = ({navigation}) => {
       Dialog.show({
         type: ALERT_TYPE.WARNING,
         title: 'Peringatan',
-        textBody: 'Inputan tidak boleh kosong',
+        textBody: 'Field tidak boleh kosong',
         button: 'Tutup',
       });
       return;
@@ -109,28 +109,32 @@ const Register = ({navigation}) => {
     }
   };
 
+  const handleLogin = () => {
+    navigation.navigate('Login');
+  };
+
   return (
     <AlertNotificationRoot>
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.registerTitle}>Register</Text>
         <Text style={styles.registerText}>Silahkan Buat Akun Anda</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="NIM"
+        <InputRegister
+          label={'NIM'}
+          placeholder={'1219001'}
           onChangeText={text => setNim(text)}
-          value={nim}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Nama Lengkap"
+        <InputRegister
+          label={'Nama Lengkap'}
+          placeholder={'John Doe'}
           onChangeText={text => setNama(text)}
-          value={nama}
         />
+        <Text style={styles.inputLabel}>Prodi</Text>
         <View style={styles.picker}>
           <Picker
+            placeholder="Pilih Jurusan"
             selectedValue={jurusan}
             onValueChange={(itemValue, itemIndex) => setJurusan(itemValue)}>
-            <Picker.Item label="Pilih Jurusan" value="" />
+            <Picker.Item label="Pilih Jurusan" color="#6F7789" value="" />
             <Picker.Item
               label="Teknik Informatika"
               value="Teknik Informatika"
@@ -142,26 +146,22 @@ const Register = ({navigation}) => {
             />
           </Picker>
         </View>
-        <TextInput
-          style={styles.input}
-          placeholder="Nomor Handphone"
+        <InputRegister
+          label={'Nomor HP'}
+          placeholder={'0827817187'}
           onChangeText={text => setNomorHP(text)}
-          value={nomorHP}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
+        <InputRegister
+          label={'Email'}
+          placeholder={'mhs@example.com'}
           onChangeText={text => setEmail(text)}
-          value={email}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          secureTextEntry={true}
+        <InputRegister
+          label={'Password'}
+          placeholder={'********'}
           onChangeText={text => setPassword(text)}
-          value={password}
         />
-        <TouchableOpacity
+        <Pressable
           style={styles.buttonRegister}
           onPress={handleRegister}
           disabled={isLoading}>
@@ -170,24 +170,20 @@ const Register = ({navigation}) => {
           ) : (
             <Text style={styles.buttonText}>Register</Text>
           )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonLogin}
-          onPress={() => {
-            navigation.navigate('Login');
-          }}>
-          <Text style={styles.loginText}>Sudah punya akun?</Text>
-        </TouchableOpacity>
-      </View>
+        </Pressable>
+        <View style={styles.daftarContainer}>
+          <Text style={styles.secondGreet}>Sudah punya akun?</Text>
+          <Pressable onPress={handleLogin}>
+            <Text style={styles.loginText}>Login</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </AlertNotificationRoot>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: 20,
     backgroundColor: 'white',
   },
@@ -198,6 +194,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
+    color: 'black',
   },
   picker: {
     width: '100%',
@@ -212,8 +209,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   buttonRegister: {
-    backgroundColor: '#7895CB',
-    padding: 10,
+    backgroundColor: '#176B87',
+    padding: 13,
     borderRadius: 5,
     width: '100%',
     alignItems: 'center',
@@ -225,22 +222,42 @@ const styles = StyleSheet.create({
     marginTop: 10,
     alignItems: 'center',
   },
-  loginText: {
-    color: 'gray',
-    fontSize: 16,
-    textDecorationLine: 'underline',
-  },
   registerTitle: {
     fontSize: 36,
-    padding: 10,
-    color: 'black',
-    fontWeight: 'bold',
+    color: '#176B87',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 80,
   },
   registerText: {
-    fontSize: 18,
+    fontSize: 14,
     marginBottom: 20,
-    color: 'black',
+    color: '#6F7789',
+    fontWeight: '400',
+    textAlign: 'center',
+  },
+  inputLabel: {
+    fontSize: 14,
     fontWeight: 'bold',
+    color: '#176B87',
+    marginBottom: 10,
+  },
+  loginText: {
+    color: '#8294C4',
+    textDecorationLine: 'underline',
+    fontWeight: 'bold',
+  },
+  daftarContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    marginTop: 10,
+    marginBottom: 40,
+  },
+  secondGreet: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#6F7789',
+    marginRight: 5,
   },
 });
 

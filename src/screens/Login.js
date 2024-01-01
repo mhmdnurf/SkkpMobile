@@ -15,6 +15,10 @@ import InputField from '../components/InputField';
 const Login = ({navigation}) => {
   const {email, setEmail, password, setPassword, isLoading, handleLogin} =
     useLogin();
+
+  const handleRegister = () => {
+    navigation.navigate('Register');
+  };
   return (
     <AlertNotificationRoot>
       <StatusBar backgroundColor="white" barStyle={'dark-content'} />
@@ -30,7 +34,7 @@ const Login = ({navigation}) => {
         </View>
         <InputField
           label={'Email'}
-          placeholder={'john@example.com'}
+          placeholder={'mhs@example.com'}
           value={email}
           onChangeText={text => setEmail(text)}
         />
@@ -54,7 +58,7 @@ const Login = ({navigation}) => {
         </View>
         <View style={styles.daftarContainer}>
           <Text style={styles.secondGreet}>Belum punya akun?</Text>
-          <Pressable>
+          <Pressable onPress={handleRegister}>
             <Text style={styles.registerText}>Register</Text>
           </Pressable>
         </View>
@@ -96,7 +100,7 @@ const styles = StyleSheet.create({
   },
   secondGreet: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '400',
     color: '#6F7789',
     marginLeft: 20,
     marginRight: 5,
@@ -111,8 +115,8 @@ const styles = StyleSheet.create({
   },
   btnLogin: {
     backgroundColor: '#176B87',
-    borderRadius: 5,
-    padding: 10,
+    borderRadius: 10,
+    padding: 13,
     marginHorizontal: 20,
     marginTop: 20,
   },

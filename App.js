@@ -32,7 +32,9 @@ import DetailSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/D
 import EditSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/EditSidangSkripsi';
 import AddKompre from './src/mahasiswa/screens/sidang/sidang_kompre/AddKompre';
 import AddSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/AddSidangSkripsi';
-import Sign from './src/screens/Sign';
+import Dashboard from './src/screens/Dashboard';
+import MenuKP from './src/screens/MenuKP';
+import HomePengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/HomePengajuanKP';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -60,28 +62,27 @@ const MainTabs = ({navigation}) => {
     messaging().setBackgroundMessageHandler(async remoteMessage => {
       console.log('Message handled in the background!', remoteMessage);
       navigation.navigate('Pengajuan');
-      // Tambahkan logika di sini untuk menampilkan notifikasi atau melakukan tindakan sesuai kebutuhan Anda.
     });
   }, [navigation]);
 
   return (
     <>
-      <StatusBar backgroundColor="#A0BFE0" barStyle="light-content" />
+      <StatusBar backgroundColor="#176B87" barStyle="light-content" />
       <Tab.Navigator
         initialRouteName="Home"
         screenOptions={{
-          tabBarActiveTintColor: '#A0BFE0',
+          tabBarActiveTintColor: '#176B87',
           tabBarInactiveTintColor: 'gray',
           tabBarLabelStyle: {
-            fontSize: 12,
+            fontSize: 14,
           },
           tabBarStyle: {
-            display: 'flex',
+            height: 60,
           },
         }}>
         <Tab.Screen
           name="Home"
-          component={Home}
+          component={Dashboard}
           options={{
             tabBarIcon: ({color, size}) => (
               <Icon name="house-chimney" color={color} size={size} />
@@ -373,6 +374,26 @@ const App = () => {
             title: 'Edit Sidang Skripsi',
             headerStyle: {
               backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="MenuKP"
+          component={MenuKP}
+          options={{
+            headerShown: true,
+            title: '',
+          }}
+        />
+        <Stack.Screen
+          name="HomePengajuanKP"
+          component={HomePengajuanKP}
+          options={{
+            headerShown: true,
+            title: '',
+            headerStyle: {
+              backgroundColor: '#176B87',
             },
             headerTintColor: 'white',
           }}
