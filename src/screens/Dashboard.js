@@ -10,7 +10,7 @@ import BottomSpace from '../components/BottomSpace';
 const Dashboard = () => {
   const username = useUserInfo();
   return (
-    <ScrollView>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <DashboardHeader username={username} />
       <Navbar />
       <InformasiPengajuan />
@@ -22,4 +22,9 @@ const Dashboard = () => {
 
 export default Dashboard;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'whitesmoke',
+  },
+});

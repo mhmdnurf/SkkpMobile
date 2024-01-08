@@ -7,7 +7,7 @@ const CardSidang = ({
   tanggalSidang,
   tanggalTutup,
   icon = 'calendar-alt',
-  color = '#86B6F6',
+  color = '#F6B17A',
 }) => {
   return (
     <View>

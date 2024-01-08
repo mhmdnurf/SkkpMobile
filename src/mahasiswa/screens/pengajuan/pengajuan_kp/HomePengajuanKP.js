@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 20,
     marginTop: 5,
-    color: '#EEC759',
+    color: '#6F7789',
   },
   cardTopTitle: {
     fontSize: 18,

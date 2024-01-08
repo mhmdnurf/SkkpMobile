@@ -1,7 +1,10 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome6';
+import useJadwalPengajuan from '../hooks/useJadwalPengajuan';
 const InformasiPengajuan = () => {
+  const dates = useJadwalPengajuan();
+
   return (
     <View>
       <Text style={styles.daftarTitle}>Informasi Pengajuan</Text>
@@ -10,20 +13,52 @@ const InformasiPengajuan = () => {
           <Icon name="folder" size={30} color="#FF8080" />
           <View style={styles.rightContentContainer}>
             <Text style={styles.contentTitle}>Kerja Praktek</Text>
-            <Text style={styles.contentText}>
-              Pengajuan KP belum dapat dilakukan
-            </Text>
+            {dates.tanggalBukaKP && dates.tanggalTutupKP ? (
+              <Text style={styles.contentText}>
+                {new Intl.DateTimeFormat('id-ID', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                }).format(dates.tanggalBukaKP)}{' '}
+                -{' '}
+                {new Intl.DateTimeFormat('id-ID', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                }).format(dates.tanggalTutupKP)}
+              </Text>
+            ) : (
+              <Text style={styles.contentText}>
+                Pengajuan Kerja Praktek belum dapat dilakukan
+              </Text>
+            )}
           </View>
         </View>
       </View>
       <View style={styles.container}>
         <View style={styles.contentContainer}>
-          <Icon name="thumbtack" size={30} color="#EEC759" />
+          <Icon name="folder" size={30} color="#EEC759" />
           <View style={styles.rightContentContainer}>
             <Text style={styles.contentTitle}>Skripsi</Text>
-            <Text style={styles.contentText}>
-              Pengajuan Skripsi belum dapat dilakukan
-            </Text>
+            {dates.tanggalBukaSkripsi && dates.tanggalTutupSkripsi ? (
+              <Text style={styles.contentText}>
+                {new Intl.DateTimeFormat('id-ID', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                }).format(dates.tanggalBukaSkripsi)}{' '}
+                -{' '}
+                {new Intl.DateTimeFormat('id-ID', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                }).format(dates.tanggalTutupSkripsi)}
+              </Text>
+            ) : (
+              <Text style={styles.contentText}>
+                Pengajuan Skripsi belum dapat dilakukan
+              </Text>
+            )}
           </View>
         </View>
       </View>
@@ -47,8 +82,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 2,
   },
-  contentContainer: {display: 'flex', flexDirection: 'row', marginLeft: 20},
-  contentTitle: {fontWeight: 'bold', color: 'black'},
+  contentContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    marginLeft: 20,
+  },
+  contentTitle: {fontWeight: '600', color: '#176B87'},
   contentText: {fontWeight: '400', fontSize: 12},
   rightContentContainer: {marginLeft: 20},
 });

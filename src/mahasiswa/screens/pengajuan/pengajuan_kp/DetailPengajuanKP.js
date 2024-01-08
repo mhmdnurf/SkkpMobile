@@ -213,7 +213,6 @@ const DetailPengajuanKP = ({route, navigation}) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }>
-        {/* <Text style={styles.title}>{pengajuanData.judul}</Text> */}
         {pengajuanData ? (
           <>
             <View style={styles.detailContainer}>

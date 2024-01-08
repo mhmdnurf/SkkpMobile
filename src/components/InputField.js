@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, Text, View, TextInput} from 'react-native';
 
-const InputField = ({value, onChangeText, placeholder, label}) => {
+const InputField = ({value, onChangeText, placeholder, label, editable}) => {
   return (
     <View style={styles.inputContainer}>
       <Text style={styles.inputLabel}>{label}</Text>
@@ -11,6 +11,7 @@ const InputField = ({value, onChangeText, placeholder, label}) => {
         placeholderTextColor="#6F7789"
         onChangeText={onChangeText}
         value={value}
+        editable={editable}
       />
     </View>
   );
@@ -36,6 +37,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#176B87',
     marginBottom: 10,
-    marginLeft: 5,
   },
 });

@@ -35,6 +35,8 @@ import AddSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/AddS
 import Dashboard from './src/screens/Dashboard';
 import MenuKP from './src/screens/MenuKP';
 import HomePengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/HomePengajuanKP';
+import Detail from './src/mahasiswa/screens/pengajuan/pengajuan_kp/Detail';
+import CreatePengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/CreatePengajuanKP';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -160,26 +162,27 @@ const App = () => {
         />
         <Stack.Screen
           name="AddPengajuanKP"
-          component={AddPengajuanKP}
+          component={CreatePengajuanKP}
           options={{
             headerShown: true,
             title: 'Buat Pengajuan KP',
             headerStyle: {
-              backgroundColor: '#7895CB',
+              backgroundColor: 'white',
             },
-            headerTintColor: 'white',
+            headerTintColor: '#176B87',
+            headerTitle: '',
           }}
         />
         <Stack.Screen
           name="DetailPengajuanKP"
-          component={DetailPengajuanKP}
+          component={Detail}
           options={{
             headerShown: true,
-            title: 'Detail Pengajuan Kerja Praktek',
+            title: '',
             headerStyle: {
-              backgroundColor: '#7895CB',
+              backgroundColor: 'white',
             },
-            headerTintColor: 'white',
+            headerTintColor: '#176B87',
           }}
         />
         <Stack.Screen
