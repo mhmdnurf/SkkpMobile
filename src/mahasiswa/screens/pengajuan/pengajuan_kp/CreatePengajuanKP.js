@@ -4,13 +4,15 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  Button,
   Pressable,
   Alert,
+  View,
 } from 'react-native';
 import Header from '../../../../components/Header';
 import firestore from '@react-native-firebase/firestore';
 import {Picker} from '@react-native-picker/picker';
+import BottomSpace from '../../../../components/BottomSpace';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const CreatePengajuanKP = () => {
   const [judul, setJudul] = React.useState('');
@@ -28,7 +30,7 @@ const CreatePengajuanKP = () => {
         .collection('persyaratan')
         .where('jenisPersyaratan', '==', 'Pengajuan Kerja Praktek')
         .get();
-      const res = await query``;
+      const res = await query;
       const data = res.docs.map(doc => doc.data().berkasPersyaratan).flat();
       setListPersyaratan(data);
       console.log(data);
@@ -45,6 +47,10 @@ const CreatePengajuanKP = () => {
     }
   };
 
+  const removeFile = fileRemove => {
+    setUploadedFiles(uploadedFiles.filter(file => file !== fileRemove));
+  };
+
   return (
     <>
       <ScrollView style={styles.mainContainer}>
@@ -53,7 +59,8 @@ const CreatePengajuanKP = () => {
           Judul Kerja Praktek<Text style={{color: 'red'}}>*</Text>
         </Text>
         <TextInput
-          placeholder="Masukkan Judul"
+          placeholder="Sistem Informasi..."
+          placeholderTextColor={'#6F7789'}
           style={[styles.input, styles.border]}
           multiline
           numberOfLines={3}
@@ -63,26 +70,43 @@ const CreatePengajuanKP = () => {
         <Text style={styles.inputTitle}>
           Upload Berkas Persyaratan<Text style={{color: 'red'}}>*</Text>
         </Text>
-        <Picker
-          selectedValue={selectedPersyaratan}
-          style={{height: 50, width: '100%'}}
-          onValueChange={(itemValue, itemIndex) =>
-            setSelectedPersyaratan(itemValue)
-          }>
-          {listPersyaratan.map((item, index) => (
-            <Picker.Item key={index} label={item} value={item} />
-          ))}
-        </Picker>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={selectedPersyaratan}
+            onValueChange={(itemValue, itemIndex) =>
+              setSelectedPersyaratan(itemValue)
+            }>
+            {listPersyaratan.map((item, index) => (
+              <Picker.Item
+                style={styles.optionText}
+                key={index}
+                label={item}
+                value={item}
+              />
+            ))}
+          </Picker>
+        </View>
         <Pressable style={styles.btnSubmit} onPress={uploadFile}>
           <Text style={styles.btnText}>Upload</Text>
         </Pressable>
         <Text style={styles.inputTitle}>Berkas yang telah diupload</Text>
         {uploadedFiles.map((item, index) => (
-          <Text key={index}>{item}</Text>
+          <View key={index} style={styles.berkasContainer}>
+            <Text style={styles.selectText}>{item}</Text>
+            <Pressable onPress={() => removeFile(item)}>
+              <Icon
+                name="times"
+                style={styles.iconRemove}
+                size={25}
+                color="#EF4040"
+              />
+            </Pressable>
+          </View>
         ))}
         <Pressable style={styles.btnSubmit}>
           <Text style={styles.btnText}>Submit</Text>
         </Pressable>
+        <BottomSpace marginBottom={40} />
       </ScrollView>
     </>
   );
@@ -112,7 +136,7 @@ const styles = StyleSheet.create({
   },
   border: {
     borderWidth: 1,
-    borderColor: 'grey',
+    borderColor: '#176B87',
   },
   btnSubmit: {
     backgroundColor: '#176B87',
@@ -127,5 +151,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: 'white',
+  },
+  selectText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: '600',
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#6F7789',
+    fontWeight: '600',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#176B87',
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  berkasContainer: {
+    paddingHorizontal: 10,
+    paddingVertical: 15,
+    backgroundColor: '#86B6F6',
+    borderRadius: 5,
+    marginBottom: 10,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  iconRemove: {
+    marginRight: 10,
+    padding: 5,
+    borderRadius: 5,
+    backgroundColor: 'white',
   },
 });

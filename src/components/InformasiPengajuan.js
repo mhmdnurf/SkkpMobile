@@ -88,6 +88,6 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   contentTitle: {fontWeight: '600', color: '#176B87'},
-  contentText: {fontWeight: '400', fontSize: 12},
+  contentText: {fontWeight: '400', fontSize: 12, color: '#6F7789'},
   rightContentContainer: {marginLeft: 20},
 });

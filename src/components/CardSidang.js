@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {display: 'flex', flexDirection: 'row', marginLeft: 20},
   contentTitle: {fontWeight: 'bold', color: '#176B87'},
-  contentText: {fontWeight: '400', fontSize: 12},
+  contentText: {fontWeight: '400', fontSize: 12, color: '#6F7789'},
   rightContentContainer: {marginLeft: 20},
   iconContainer: {justifyContent: 'center', alignItems: 'center'},
 });
