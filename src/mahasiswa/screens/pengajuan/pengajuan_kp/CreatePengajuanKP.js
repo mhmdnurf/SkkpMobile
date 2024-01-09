@@ -7,22 +7,31 @@ import {
   Pressable,
   Alert,
   View,
+  Image,
+  Modal,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import Header from '../../../../components/Header';
 import firestore from '@react-native-firebase/firestore';
 import {Picker} from '@react-native-picker/picker';
 import BottomSpace from '../../../../components/BottomSpace';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import DocumentPicker from 'react-native-document-picker';
+import storage from '@react-native-firebase/storage';
+import RNFS from 'react-native-fs';
 
 const CreatePengajuanKP = () => {
   const [judul, setJudul] = React.useState('');
   const [listPersyaratan, setListPersyaratan] = React.useState([]);
   const [selectedPersyaratan, setSelectedPersyaratan] = React.useState('');
   const [uploadedFiles, setUploadedFiles] = React.useState([]);
+  const [selectedImage, setSelectedImage] = React.useState(null);
 
   React.useEffect(() => {
     fetchPersyaratan();
-  }, [fetchPersyaratan]);
+    console.log(uploadedFiles);
+  }, [fetchPersyaratan, uploadedFiles]);
 
   const fetchPersyaratan = React.useCallback(async () => {
     try {
@@ -33,22 +42,71 @@ const CreatePengajuanKP = () => {
       const res = await query;
       const data = res.docs.map(doc => doc.data().berkasPersyaratan).flat();
       setListPersyaratan(data);
-      console.log(data);
+      // console.log(data);
     } catch {
       console.log('error');
     }
   }, []);
 
-  const uploadFile = () => {
-    if (uploadedFiles.includes(selectedPersyaratan)) {
+  const uploadFile = async () => {
+    if (uploadedFiles[selectedPersyaratan]) {
       Alert.alert('File already uploaded');
     } else {
-      setUploadedFiles([...uploadedFiles, selectedPersyaratan]);
+      try {
+        const res = await DocumentPicker.pick({
+          type: [DocumentPicker.types.allFiles],
+        });
+        const uploadedFileUrl = res[0].uri;
+
+        // Read the file data
+        const fileData = await RNFS.readFile(uploadedFileUrl, 'base64');
+
+        setUploadedFiles({
+          ...uploadedFiles,
+          [selectedPersyaratan]: `data:image/jpeg;base64,${fileData}`, // Save the file data as base64 string
+        });
+      } catch (err) {
+        if (DocumentPicker.isCancel(err)) {
+          // Pengguna membatalkan pemilihan file
+        } else {
+          throw err;
+        }
+      }
     }
   };
 
-  const removeFile = fileRemove => {
-    setUploadedFiles(uploadedFiles.filter(file => file !== fileRemove));
+  const removeFile = fileName => {
+    setUploadedFiles(prevFiles => {
+      const newFiles = {...prevFiles};
+      delete newFiles[fileName];
+      return newFiles;
+    });
+  };
+
+  const handleSubmit = async () => {
+    const dataUpload = {
+      judul,
+      berkas: {},
+    };
+
+    for (const [key, value] of Object.entries(uploadedFiles)) {
+      // Create a reference to the file
+      const fileRef = storage().ref(`${key}_${Date.now()}`);
+
+      // Upload the file
+      await fileRef.putString(value, 'data_url');
+
+      // Get the URL of the uploaded file
+      const url = await fileRef.getDownloadURL();
+
+      // Add the URL to the data
+      dataUpload.berkas[key] = url;
+    }
+
+    // Save the data to Firestore
+    await firestore().collection('pengajuan').add(dataUpload);
+
+    console.log(dataUpload);
   };
 
   return (
@@ -56,7 +114,7 @@ const CreatePengajuanKP = () => {
       <ScrollView style={styles.mainContainer}>
         <Header title="Buat Pengajuan KP" />
         <Text style={styles.inputTitle}>
-          Judul Kerja Praktek<Text style={{color: 'red'}}>*</Text>
+          Judul Kerja Praktek<Text style={styles.important}>*</Text>
         </Text>
         <TextInput
           placeholder="Sistem Informasi..."
@@ -68,7 +126,7 @@ const CreatePengajuanKP = () => {
           onChangeText={text => setJudul(text)}
         />
         <Text style={styles.inputTitle}>
-          Upload Berkas Persyaratan<Text style={{color: 'red'}}>*</Text>
+          Upload Berkas Persyaratan<Text style={styles.important}>*</Text>
         </Text>
         <View style={styles.pickerContainer}>
           <Picker
@@ -86,14 +144,40 @@ const CreatePengajuanKP = () => {
             ))}
           </Picker>
         </View>
-        <Pressable style={styles.btnSubmit} onPress={uploadFile}>
+        <Pressable style={styles.btnUpload} onPress={uploadFile}>
           <Text style={styles.btnText}>Upload</Text>
         </Pressable>
         <Text style={styles.inputTitle}>Berkas yang telah diupload</Text>
-        {uploadedFiles.map((item, index) => (
-          <View key={index} style={styles.berkasContainer}>
-            <Text style={styles.selectText}>{item}</Text>
-            <Pressable onPress={() => removeFile(item)}>
+        {Object.entries(uploadedFiles).map(([key, value], index) => (
+          <Pressable key={index} onPress={() => setSelectedImage(value)}>
+            <View style={styles.berkasContainer}>
+              <Text style={styles.selectText}>{key}</Text>
+              <Pressable
+                onPress={event => {
+                  event.stopPropagation();
+                  removeFile(key);
+                }}>
+                <Icon
+                  name="times"
+                  style={styles.iconRemove}
+                  size={25}
+                  color="#EF4040"
+                />
+              </Pressable>
+            </View>
+          </Pressable>
+        ))}
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={selectedImage !== null}
+          onRequestClose={() => {
+            setSelectedImage(null);
+          }}>
+          <View
+            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <Pressable onPress={() => setSelectedImage(null)}>
               <Icon
                 name="times"
                 style={styles.iconRemove}
@@ -101,9 +185,16 @@ const CreatePengajuanKP = () => {
                 color="#EF4040"
               />
             </Pressable>
+            <Image
+              source={{uri: selectedImage}}
+              style={{
+                width: Dimensions.get('window').width,
+                height: Dimensions.get('window').height,
+              }}
+            />
           </View>
-        ))}
-        <Pressable style={styles.btnSubmit}>
+        </Modal>
+        <Pressable onPress={handleSubmit} style={styles.btnSubmit}>
           <Text style={styles.btnText}>Submit</Text>
         </Pressable>
         <BottomSpace marginBottom={40} />
@@ -137,6 +228,14 @@ const styles = StyleSheet.create({
   border: {
     borderWidth: 1,
     borderColor: '#176B87',
+  },
+  btnUpload: {
+    backgroundColor: '#176B87',
+    borderRadius: 10,
+    padding: 13,
+    marginBottom: 20,
+    marginTop: 20,
+    elevation: 5,
   },
   btnSubmit: {
     backgroundColor: '#176B87',
@@ -184,5 +283,8 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 5,
     backgroundColor: 'white',
+  },
+  important: {
+    color: 'red',
   },
 });
