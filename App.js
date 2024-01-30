@@ -36,6 +36,7 @@ import firestore from '@react-native-firebase/firestore';
 import MenuSkripsi from './src/screens/MenuSkripsi';
 import HomePengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/HomePengajuanSkripsi';
 import CreatePengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/CreatePengajuanSkripsi';
+import HomeSidangKP from './src/mahasiswa/screens/sidang/sidang_kp/HomeSidangKP';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -124,112 +125,7 @@ const App = () => {
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
-        <Stack.Screen
-          name="Homepage"
-          component={MainTabs}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="Pengajuan"
-          component={PengajuanTab}
-          options={{
-            tabBarIcon: ({color, size}) => (
-              <Icon name="hand-paper-o" color={color} size={size} />
-            ),
-            title: 'Pengajuan Proposal',
-            headerStyle: {
-              backgroundColor: '#7895CB',
-            },
-            headerTintColor: 'white',
-            headerShown: 'true',
-          }}
-        />
-        <Stack.Screen
-          name="Sidang"
-          component={SidangTab}
-          options={{
-            tabBarIcon: ({color, size}) => (
-              <Icon name="calendar-check-o" color={color} size={size} />
-            ),
-            title: 'Pendaftaran Sidang',
-            headerStyle: {
-              backgroundColor: '#7895CB',
-            },
-            headerTintColor: 'white',
-            headerShown: 'true',
-          }}
-        />
-        <Stack.Screen
-          name="CreatePengajuanKP"
-          component={CreatePengajuanKP}
-          options={{
-            headerShown: true,
-            title: 'Buat Pengajuan KP',
-            headerStyle: {
-              backgroundColor: 'white',
-            },
-            headerTintColor: '#176B87',
-            headerTitle: '',
-          }}
-        />
-        <Stack.Screen
-          name="DetailPengajuanKP"
-          component={DetailPengajuanKP}
-          options={{
-            headerShown: true,
-            title: '',
-            headerStyle: {
-              backgroundColor: 'white',
-            },
-            headerTintColor: '#176B87',
-          }}
-        />
-        <Stack.Screen
-          name="EditPengajuanKP"
-          component={EditPengajuanKP}
-          options={{
-            headerShown: true,
-            title: 'Edit Pengajuan KP',
-          }}
-        />
-        {/* Sidang KP */}
-        <Stack.Screen
-          name="AddSidangKP"
-          component={AddSidangKP}
-          options={{
-            headerShown: true,
-            title: 'Daftar Sidang KP',
-            headerStyle: {
-              backgroundColor: '#7895CB',
-            },
-            headerTintColor: 'white',
-          }}
-        />
-        <Stack.Screen
-          name="DetailSidangKP"
-          component={DetailSidangKP}
-          options={{
-            headerShown: true,
-            title: 'Detail Sidang KP',
-            headerStyle: {
-              backgroundColor: '#7895CB',
-            },
-            headerTintColor: 'white',
-          }}
-        />
-        <Stack.Screen
-          name="EditSidangKP"
-          component={EditSidangKP}
-          options={{
-            headerShown: true,
-            title: 'Edit Sidang KP',
-            headerStyle: {
-              backgroundColor: '#7895CB',
-            },
-            headerTintColor: 'white',
-          }}
-        />
-
+        <Stack.Screen name="Dashboard" component={Dashboard} />
         {/* Sidang Sempro */}
         <Stack.Screen
           name="AddSempro"
@@ -267,7 +163,6 @@ const App = () => {
             headerTintColor: 'white',
           }}
         />
-
         {/* Sidang Kompre */}
         <Stack.Screen
           name="AddKompre"
@@ -343,6 +238,7 @@ const App = () => {
             headerTintColor: 'white',
           }}
         />
+        {/* KP Screen Start*/}
         <Stack.Screen
           name="MenuKP"
           component={MenuKP}
@@ -363,6 +259,88 @@ const App = () => {
             headerTintColor: 'white',
           }}
         />
+        <Stack.Screen
+          name="CreatePengajuanKP"
+          component={CreatePengajuanKP}
+          options={{
+            headerShown: true,
+            title: 'Buat Pengajuan KP',
+            headerStyle: {
+              backgroundColor: 'white',
+            },
+            headerTintColor: '#176B87',
+            headerTitle: '',
+          }}
+        />
+        <Stack.Screen
+          name="DetailPengajuanKP"
+          component={DetailPengajuanKP}
+          options={{
+            headerShown: true,
+            title: '',
+            headerStyle: {
+              backgroundColor: 'white',
+            },
+            headerTintColor: '#176B87',
+          }}
+        />
+        <Stack.Screen
+          name="EditPengajuanKP"
+          component={EditPengajuanKP}
+          options={{
+            headerShown: true,
+            title: 'Edit Pengajuan KP',
+          }}
+        />
+        <Stack.Screen
+          name="HomeSidangKP"
+          component={HomeSidangKP}
+          options={{
+            headerShown: true,
+            title: '',
+            headerStyle: {
+              backgroundColor: '#176B87',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="AddSidangKP"
+          component={AddSidangKP}
+          options={{
+            headerShown: true,
+            title: 'Daftar Sidang KP',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="DetailSidangKP"
+          component={DetailSidangKP}
+          options={{
+            headerShown: true,
+            title: 'Detail Sidang KP',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="EditSidangKP"
+          component={EditSidangKP}
+          options={{
+            headerShown: true,
+            title: 'Edit Sidang KP',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        {/* KP Screen End */}
         <Stack.Screen
           name="MenuSkripsi"
           component={MenuSkripsi}

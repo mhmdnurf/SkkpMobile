@@ -143,8 +143,8 @@ const HomePengajuanSkripsi = ({navigation}) => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#176B87" />
       </View>
     );
   }
@@ -187,6 +187,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerContainer: {
     minHeight: 275,

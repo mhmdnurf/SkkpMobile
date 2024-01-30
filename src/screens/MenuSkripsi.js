@@ -1,11 +1,12 @@
 import React from 'react';
-import {Dimensions, ScrollView, StyleSheet} from 'react-native';
+import {Dimensions, ScrollView, StyleSheet, ToastAndroid} from 'react-native';
 import MenuView from '../components/MenuView';
 import MenuButton from '../components/MenuButton';
 import Logo from '../assets/skripsi_menu.svg';
-import {useNavigation} from '@react-navigation/native';
-const MenuSkripsi = () => {
-  const navigation = useNavigation();
+const MenuSkripsi = ({navigation}) => {
+  const handleNavigateSidangSkripsi = () => {
+    ToastAndroid.show('Coming Soon', ToastAndroid.SHORT);
+  };
   return (
     <>
       <ScrollView contentContainerStyle={styles.cardContainer}>
@@ -18,10 +19,7 @@ const MenuSkripsi = () => {
           onPress={() => navigation.navigate('HomePengajuanSkripsi')}
           title="Pengajuan"
         />
-        <MenuButton
-          onPress={() => navigation.navigate('SidangSkripsi')}
-          title="Sidang"
-        />
+        <MenuButton onPress={handleNavigateSidangSkripsi} title="Sidang" />
       </ScrollView>
     </>
   );

@@ -8,7 +8,7 @@ export default function Splash({navigation}) {
     try {
       const userToken = await AsyncStorage.getItem('userToken');
       if (userToken) {
-        navigation.replace('Homepage');
+        navigation.replace('Dashboard');
       } else {
         navigation.replace('Login');
       }

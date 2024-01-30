@@ -144,8 +144,8 @@ const HomePengajuanKP = ({navigation}) => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#176B87" />
       </View>
     );
   }
@@ -164,7 +164,11 @@ const HomePengajuanKP = ({navigation}) => {
             keyExtractor={item => item.id}
             renderItem={renderPengajuanItem}
             refreshControl={
-              <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                colors={['#176B87']}
+              />
             }
           />
         ) : (
@@ -188,6 +192,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerContainer: {
     minHeight: 275,

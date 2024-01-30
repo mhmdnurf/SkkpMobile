@@ -1,8 +1,11 @@
 import React from 'react';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+
 const useUserInfo = () => {
   const [username, setUsername] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(true);
+
   React.useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged(user => {
       if (user) {
@@ -15,12 +18,15 @@ const useUserInfo = () => {
               const userData = doc.data();
               const nama = userData.nama;
               setUsername(nama);
+              setIsLoading(false); // Set loading to false after fetching data
             } else {
               console.log('No such document!');
+              setIsLoading(false); // Set loading to false if document doesn't exist
             }
           },
           error => {
             console.log('Error fetching document:', error);
+            setIsLoading(false); // Set loading to false if there's an error
           },
         );
 
@@ -29,13 +35,16 @@ const useUserInfo = () => {
         };
       } else {
         setUsername('');
+        setIsLoading(false); // Set loading to false if user is not authenticated
       }
     });
+
     return () => {
       unsubscribe();
     };
   }, []);
-  return username;
+
+  return {username, isLoading}; // Return both username and isLoading
 };
 
 export default useUserInfo;

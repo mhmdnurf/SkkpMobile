@@ -3,9 +3,7 @@ import {Dimensions, ScrollView, StyleSheet} from 'react-native';
 import MenuView from '../components/MenuView';
 import MenuButton from '../components/MenuButton';
 import Logo from '../assets/kerja_praktek_menu.svg';
-import {useNavigation} from '@react-navigation/native';
-const MenuKP = () => {
-  const navigation = useNavigation();
+const MenuKP = ({navigation}) => {
   return (
     <>
       <ScrollView contentContainerStyle={styles.cardContainer}>
@@ -19,7 +17,7 @@ const MenuKP = () => {
           title="Pengajuan"
         />
         <MenuButton
-          onPress={() => navigation.navigate('EditPengajuanKPs')}
+          onPress={() => navigation.navigate('HomeSidangKP')}
           title="Sidang"
         />
       </ScrollView>

@@ -1,33 +1,46 @@
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {Pressable, StyleSheet, Text, ToastAndroid, View} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 const Navbar = () => {
   const navigation = useNavigation();
+
+  const handleNavigateMenuKP = () => {
+    navigation.navigate('MenuKP');
+  };
+
+  const handleNavigateSempro = () => {
+    ToastAndroid.show('Coming Soon', ToastAndroid.SHORT);
+  };
+  const handleNavigateKompre = () => {
+    ToastAndroid.show('Coming Soon', ToastAndroid.SHORT);
+  };
+
+  const handleNavigateMenuSkripsi = () => {
+    navigation.navigate('MenuSkripsi');
+  };
   return (
     <View style={styles.nav}>
       <View style={styles.navContainer}>
-        <Pressable
-          onPress={() => navigation.navigate('MenuKP')}
-          style={styles.iconContainer}>
+        <Pressable onPress={handleNavigateMenuKP} style={styles.iconContainer}>
           <Icon name="toolbox" size={30} color="#FF7676" />
         </Pressable>
         <Text style={styles.navText}>KP</Text>
       </View>
       <View style={styles.navContainer}>
-        <View style={styles.iconContainer}>
+        <Pressable style={styles.iconContainer} onPress={handleNavigateSempro}>
           <Icon name="file-signature" size={30} color="#EEC759" />
-        </View>
+        </Pressable>
         <Text style={styles.navText}>Sempro</Text>
       </View>
       <View style={styles.navContainer}>
-        <View style={styles.iconContainer}>
+        <Pressable style={styles.iconContainer} onPress={handleNavigateKompre}>
           <Icon name="laptop-code" size={30} color="#2E4374" />
-        </View>
+        </Pressable>
         <Text style={styles.navText}>Kompre</Text>
       </View>
       <View style={styles.navContainer}>
-        <Pressable onPress={() => navigation.navigate('MenuSkripsi')}>
+        <Pressable onPress={handleNavigateMenuSkripsi}>
           <View style={styles.iconContainer}>
             <Icon name="user-graduate" size={30} color="#4A55A2" />
           </View>
