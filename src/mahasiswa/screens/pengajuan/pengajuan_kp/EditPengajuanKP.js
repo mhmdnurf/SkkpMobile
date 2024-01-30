@@ -1,428 +1,288 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Alert,
   ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  Pressable,
+  Alert,
+  View,
+  Modal,
+  Dimensions,
   ActivityIndicator,
-  KeyboardAvoidingView,
 } from 'react-native';
+import Header from '../../../../components/Header';
 import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth';
-import storage from '@react-native-firebase/storage';
+import {Picker} from '@react-native-picker/picker';
+import BottomSpace from '../../../../components/BottomSpace';
 import DocumentPicker from 'react-native-document-picker';
+import storage from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
-import {launchCamera} from 'react-native-image-picker';
-import Icon from 'react-native-vector-icons/FontAwesome6';
-import {
-  ALERT_TYPE,
-  AlertNotificationRoot,
-  Dialog,
-} from 'react-native-alert-notification';
+import auth from '@react-native-firebase/auth';
+import Loader from '../../../../components/Loader';
+import _ from 'lodash';
+import WebView from 'react-native-webview';
 
 const EditPengajuanKP = ({route, navigation}) => {
-  const [judul, setJudul] = useState('');
-  const [fileTranskipNilai, setFileTranskipNilai] = useState(null);
-  const [transkipPath, setTranskipPath] = useState('');
-  const [fileFormKrs, setFileFormKrs] = useState(null);
-  const [formKrsPath, setFormKrsPath] = useState('');
-  const [filePendaftaranKp, setFilePendaftaranKp] = useState(null);
-  const [pendaftaranKpPath, setPendaftaranKpPath] = useState('');
-  const [slipPembayaranKp, setSlipPembayaranKp] = useState(null);
-  const [slipPembayaranKpPath, setSlipPembayaranKpPath] = useState('');
-  const [fileProporsal, setFileProporsal] = useState(null);
-  const [fileProporsalPath, setFileProporsalPath] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [berkasPersyaratan, setBerkasPersyaratan] = useState({});
-  const [jadwalPengajuan, setJadwalPengajuan] = useState([]);
+  const [judul, setJudul] = React.useState('');
+  const [listPersyaratan, setListPersyaratan] = React.useState([]);
+  const [selectedPersyaratan, setSelectedPersyaratan] = React.useState('');
+  const [uploadedFiles, setUploadedFiles] = React.useState([]);
+  const [selectedData, setSelectedData] = React.useState(null);
+  const [jadwalPengajuan, setJadwalPengajuan] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
   const {itemId} = route.params;
+  const [initialState, setInitialState] = React.useState({
+    judul: '',
+    berkas: {},
+  });
 
-  useEffect(() => {
-    const unsubscribe = firestore()
-      .collection('jadwalPengajuan')
-      .where('status', '==', 'Aktif')
-      .where('jenisPengajuan', 'array-contains', 'Kerja Praktek')
-      .onSnapshot(querySnapshot => {
-        const data = [];
-        querySnapshot.forEach(doc => {
-          data.push({id: doc.id, ...doc.data()});
+  React.useEffect(() => {
+    fetchPersyaratan();
+    fetchData();
+    fetchJadwalPengajuan();
+    setInitialState({
+      judul,
+      berkas: {...uploadedFiles},
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchPersyaratan, fetchData, fetchJadwalPengajuan]);
+
+  const fetchJadwalPengajuan = React.useCallback(async () => {
+    try {
+      firestore()
+        .collection('jadwalPengajuan')
+        .where('status', '==', 'Aktif')
+        .where('jenisPengajuan', 'array-contains', 'Kerja Praktek')
+        .get()
+        .then(querySnapshot => {
+          const data = [];
+          querySnapshot.forEach(doc => {
+            data.push({id: doc.id, ...doc.data()});
+          });
           setJadwalPengajuan(data);
         });
-      });
+    } catch {
+      console.log('error');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    firestore()
-      .collection('pengajuan')
-      .doc(itemId)
-      .get()
-      .then(documentSnapshot => {
-        if (documentSnapshot.exists) {
-          const data = documentSnapshot.data();
-          setJudul(data.judul);
-          setBerkasPersyaratan(data.berkasPersyaratan);
-          setTranskipPath(data.berkasPersyaratan.transkipNilai);
-          setFormKrsPath(data.berkasPersyaratan.formKrs);
-          setPendaftaranKpPath(data.berkasPersyaratan.formPendaftaranKP);
-          setSlipPembayaranKpPath(data.berkasPersyaratan.slipPembayaranKP);
-          setFileProporsalPath(data.berkasPersyaratan.dokumenProposal);
-        } else {
-          console.log('Pengajuan tidak ditemukan');
-        }
-      })
-      .catch(error => {
-        console.error('Error mengambil data pengajuan:', error);
-      });
-    return () => {
-      unsubscribe();
-    };
+  const fetchData = React.useCallback(async () => {
+    try {
+      const documentSnapshot = await firestore()
+        .collection('pengajuan')
+        .doc(itemId)
+        .get();
+
+      if (documentSnapshot.exists) {
+        const data = {id: documentSnapshot.id, ...documentSnapshot.data()};
+        setJudul(data.judul);
+        setUploadedFiles(data.berkas);
+      } else {
+        console.log('No such document!');
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
+    }
   }, [itemId]);
 
-  const pickerTranskip = async () => {
+  const fetchPersyaratan = React.useCallback(async () => {
     try {
-      const result = await DocumentPicker.pick({
-        type: [
-          DocumentPicker.types.images,
-          DocumentPicker.types.pdf,
-          DocumentPicker.types.docx,
-        ],
-      });
-      console.log(result);
-      const selectedFile = result[0].uri;
-      const selectedFileName = result[0].name;
-      setTranskipPath(selectedFileName);
-      setFileTranskipNilai({uri: selectedFile, name: result[0]});
-      console.log('Nama Berkas:', selectedFileName);
-    } catch (error) {
-      if (DocumentPicker.isCancel(error)) {
-        console.log('Pengguna membatalkan pemilihan dokumen');
-      } else {
-        console.log('Error memilih dokumen:', error.message);
+      const query = firestore()
+        .collection('persyaratan')
+        .where('jenisPersyaratan', '==', 'Pengajuan Kerja Praktek')
+        .get();
+      const res = await query;
+      const data = res.docs.map(doc => doc.data().berkasPersyaratan).flat();
+      setListPersyaratan(data);
+    } catch {
+      console.log('error');
+    }
+  }, []);
+
+  const uploadFile = async () => {
+    if (uploadedFiles[selectedPersyaratan]) {
+      Alert.alert('File sudah diupload', 'Silahkan pilih file lain');
+    } else {
+      try {
+        const res = await DocumentPicker.pick({
+          type: [
+            DocumentPicker.types.images,
+            DocumentPicker.types.pdf,
+            DocumentPicker.types.docx,
+          ],
+        });
+
+        const uploadedFileUrl = res[0].uri;
+        const fileType = res[0].type;
+
+        // Read the file data
+        const fileData = await RNFS.readFile(uploadedFileUrl, 'base64');
+
+        setUploadedFiles({
+          ...uploadedFiles,
+          [selectedPersyaratan]: {
+            data: `data:${fileType};base64,${fileData}`, // Save the file data as base64 string
+            type: fileType,
+          },
+        });
+      } catch (err) {
+        if (DocumentPicker.isCancel(err)) {
+          console.info(err);
+        } else {
+          throw err;
+        }
       }
     }
   };
 
-  const pickerKrs = async () => {
-    try {
-      const result = await DocumentPicker.pick({
-        type: [
-          DocumentPicker.types.images,
-          DocumentPicker.types.pdf,
-          DocumentPicker.types.docx,
-        ],
-      });
-      console.log(result);
-      const selectedFile = result[0].uri;
-      const selectedFileName = result[0].name;
-      setFormKrsPath(selectedFileName);
-      setFileFormKrs({uri: selectedFile, name: result[0]});
-      console.log('Nama Berkas:', selectedFileName);
-    } catch (error) {
-      if (DocumentPicker.isCancel(error)) {
-        console.log('Pengguna membatalkan pemilihan dokumen');
-      } else {
-        console.log('Error memilih dokumen:', error.message);
-      }
-    }
-  };
-
-  const pickerPendaftaranKp = async () => {
-    try {
-      const result = await DocumentPicker.pick({
-        type: [
-          DocumentPicker.types.images,
-          DocumentPicker.types.pdf,
-          DocumentPicker.types.docx,
-        ],
-      });
-      console.log(result);
-      const selectedFile = result[0].uri;
-      const selectedFileName = result[0].name;
-      setPendaftaranKpPath(selectedFileName);
-      setFilePendaftaranKp({uri: selectedFile, name: result[0]});
-      console.log('Nama Berkas:', selectedFileName);
-    } catch (error) {
-      if (DocumentPicker.isCancel(error)) {
-        console.log('Pengguna membatalkan pemilihan dokumen');
-      } else {
-        console.log('Error memilih dokumen:', error.message);
-      }
-    }
-  };
-
-  const pickerPembayaran = async () => {
-    try {
-      const result = await DocumentPicker.pick({
-        type: [
-          DocumentPicker.types.images,
-          DocumentPicker.types.pdf,
-          DocumentPicker.types.docx,
-        ],
-      });
-      console.log(result);
-      const selectedFile = result[0].uri;
-      const selectedFileName = result[0].name;
-      setSlipPembayaranKpPath(selectedFileName);
-      setSlipPembayaranKp({uri: selectedFile, name: result[0]});
-      console.log('Nama Berkas:', selectedFileName);
-    } catch (error) {
-      if (DocumentPicker.isCancel(error)) {
-        console.log('Pengguna membatalkan pemilihan dokumen');
-      } else {
-        console.log('Error memilih dokumen:', error.message);
-      }
-    }
-  };
-
-  const pickerProporsal = async () => {
-    try {
-      const result = await DocumentPicker.pick({
-        type: [DocumentPicker.types.docx],
-      });
-      console.log(result);
-      const selectedFile = result[0].uri;
-      const selectedFileName = result[0].name;
-      setFileProporsalPath(selectedFileName);
-      setFileProporsal({uri: selectedFile, name: result[0]});
-      console.log('Nama Berkas:', selectedFileName);
-    } catch (error) {
-      if (DocumentPicker.isCancel(error)) {
-        console.log('Pengguna membatalkan pemilihan dokumen');
-      } else {
-        console.log('Error memilih dokumen:', error.message);
-      }
-    }
-  };
-
-  const imagePickerTranskip = async () => {
-    const options = {
-      mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
-    };
-    try {
-      const response = await launchCamera(options);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else {
-        const selectedFile = response.assets[0].uri;
-        const selectedFileName = response.assets[0].fileName;
-        setTranskipPath(selectedFileName);
-        setFileTranskipNilai({uri: selectedFile, name: selectedFileName});
-        console.log('Selected Image URI:', selectedFile);
-      }
-    } catch (error) {
-      console.error('ImagePicker Error:', error);
-    }
-  };
-
-  const imagePickerFormKrs = async () => {
-    const options = {
-      mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
-    };
-    try {
-      const response = await launchCamera(options);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else {
-        const selectedFile = response.assets[0].uri;
-        const selectedFileName = response.assets[0].fileName;
-        setFormKrsPath(selectedFileName);
-        setFileFormKrs({uri: selectedFile, name: selectedFileName});
-        console.log('Selected Image URI:', selectedFile);
-      }
-    } catch (error) {
-      console.error('ImagePicker Error:', error);
-    }
-  };
-
-  const imagePickerFormKP = async () => {
-    const options = {
-      mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
-    };
-    try {
-      const response = await launchCamera(options);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else {
-        const selectedFile = response.assets[0].uri;
-        const selectedFileName = response.assets[0].fileName;
-        setPendaftaranKpPath(selectedFileName);
-        setFilePendaftaranKp({uri: selectedFile, name: selectedFileName});
-        console.log('Selected Image URI:', selectedFile);
-      }
-    } catch (error) {
-      console.error('ImagePicker Error:', error);
-    }
-  };
-  const imagePickerSlip = async () => {
-    const options = {
-      mediaType: 'photo',
-      quality: 0.5, // Kualitas gambar (0 - 1)
-    };
-    try {
-      const response = await launchCamera(options);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else {
-        const selectedFile = response.assets[0].uri;
-        const selectedFileName = response.assets[0].fileName;
-        setSlipPembayaranKpPath(selectedFileName);
-        setSlipPembayaranKp({uri: selectedFile, name: selectedFileName});
-        console.log('Selected Image URI:', selectedFile);
-      }
-    } catch (error) {
-      console.error('ImagePicker Error:', error);
-    }
-  };
-
-  const handleEdit = async () => {
-    setIsSubmitting(true);
-    try {
-      const user = auth().currentUser;
-      const transkipNilaiFileName = `persyaratan/pengajuanKP/transkipNilai/${user.uid}`;
-      const formKrsFileName = `persyaratan/pengajuanKP/formKRS/${user.uid}`;
-      const pendaftaranKpFileName = `persyaratan/pengajuanKP/formPendaftaranKP/${user.uid}`;
-      const pembayaranKpFileName = `persyaratan/pengajuanKP/slipPembayaranKP/${user.uid}`;
-      const proporsalFileName = `persyaratan/pengajuanKP/proporsalKP/${user.uid}`;
-      const transkipNilaiReference = storage().ref(transkipNilaiFileName);
-      const formKrsReference = storage().ref(formKrsFileName);
-      const pendaftaranKpReference = storage().ref(pendaftaranKpFileName);
-      const pembayaranKpReference = storage().ref(pembayaranKpFileName);
-      const proporsalReference = storage().ref(proporsalFileName);
-
-      // Inisialisasi variabel untuk URL dokumen (jika diunggah)
-      let transkipNilai = null;
-      let formKrs = null;
-      let formPendaftaranKP = null;
-      let slipPembayaranKP = null;
-      let dokumenProporsal = null;
-
-      // Proses Transkip Nilai
-      if (fileTranskipNilai) {
-        const transkipNilaiFilePath = `${RNFS.DocumentDirectoryPath}/${fileTranskipNilai.name}`;
-        await RNFS.copyFile(fileTranskipNilai.uri, transkipNilaiFilePath);
-        const transkipNilaiBlob = await RNFS.readFile(
-          transkipNilaiFilePath,
-          'base64',
-        );
-        await transkipNilaiReference.putString(transkipNilaiBlob, 'base64');
-        transkipNilai = await transkipNilaiReference.getDownloadURL();
-      }
-
-      // Proses Form KRS
-      if (fileFormKrs) {
-        const formKrsFilePath = `${RNFS.DocumentDirectoryPath}/${fileFormKrs.name}`;
-        await RNFS.copyFile(fileFormKrs.uri, formKrsFilePath);
-        const formKrsBlob = await RNFS.readFile(formKrsFilePath, 'base64');
-        await formKrsReference.putString(formKrsBlob, 'base64');
-        formKrs = await formKrsReference.getDownloadURL();
-      }
-
-      // Proses Form Pendaftaran KP
-      if (filePendaftaranKp) {
-        const pendaftaranKpFilePath = `${RNFS.DocumentDirectoryPath}/${filePendaftaranKp.name}`;
-        await RNFS.copyFile(filePendaftaranKp.uri, pendaftaranKpFilePath);
-        const pendaftaranKpBlob = await RNFS.readFile(
-          pendaftaranKpFilePath,
-          'base64',
-        );
-        await pendaftaranKpReference.putString(pendaftaranKpBlob, 'base64');
-        formPendaftaranKP = await pendaftaranKpReference.getDownloadURL();
-      }
-
-      // Proses Slip Pembayaran KP
-      if (slipPembayaranKp) {
-        const pembayaranKpFilePath = `${RNFS.DocumentDirectoryPath}/${slipPembayaranKp.name}`;
-        await RNFS.copyFile(slipPembayaranKp.uri, pembayaranKpFilePath);
-        const pembayaranKpBlob = await RNFS.readFile(
-          pembayaranKpFilePath,
-          'base64',
-        );
-        await pembayaranKpReference.putString(pembayaranKpBlob, 'base64');
-        slipPembayaranKP = await pembayaranKpReference.getDownloadURL();
-      }
-
-      // Proses Dokumen Proporsal
-      if (fileProporsal) {
-        const proporsalFilePath = `${RNFS.DocumentDirectoryPath}/${fileProporsal.name}`;
-        await RNFS.copyFile(fileProporsal.uri, proporsalFilePath);
-        const proporsalBlob = await RNFS.readFile(proporsalFilePath, 'base64');
-        await proporsalReference.putString(proporsalBlob, 'base64');
-        dokumenProporsal = await proporsalReference.getDownloadURL();
-      }
-      const jadwalId = jadwalPengajuan[0].id;
-      // Push to Firestore
-      const updateData = {
-        judul: judul,
-        editedAt: new Date(),
-        status: 'Belum Diverifikasi',
-        jadwalPengajuan_uid: jadwalId,
-        berkasPersyaratan: {
-          transkipNilai: berkasPersyaratan.transkipNilai,
-          formKrs: berkasPersyaratan.formKrs,
-          formPendaftaranKP: berkasPersyaratan.formPendaftaranKP,
-          slipPembayaranKP: berkasPersyaratan.slipPembayaranKP,
-          dokumenProposal: berkasPersyaratan.dokumenProposal,
+  const removeAllFiles = async () => {
+    Alert.alert(
+      'Hapus semua berkas',
+      'Apakah Anda yakin ingin menghapus semua berkas?',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
         },
-      };
+        {
+          text: 'OK',
+          onPress: async () => {
+            // Iterate over all files
+            for (const fileName in uploadedFiles) {
+              // Delete the file from Firebase Storage
+              const fileRef = storage().ref(
+                `${auth().currentUser.uid}/${fileName}`,
+              );
+              try {
+                // Check if the file exists
+                await fileRef.getMetadata();
+                // If the file exists, delete it
+                await fileRef.delete();
+                console.log('File deleted successfully from Firebase Storage');
+              } catch (error) {
+                if (error.code === 'storage/object-not-found') {
+                  // File doesn't exist in Firebase Storage
+                  console.log('File does not exist in Firebase Storage');
+                } else {
+                  console.error(
+                    'Error deleting file from Firebase Storage:',
+                    error,
+                  );
+                }
+              }
 
-      // Hanya pilih properti yang akan diubah
-      if (transkipNilai) {
-        updateData.berkasPersyaratan.transkipNilai = transkipNilai;
-      }
-      if (formKrs) {
-        updateData.berkasPersyaratan.formKrs = formKrs;
-      }
-      if (formPendaftaranKP) {
-        updateData.berkasPersyaratan.formPendaftaranKP = formPendaftaranKP;
-      }
-      if (slipPembayaranKP) {
-        updateData.berkasPersyaratan.slipPembayaranKP = slipPembayaranKP;
-      }
-      if (dokumenProporsal) {
-        updateData.berkasPersyaratan.dokumenProposal = dokumenProporsal;
-      }
+              // Delete the file reference from Firestore
+              try {
+                const docRef = firestore().collection('pengajuan').doc(itemId);
+                // Check if the document exists
+                const doc = await docRef.get();
+                if (doc.exists) {
+                  // If the document exists, update it
+                  await docRef.update({
+                    [`berkas.${fileName}`]: firestore.FieldValue.delete(),
+                  });
+                  console.log(
+                    'File reference deleted successfully from Firestore',
+                  );
+                } else {
+                  console.log('Document does not exist in Firestore');
+                }
+              } catch (error) {
+                if (error.code === 'firestore/not-found') {
+                  // Document doesn't exist in Firestore
+                  console.log('Document does not exist in Firestore');
+                } else {
+                  console.error(
+                    'Error deleting file reference from Firestore:',
+                    error,
+                  );
+                }
+              }
+            }
 
-      await firestore().collection('pengajuan').doc(itemId).update(updateData);
-
-      Dialog.show({
-        type: ALERT_TYPE.SUCCESS,
-        title: 'Berhasil',
-        textBody: 'Data pengajuan Kerja Praktek berhasil diubah',
-        button: 'Tutup',
-        onPressButton: () => {
-          navigation.navigate('Pengajuan');
+            // Delete all files from the state
+            setUploadedFiles({});
+          },
         },
-      });
-    } catch (error) {
-      console.error('Error mengubah data pengajuan:', error);
-      Alert.alert('Error', 'Terjadi kesalahan saat mengubah data pengajuan');
+      ],
+      {cancelable: false},
+    );
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    if (
+      judul === initialState.judul &&
+      _.isEqual(uploadedFiles, initialState.berkas)
+    ) {
+      // No changes were made
+      Alert.alert('Submit gagal', 'Tidak ada perubahan yang dilakukan');
+      return;
+    }
+    const user = auth().currentUser;
+    const periodePendaftaran = {
+      tanggalBuka: jadwalPengajuan[0].periodePendaftaran.tanggalBuka.toDate(),
+      tanggalTutup: jadwalPengajuan[0].periodePendaftaran.tanggalTutup.toDate(),
+    };
+    const dataUpload = {
+      judul: judul,
+      berkas: uploadedFiles, // Copy current values
+      status: 'Belum Diverifikasi',
+      periodePengajuan: periodePendaftaran,
+      jadwalPengajuan_uid: jadwalPengajuan[0].id,
+      mahasiswa_uid: user.uid,
+      editedAt: firestore.FieldValue.serverTimestamp(),
+    };
+    try {
+      for (const [key, value] of Object.entries(uploadedFiles)) {
+        if (!_.isEqual(value, initialState.berkas[key])) {
+          // Only upload file if it has changed
+          const fileRef = storage().ref(`${user.uid}/${key}`);
+          if (value.data) {
+            const base64Data = value.data.split('base64,')[1];
+            await fileRef.putString(base64Data, 'base64');
+            const url = await fileRef.getDownloadURL();
+            dataUpload.berkas[key] = url; // Overwrite changed values
+          }
+        }
+      }
+      // Update the existing document
+      await firestore().collection('pengajuan').doc(itemId).update(dataUpload);
+      Alert.alert('Submit berhasil', 'Silahkan tunggu verifikasi', [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('HomePengajuanKP'),
+        },
+      ]);
+    } catch (err) {
+      console.error(err);
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <AlertNotificationRoot>
-      <KeyboardAvoidingView
-        style={{flex: 1}}
-        behavior="height"
-        keyboardVerticalOffset={0}>
-        <ScrollView
-          contentContainerStyle={{
-            flex: 1,
-            backgroundColor: 'white',
-          }}
-          keyboardShouldPersistTaps="handled">
-          <View style={styles.container}>
+    <>
+      <ScrollView style={styles.mainContainer}>
+        <Header title="Edit Pengajuan KP" />
+        {loading ? (
+          <>
+            <Loader />
+          </>
+        ) : (
+          <>
             <Text style={styles.inputTitle}>
-              Judul Kerja Praktek<Text style={{color: 'red'}}>*</Text>
+              Judul Kerja Praktek<Text style={styles.important}>*</Text>
             </Text>
             <TextInput
-              placeholder="Masukkan Judul"
+              placeholder="Sistem Informasi..."
+              placeholderTextColor={'#6F7789'}
               style={[styles.input, styles.border]}
               multiline
               numberOfLines={3}
@@ -430,212 +290,187 @@ const EditPengajuanKP = ({route, navigation}) => {
               onChangeText={text => setJudul(text)}
             />
             <Text style={styles.inputTitle}>
-              Transkip Nilai<Text style={{color: 'red'}}>*</Text>
+              Upload Berkas Persyaratan<Text style={styles.important}>*</Text>
             </Text>
-            <View style={styles.uploadContainer}>
-              <TextInput
-                style={[styles.fileNameInput, styles.border]}
-                placeholder="Belum Upload"
-                value={transkipPath}
-                editable={false}
-              />
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={imagePickerTranskip}>
-                <Icon name="camera" size={22} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={pickerTranskip}>
-                <Icon name="file-circle-plus" size={22} color="white" />
-              </TouchableOpacity>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectedPersyaratan}
+                onValueChange={(itemValue, itemIndex) =>
+                  setSelectedPersyaratan(itemValue)
+                }>
+                {listPersyaratan.map((item, index) => (
+                  <Picker.Item
+                    style={styles.optionText}
+                    key={index}
+                    label={item}
+                    value={item}
+                  />
+                ))}
+              </Picker>
             </View>
-            <Text style={styles.inputTitle}>
-              Form KRS<Text style={{color: 'red'}}>*</Text>
-            </Text>
-            <View style={styles.uploadContainer}>
-              <TextInput
-                style={[styles.fileNameInput, styles.border]}
-                placeholder="Belum Upload"
-                value={formKrsPath}
-                editable={false}
-              />
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={imagePickerFormKrs}>
-                <Icon name="camera" size={22} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.uploadButton} onPress={pickerKrs}>
-                <Icon name="file-circle-plus" size={22} color="white" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.inputTitle}>
-              Form Pendaftaran KP<Text style={{color: 'red'}}>*</Text>
-            </Text>
-            <View style={styles.uploadContainer}>
-              <TextInput
-                style={[styles.fileNameInput, styles.border]}
-                placeholder="Belum Upload"
-                value={pendaftaranKpPath}
-                editable={false}
-              />
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={imagePickerFormKP}>
-                <Icon name="camera" size={22} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={pickerPendaftaranKp}>
-                <Icon name="file-circle-plus" size={22} color="white" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.inputTitle}>
-              Slip Pembayaran KP<Text style={{color: 'red'}}>*</Text>
-            </Text>
-            <View style={styles.uploadContainer}>
-              <TextInput
-                style={[styles.fileNameInput, styles.border]}
-                placeholder="Belum Upload"
-                value={slipPembayaranKpPath}
-                editable={false}
-              />
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={imagePickerSlip}>
-                <Icon name="camera" size={22} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={pickerPembayaran}>
-                <Icon name="file-circle-plus" size={22} color="white" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.inputTitle}>
-              Dokumen Proporsal<Text style={{color: 'red'}}>*</Text>
-            </Text>
-            <View style={styles.uploadContainer}>
-              <TextInput
-                style={[styles.fileNameInput, styles.border]}
-                placeholder="Belum Upload"
-                value={fileProporsalPath}
-                editable={false}
-              />
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={pickerProporsal}>
-                <Icon name="file-circle-plus" size={22} color="white" />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={styles.floatingButtonSubmit}
-            onPress={handleEdit}
-            disabled={isSubmitting}>
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color="white" />
+            {Object.keys(uploadedFiles).length === listPersyaratan.length ? (
+              <Pressable style={styles.btnResetUpload} onPress={removeAllFiles}>
+                <Text style={styles.btnText}>Upload Ulang Berkas</Text>
+              </Pressable>
             ) : (
-              <Text style={styles.uploadButtonText}>Submit</Text>
+              <Pressable style={styles.btnUpload} onPress={uploadFile}>
+                <Text style={styles.btnText}>Upload</Text>
+              </Pressable>
             )}
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </AlertNotificationRoot>
+            <Text style={styles.inputTitle}>Berkas yang telah diupload</Text>
+            {Object.entries(uploadedFiles).map(([key, value], index) => (
+              <View key={index} onPress={() => setSelectedData(value)}>
+                <View style={styles.berkasContainer}>
+                  <Text style={styles.selectText}>{key}</Text>
+                </View>
+              </View>
+            ))}
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={selectedData !== null}
+              onRequestClose={() => {
+                setSelectedData(null);
+              }}>
+              <View style={styles.modalContainer}>
+                {selectedData && (
+                  <WebView
+                    source={{uri: selectedData}}
+                    startInLoadingState={true}
+                    style={styles.modalImage}
+                    renderLoading={() => (
+                      <ActivityIndicator
+                        style={styles.loader}
+                        size="large"
+                        color="#176B87"
+                      />
+                    )}
+                  />
+                )}
+              </View>
+            </Modal>
+            <Pressable onPress={handleSubmit} style={styles.btnSubmit}>
+              {!loading ? (
+                <Text style={styles.btnText}>Submit</Text>
+              ) : (
+                <Text style={styles.btnText}>Loading...</Text>
+              )}
+            </Pressable>
+          </>
+        )}
+        <BottomSpace marginBottom={40} />
+      </ScrollView>
+    </>
   );
 };
 
+export default EditPengajuanKP;
+
 const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
     flex: 1,
     padding: 20,
+    backgroundColor: 'white',
+  },
+  inputTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6F7789',
+    marginBottom: 5,
+    marginTop: 10,
+  },
+  input: {
+    fontSize: 16,
+    color: 'black',
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 20,
+  },
+  border: {
+    borderWidth: 1,
+    borderColor: '#176B87',
+  },
+  btnUpload: {
+    backgroundColor: '#176B87',
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 20,
+    marginTop: 20,
+    elevation: 5,
+  },
+  btnResetUpload: {
+    backgroundColor: '#FF6868',
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 20,
+    marginTop: 20,
+    elevation: 5,
+  },
+  btnSubmit: {
+    backgroundColor: '#176B87',
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 20,
+    marginTop: 20,
+    elevation: 5,
+  },
+  btnText: {
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  },
+  selectText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: '600',
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#6F7789',
+    fontWeight: '600',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#176B87',
+    borderRadius: 20,
+    marginBottom: 10,
+  },
+  berkasContainer: {
+    paddingHorizontal: 10,
+    paddingVertical: 20,
+    backgroundColor: '#86B6F6',
+    borderRadius: 15,
+    marginBottom: 10,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconRemove: {
+    marginRight: 10,
+    padding: 5,
     borderRadius: 5,
     backgroundColor: 'white',
   },
-  input: {
-    width: '100%',
-    marginBottom: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
+  important: {
+    color: 'red',
   },
-  uploadContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  fileNameInput: {
+  modalContainer: {
     flex: 1,
-    width: '100%',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'black',
   },
-  uploadButton: {
-    backgroundColor: '#7895CB',
-    padding: 15,
-    marginLeft: 5,
-    borderRadius: 5,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+  modalImage: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+    resizeMode: 'contain',
   },
-  buttonAction: {
-    backgroundColor: '#7895CB',
-    padding: 15,
-    marginLeft: 5,
-    borderRadius: 5,
-    flex: 2,
-  },
-  buttonActionCancel: {
-    backgroundColor: '#C70039',
-    padding: 15,
-    marginLeft: 5,
-    borderRadius: 5,
-    flex: 2,
-  },
-  cancelButtonText: {
-    color: 'white',
-    textAlign: 'center',
-  },
-  uploadButtonText: {
-    color: 'white',
-    textAlign: 'center',
-  },
-  disabledUploadButton: {
-    backgroundColor: '#ccc',
-  },
-  inputTitle: {
-    color: 'black',
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  floatingButtonSubmit: {
-    padding: 15,
-    backgroundColor: '#7895CB',
-    borderRadius: 10,
-    shadowColor: '#000',
-    marginVertical: 30,
-    marginHorizontal: 20,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  border: {
-    borderWidth: 4,
-    borderColor: '#F5F5F5',
+  loader: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: Dimensions.get('window').height,
   },
 });
-
-export default EditPengajuanKP;

@@ -7,6 +7,7 @@ import {
   View,
   ActivityIndicator,
   Pressable,
+  RefreshControl,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
@@ -23,24 +24,11 @@ const HomePengajuanKP = ({navigation}) => {
   const [userPengajuanData, setUserPengajuanData] = useState([]);
   const [jadwalPengajuanData, setJadwalPengajuanData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    const user = auth().currentUser;
-
-    const unsubscribe = firestore()
-      .collection('pengajuan')
-      .where('user_uid', '==', user.uid)
-      .where('jenisPengajuan', '==', 'Kerja Praktek')
-      .onSnapshot(querySnapshot => {
-        const data = [];
-        querySnapshot.forEach(doc => {
-          data.push({id: doc.id, ...doc.data()});
-        });
-        setUserPengajuanData(data);
-        setIsLoading(false);
-      });
-    const unsubscribeJadwal = firestore()
+    const fetchJadwal = firestore()
       .collection('jadwalPengajuan')
       .where('status', '==', 'Aktif')
       .onSnapshot(querySnapshot => {
@@ -55,11 +43,36 @@ const HomePengajuanKP = ({navigation}) => {
         setIsLoading(false);
       });
 
-    return () => {
-      unsubscribe();
-      unsubscribeJadwal();
-    };
-  }, [isFocused]);
+    fetchData();
+    return () => fetchJadwal();
+  }, [fetchData, isFocused]);
+
+  const onRefresh = React.useCallback(() => {
+    setIsRefreshing(true);
+    fetchData().then(() => setIsRefreshing(false));
+  }, [fetchData]);
+
+  const fetchData = React.useCallback(async () => {
+    const user = auth().currentUser;
+    try {
+      await firestore()
+        .collection('pengajuan')
+        .where('mahasiswa_uid', '==', user.uid)
+        .where('jenisPengajuan', '==', 'Kerja Praktek')
+        .get()
+        .then(querySnapshot => {
+          const data = [];
+          querySnapshot.forEach(doc => {
+            data.push({id: doc.id, ...doc.data()});
+          });
+          setUserPengajuanData(data);
+        });
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const handleNavigateToAddPengajuanKP = () => {
     const activeJadwal = jadwalPengajuanData.find(
@@ -109,7 +122,7 @@ const HomePengajuanKP = ({navigation}) => {
         <Text style={styles.cardTopTitle}>Judul</Text>
         <View style={styles.cardStatus}>
           {item.status === 'Belum Diverifikasi' && (
-            <Icon name="exclamation-circle" size={30} color="#F6C358" />
+            <Icon name="hourglass-half" size={30} color="#F6C358" />
           )}
           {item.status === 'Sah' && (
             <Icon name="square-check" size={30} color="#176B87" />
@@ -150,6 +163,9 @@ const HomePengajuanKP = ({navigation}) => {
             data={userPengajuanData}
             keyExtractor={item => item.id}
             renderItem={renderPengajuanItem}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            }
           />
         ) : (
           <View style={styles.noDataContainer}>
@@ -243,13 +259,14 @@ const styles = StyleSheet.create({
 
   detailButton: {
     backgroundColor: '#86B6F6',
-    padding: 8,
-    borderRadius: 5,
+    padding: 10,
+    borderRadius: 10,
     marginTop: 5,
     elevation: 2,
   },
   detailButtonText: {
-    fontSize: 14,
+    fontSize: 18,
+    fontWeight: '600',
     textAlign: 'center',
     color: 'white',
   },

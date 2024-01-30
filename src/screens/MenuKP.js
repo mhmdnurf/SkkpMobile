@@ -18,7 +18,10 @@ const MenuKP = () => {
           onPress={() => navigation.navigate('HomePengajuanKP')}
           title="Pengajuan"
         />
-        <MenuButton onPress={() => navigation.navigate('')} title="Sidang" />
+        <MenuButton
+          onPress={() => navigation.navigate('EditPengajuanKPs')}
+          title="Sidang"
+        />
       </ScrollView>
     </>
   );

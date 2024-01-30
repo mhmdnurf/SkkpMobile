@@ -20,20 +20,19 @@ const InputField = ({value, onChangeText, placeholder, label, editable}) => {
 export default InputField;
 
 const styles = StyleSheet.create({
-  inputContainer: {
-    marginHorizontal: 20,
-  },
+  inputContainer: {},
   inputEmail: {
     marginBottom: 10,
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 15,
     borderWidth: 1,
     borderColor: '#176B87',
-    borderRadius: 5,
-    paddingHorizontal: 20,
+    borderRadius: 15,
     color: 'black',
+    fontSize: 16,
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#176B87',
     marginBottom: 10,

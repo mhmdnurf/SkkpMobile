@@ -6,14 +6,10 @@ import {createStackNavigator} from '@react-navigation/stack';
 import Splash from './src/screens/Splash';
 import Login from './src/screens/Login';
 import Register from './src/screens/Register';
-import Home from './src/screens/Home';
 import PengajuanTab from './src/mahasiswa/components/PengajuanTab';
 import SidangTab from './src/mahasiswa/components/SidangTab';
 import Menu from './src/screens/Menu';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-import AddPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/AddPengajuanKP';
-import DetailPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/DetailPengajuanKP';
-import EditPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/EditPengajuanKP';
 import AddPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/AddPengajuanSkripsi';
 import DetailPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/DetailPengajuanSkripsi';
 import EditPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/EditPengajuanSkripsi';
@@ -35,8 +31,10 @@ import AddSidangSkripsi from './src/mahasiswa/screens/sidang/sidang_skripsi/AddS
 import Dashboard from './src/screens/Dashboard';
 import MenuKP from './src/screens/MenuKP';
 import HomePengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/HomePengajuanKP';
-import Detail from './src/mahasiswa/screens/pengajuan/pengajuan_kp/Detail';
-import CreatePengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/CreatePengajuanKP';
+import DetailPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/DetailPengajuanKP';
+import CreatePengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/AddPengajuanKP';
+import EditPengajuanKPz from './src/mahasiswa/screens/pengajuan/pengajuan_kp/EditPengajuanKPz';
+import EditPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/EditPengajuanKP';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -175,7 +173,7 @@ const App = () => {
         />
         <Stack.Screen
           name="DetailPengajuanKP"
-          component={Detail}
+          component={DetailPengajuanKP}
           options={{
             headerShown: true,
             title: '',
@@ -183,6 +181,14 @@ const App = () => {
               backgroundColor: 'white',
             },
             headerTintColor: '#176B87',
+          }}
+        />
+        <Stack.Screen
+          name="EditPengajuanKPz"
+          component={EditPengajuanKPz}
+          options={{
+            headerShown: true,
+            title: 'Edit Pengajuan KP',
           }}
         />
         <Stack.Screen
