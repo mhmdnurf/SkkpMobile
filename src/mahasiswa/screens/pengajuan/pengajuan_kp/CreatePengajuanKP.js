@@ -10,6 +10,7 @@ import {
   Image,
   Modal,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import Header from '../../../../components/Header';
 import firestore from '@react-native-firebase/firestore';
@@ -60,7 +61,7 @@ const CreatePengajuanKP = ({navigation}) => {
     try {
       const query = firestore()
         .collection('persyaratan')
-        .where('jenisPersyaratan', '==', 'Pengajuan Kerja Praktek')
+        .where('jenisPersyaratan', '==', 'PENGAJUAN KERJA PRAKTEK')
         .get();
       const res = await query;
       const data = res.docs.map(doc => doc.data().berkasPersyaratan).flat();
@@ -122,7 +123,7 @@ const CreatePengajuanKP = ({navigation}) => {
       tanggalTutup: jadwalPengajuan[0].periodePendaftaran.tanggalTutup.toDate(),
     };
     const dataUpload = {
-      judul,
+      judul: judul.toUpperCase(),
       berkas: {},
       status: 'Belum Diverifikasi',
       jenisPengajuan: 'Kerja Praktek',
@@ -162,14 +163,18 @@ const CreatePengajuanKP = ({navigation}) => {
         dataUpload.berkas[key] = url;
       }
       await firestore().collection('pengajuan').add(dataUpload);
-      Alert.alert('Submit berhasil', 'Silahkan tunggu verifikasi');
+      Alert.alert('Submit berhasil', 'Silahkan tunggu verifikasi', [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('HomePengajuanKP'),
+        },
+      ]);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
       setUploadedFiles({});
       setJudul('');
-      navigation.goBack();
     }
   };
 
@@ -186,7 +191,7 @@ const CreatePengajuanKP = ({navigation}) => {
           style={[styles.input, styles.border]}
           multiline
           numberOfLines={3}
-          value={judul.toUpperCase()}
+          value={judul}
           onChangeText={text => setJudul(text)}
         />
         <Text style={styles.inputTitle}>
@@ -263,6 +268,17 @@ const CreatePengajuanKP = ({navigation}) => {
             <Text style={styles.btnText}>Loading...</Text>
           )}
         </Pressable>
+        <Modal
+          transparent={true}
+          animationType="none"
+          visible={loading}
+          onRequestClose={() => {}}>
+          <View style={styles.modalBackground}>
+            <View style={styles.activityIndicatorWrapper}>
+              <ActivityIndicator animating={loading} />
+            </View>
+          </View>
+        </Modal>
         <BottomSpace marginBottom={40} />
       </ScrollView>
     </>
@@ -280,7 +296,7 @@ const styles = StyleSheet.create({
   inputTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6F7789',
+    color: '#176B87',
     marginBottom: 5,
     marginTop: 10,
   },
@@ -289,31 +305,33 @@ const styles = StyleSheet.create({
     color: 'black',
     backgroundColor: 'white',
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 20,
   },
   border: {
-    borderWidth: 1,
-    borderColor: '#176B87',
+    borderWidth: 3,
+    borderColor: '#EFECEC',
   },
   btnUpload: {
-    backgroundColor: '#176B87',
-    borderRadius: 10,
-    padding: 13,
+    backgroundColor: '#F6D776',
+    borderRadius: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 15,
     marginBottom: 20,
     marginTop: 20,
     elevation: 5,
   },
   btnSubmit: {
     backgroundColor: '#176B87',
-    borderRadius: 10,
-    padding: 13,
+    borderRadius: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 15,
     marginBottom: 20,
     marginTop: 20,
     elevation: 5,
   },
   btnText: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: 'white',
   },
@@ -328,21 +346,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#176B87',
-    borderRadius: 5,
+    borderWidth: 3,
+    borderColor: '#EFECEC',
+    borderRadius: 20,
     marginBottom: 10,
   },
   berkasContainer: {
     paddingHorizontal: 10,
     paddingVertical: 15,
     backgroundColor: '#86B6F6',
-    borderRadius: 5,
+    borderRadius: 15,
     marginBottom: 10,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    elevation: 5,
   },
   iconRemove: {
     marginRight: 10,
@@ -363,5 +382,21 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
     resizeMode: 'contain',
+  },
+  modalBackground: {
+    flex: 1,
+    alignItems: 'center',
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    backgroundColor: '#00000040',
+  },
+  activityIndicatorWrapper: {
+    backgroundColor: '#FFFFFF',
+    height: 100,
+    width: 100,
+    borderRadius: 10,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-around',
   },
 });

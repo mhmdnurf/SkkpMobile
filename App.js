@@ -10,13 +10,10 @@ import PengajuanTab from './src/mahasiswa/components/PengajuanTab';
 import SidangTab from './src/mahasiswa/components/SidangTab';
 import Menu from './src/screens/Menu';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-import AddPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/AddPengajuanSkripsi';
 import DetailPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/DetailPengajuanSkripsi';
 import EditPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/EditPengajuanSkripsi';
 import AddSidangKP from './src/mahasiswa/screens/sidang/sidang_kp/AddSidangKP';
 import DetailSidangKP from './src/mahasiswa/screens/sidang/sidang_kp/DetailSidangKP';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 import messaging from '@react-native-firebase/messaging';
 import EditSidangKP from './src/mahasiswa/screens/sidang/sidang_kp/EditSidangKP';
 import AddSempro from './src/mahasiswa/screens/sidang/sidang_sempro/AddSempro';
@@ -32,9 +29,13 @@ import Dashboard from './src/screens/Dashboard';
 import MenuKP from './src/screens/MenuKP';
 import HomePengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/HomePengajuanKP';
 import DetailPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/DetailPengajuanKP';
-import CreatePengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/AddPengajuanKP';
-import EditPengajuanKPz from './src/mahasiswa/screens/pengajuan/pengajuan_kp/EditPengajuanKPz';
+import CreatePengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/CreatePengajuanKP';
 import EditPengajuanKP from './src/mahasiswa/screens/pengajuan/pengajuan_kp/EditPengajuanKP';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import MenuSkripsi from './src/screens/MenuSkripsi';
+import HomePengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/HomePengajuanSkripsi';
+import CreatePengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/CreatePengajuanSkripsi';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -159,7 +160,7 @@ const App = () => {
           }}
         />
         <Stack.Screen
-          name="AddPengajuanKP"
+          name="CreatePengajuanKP"
           component={CreatePengajuanKP}
           options={{
             headerShown: true,
@@ -184,14 +185,6 @@ const App = () => {
           }}
         />
         <Stack.Screen
-          name="EditPengajuanKPz"
-          component={EditPengajuanKPz}
-          options={{
-            headerShown: true,
-            title: 'Edit Pengajuan KP',
-          }}
-        />
-        <Stack.Screen
           name="EditPengajuanKP"
           component={EditPengajuanKP}
           options={{
@@ -199,43 +192,6 @@ const App = () => {
             title: 'Edit Pengajuan KP',
           }}
         />
-        <Stack.Screen
-          name="AddPengajuanSkripsi"
-          component={AddPengajuanSkripsi}
-          options={{
-            headerShown: true,
-            title: 'Buat Pengajuan Skripsi',
-            headerStyle: {
-              backgroundColor: '#7895CB',
-            },
-            headerTintColor: 'white',
-          }}
-        />
-        <Stack.Screen
-          name="DetailPengajuanSkripsi"
-          component={DetailPengajuanSkripsi}
-          options={{
-            headerShown: true,
-            title: 'Detail Pengajuan Skripsi',
-            headerStyle: {
-              backgroundColor: '#7895CB',
-            },
-            headerTintColor: 'white',
-          }}
-        />
-        <Stack.Screen
-          name="EditPengajuanSkripsi"
-          component={EditPengajuanSkripsi}
-          options={{
-            headerShown: true,
-            title: 'Edit Pengajuan Skripsi',
-            headerStyle: {
-              backgroundColor: '#7895CB',
-            },
-            headerTintColor: 'white',
-          }}
-        />
-
         {/* Sidang KP */}
         <Stack.Screen
           name="AddSidangKP"
@@ -403,6 +359,62 @@ const App = () => {
             title: '',
             headerStyle: {
               backgroundColor: '#176B87',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="MenuSkripsi"
+          component={MenuSkripsi}
+          options={{
+            headerShown: true,
+            title: '',
+          }}
+        />
+        <Stack.Screen
+          name="HomePengajuanSkripsi"
+          component={HomePengajuanSkripsi}
+          options={{
+            headerShown: true,
+            title: '',
+            headerStyle: {
+              backgroundColor: '#176B87',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="CreatePengajuanSkripsi"
+          component={CreatePengajuanSkripsi}
+          options={{
+            headerShown: true,
+            title: '',
+            headerStyle: {
+              backgroundColor: '#176B87',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="DetailPengajuanSkripsi"
+          component={DetailPengajuanSkripsi}
+          options={{
+            headerShown: true,
+            title: 'Detail Pengajuan Skripsi',
+            headerStyle: {
+              backgroundColor: '#7895CB',
+            },
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="EditPengajuanSkripsi"
+          component={EditPengajuanSkripsi}
+          options={{
+            headerShown: true,
+            title: 'Edit Pengajuan Skripsi',
+            headerStyle: {
+              backgroundColor: '#7895CB',
             },
             headerTintColor: 'white',
           }}

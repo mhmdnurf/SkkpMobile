@@ -94,7 +94,7 @@ const EditPengajuanKP = ({route, navigation}) => {
     try {
       const query = firestore()
         .collection('persyaratan')
-        .where('jenisPersyaratan', '==', 'Pengajuan Kerja Praktek')
+        .where('jenisPersyaratan', '==', 'PENGAJUAN KERJA PRAKTEK')
         .get();
       const res = await query;
       const data = res.docs.map(doc => doc.data().berkasPersyaratan).flat();
@@ -231,7 +231,7 @@ const EditPengajuanKP = ({route, navigation}) => {
       tanggalTutup: jadwalPengajuan[0].periodePendaftaran.tanggalTutup.toDate(),
     };
     const dataUpload = {
-      judul: judul,
+      judul: judul.toUpperCase(),
       berkas: uploadedFiles, // Copy current values
       status: 'Belum Diverifikasi',
       periodePengajuan: periodePendaftaran,
@@ -391,32 +391,32 @@ const styles = StyleSheet.create({
     borderColor: '#176B87',
   },
   btnUpload: {
-    backgroundColor: '#176B87',
-    borderRadius: 10,
-    padding: 20,
+    backgroundColor: '#F6D776',
+    borderRadius: 15,
+    padding: 15,
     marginBottom: 20,
     marginTop: 20,
     elevation: 5,
   },
   btnResetUpload: {
     backgroundColor: '#FF6868',
-    borderRadius: 10,
-    padding: 20,
+    borderRadius: 15,
+    padding: 15,
     marginBottom: 20,
     marginTop: 20,
     elevation: 5,
   },
   btnSubmit: {
     backgroundColor: '#176B87',
-    borderRadius: 10,
-    padding: 20,
+    borderRadius: 15,
+    padding: 15,
     marginBottom: 20,
     marginTop: 20,
     elevation: 5,
   },
   btnText: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: 'white',
   },

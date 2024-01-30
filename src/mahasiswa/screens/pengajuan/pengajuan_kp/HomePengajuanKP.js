@@ -74,7 +74,7 @@ const HomePengajuanKP = ({navigation}) => {
     }
   }, []);
 
-  const handleNavigateToAddPengajuanKP = () => {
+  const handleNavigateToCreatePengajuanKP = () => {
     const activeJadwal = jadwalPengajuanData.find(
       item =>
         item.status === 'Aktif' &&
@@ -101,7 +101,7 @@ const HomePengajuanKP = ({navigation}) => {
           button: 'Tutup',
         });
       } else {
-        navigation.navigate('AddPengajuanKP');
+        navigation.navigate('CreatePengajuanKP');
       }
     }
   };
@@ -175,7 +175,7 @@ const HomePengajuanKP = ({navigation}) => {
         <View style={styles.wrapperButton}>
           <Pressable
             style={styles.floatingButton}
-            onPress={handleNavigateToAddPengajuanKP}>
+            onPress={handleNavigateToCreatePengajuanKP}>
             <Text style={{color: 'white', fontSize: 18}}>Buat Pengajuan</Text>
           </Pressable>
         </View>

@@ -27,10 +27,12 @@ const Navbar = () => {
         <Text style={styles.navText}>Kompre</Text>
       </View>
       <View style={styles.navContainer}>
-        <View style={styles.iconContainer}>
-          <Icon name="user-graduate" size={30} color="#4A55A2" />
-        </View>
-        <Text style={styles.navText}>Skripsi</Text>
+        <Pressable onPress={() => navigation.navigate('MenuSkripsi')}>
+          <View style={styles.iconContainer}>
+            <Icon name="user-graduate" size={30} color="#4A55A2" />
+          </View>
+          <Text style={styles.navText}>Skripsi</Text>
+        </Pressable>
       </View>
     </View>
   );
