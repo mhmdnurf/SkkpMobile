@@ -1,375 +1,308 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {
+  StyleSheet,
   View,
   Text,
-  StyleSheet,
-  TouchableOpacity,
+  ScrollView,
+  Pressable,
+  Modal,
+  Dimensions,
   ActivityIndicator,
   Alert,
-  RefreshControl,
-  ScrollView,
-  Linking,
 } from 'react-native';
+import Header from '../../../../components/Header';
+import InputField from '../../../../components/InputField';
 import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
-import auth from '@react-native-firebase/auth';
-import {
-  ALERT_TYPE,
-  AlertNotificationRoot,
-  Dialog,
-} from 'react-native-alert-notification';
-const user = auth().currentUser;
+import {WebView} from 'react-native-webview';
+import Loader from '../../../../components/Loader';
+import BottomSpace from '../../../../components/BottomSpace';
+
 const DetailPengajuanSkripsi = ({route, navigation}) => {
   const {itemId} = route.params;
-  const [pengajuanData, setPengajuanData] = useState(null);
-  const [statusPengajuan, setStatusPengajuan] = useState('');
-  const [jadwalPengajuanData, setJadwalPengajuanData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [pengajuanData, setPengajuanData] = React.useState([]);
+  const [jadwalPengajuanData, setJadwalPengajuanData] = React.useState([]);
+  const [statusPengajuan, setStatusPengajuan] = React.useState('');
+  const [selectedData, setSelectedData] = React.useState(null);
+  const [berkas, setBerkas] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
 
   const getUserInfo = async uid => {
-    try {
-      const userDocSnapshot = await firestore()
-        .collection('users')
-        .doc(uid)
-        .get();
-
-      if (userDocSnapshot.exists) {
-        return userDocSnapshot.data();
-      }
-      return null;
-    } catch (error) {
-      console.error('Error fetching user info:', error);
-      return null;
-    }
+    const userDocSnapshot = await firestore()
+      .collection('users')
+      .doc(uid)
+      .get();
+    return userDocSnapshot.exists ? userDocSnapshot.data() : null;
   };
 
-  const fetchPengajuanData = async () => {
-    try {
-      const documentSnapshot = await firestore()
-        .collection('pengajuan')
-        .doc(itemId)
-        .get();
+  const getPengajuanData = async id => {
+    const documentSnapshot = await firestore()
+      .collection('pengajuan')
+      .doc(id)
+      .get();
+    return documentSnapshot.exists ? documentSnapshot.data() : null;
+  };
 
-      if (documentSnapshot.exists) {
-        const data = documentSnapshot.data();
+  const getJadwalPengajuanData = async () => {
+    const querySnapshot = await firestore()
+      .collection('jadwalPengajuan')
+      .where('status', '==', 'Aktif')
+      .get();
+    return querySnapshot.docs.map(doc => doc.data());
+  };
+
+  const fetchPengajuanData = React.useCallback(async () => {
+    try {
+      const data = await getPengajuanData(itemId);
+      if (data) {
         const dosenPembimbingInfo = await getUserInfo(data.pembimbing_uid);
         setPengajuanData({
-          id: documentSnapshot.id,
+          id: itemId,
           ...data,
           dosenPembimbingInfo: dosenPembimbingInfo,
         });
         setStatusPengajuan(data.status);
+        setBerkas(data.berkas);
       } else {
         console.log('Pengajuan tidak ditemukan');
       }
-      setIsLoading(false);
-      setRefreshing(false);
     } catch (error) {
       console.error('Error mengambil data pengajuan:', error);
-      setIsLoading(false);
-      setRefreshing(false);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchPengajuanData();
-    const unsubscribeJadwal = firestore()
-      .collection('jadwalPengajuan')
-      .where('status', '==', 'Aktif')
-      .onSnapshot(querySnapshot => {
-        const data = [];
-        querySnapshot.forEach(doc => {
-          const jadwalData = doc.data();
-          if (jadwalData.jenisPengajuan.includes('Skripsi')) {
-            data.push(jadwalData);
-          }
-        });
-        setJadwalPengajuanData(data);
-      });
-    return () => {
-      unsubscribeJadwal();
-    };
   }, [itemId]);
 
-  const handleEditButtonPress = () => {
-    const activeJadwal = jadwalPengajuanData.find(
-      item =>
-        item.status === 'Aktif' && item.jenisPengajuan.includes('Skripsi'),
-    );
-    if (!activeJadwal) {
-      Dialog.show({
-        type: ALERT_TYPE.WARNING,
-        title: 'Peringatan',
-        textBody: 'Pengajuan Skripsi belum dibuka saat ini.',
-        button: 'Tutup',
-      });
-    } else if (!activeJadwal && statusPengajuan === 'Ditolak') {
-      Dialog.show({
-        type: ALERT_TYPE.WARNING,
-        title: 'Peringatan',
-        textBody: 'Pengajuan Skripsi belum dibuka saat ini.',
-        button: 'Tutup',
-      });
-    } else if (statusPengajuan === 'Sah') {
-      Dialog.show({
-        type: ALERT_TYPE.WARNING,
-        title: 'Peringatan',
-        textBody: 'Pengajuan anda telah disahkan',
-        button: 'Tutup',
-      });
-    } else {
-      navigation.navigate('EditPengajuanSkripsi', {itemId});
-    }
+  const handleNavigateEdit = () => {
+    navigation.navigate('EditPengajuanSkripsi', {
+      itemId: itemId,
+    });
   };
-  const handleDeleteButtonPress = () => {
+
+  const handleDelete = async () => {
     if (statusPengajuan === 'Sah') {
-      Dialog.show({
-        type: ALERT_TYPE.WARNING,
-        title: 'Peringatan',
-        textBody: 'Pengajuan anda telah disahkan',
-        button: 'Tutup',
-      });
+      Alert.alert('Hapus ditolak', 'Pengajuan sudah disahkan');
     } else {
-      const transkipNilaiFileName = `persyaratan/pengajuanSkripsi/transkipNilai/${user.uid}`;
-      const formKrsFileName = `persyaratan/pengajuanSkripsi/formKRS/${user.uid}`;
-      const formTopikFileName = `persyaratan/pengajuanSkripsi/formTopik/${user.uid}`;
-      const pembayaranSkripsiFileName = `persyaratan/pengajuanSkripsi/slipPembayaranSkripsi/${user.uid}`;
-      const sertifikatFileName = `persyaratan/pengajuanSkripsi/sertifikatPSPT/${user.uid}`;
-      Alert.alert(
-        'Konfirmasi Hapus',
-        'Apakah Anda yakin ingin menghapus data pengajuan?',
-        [
-          {
-            text: 'Batal',
-            style: 'cancel',
-          },
-          {
-            text: 'Hapus',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                // Menghapus file dari Firebase Storage
-                await storage().ref(transkipNilaiFileName).delete();
-                await storage().ref(formKrsFileName).delete();
-                await storage().ref(formTopikFileName).delete();
-                await storage().ref(pembayaranSkripsiFileName).delete();
-                await storage().ref(sertifikatFileName).delete();
+      Alert.alert('Hapus pengajuan', 'Apakah anda yakin?', [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        {
+          text: 'Hapus',
+          onPress: async () => {
+            try {
+              // Delete the document
+              await firestore().collection('pengajuan').doc(itemId).delete();
 
-                // Menghapus dokumen dari Firestore
-                await firestore().collection('pengajuan').doc(itemId).delete();
-
-                Dialog.show({
-                  type: ALERT_TYPE.SUCCESS,
-                  title: 'Berhasil',
-                  textBody: 'Pengajuan Skripsi berhasil dihapus',
-                  button: 'Tutup',
-                  onPressButton: () => {
-                    navigation.navigate('Pengajuan');
-                  },
-                });
-              } catch (error) {
-                console.error('Error menghapus data pengajuan:', error);
-                Alert.alert(
-                  'Error',
-                  'Terjadi kesalahan saat menghapus data pengajuan',
-                );
-              }
-            },
+              Alert.alert('Delete successful', 'Data berhasil dihapus', [
+                {
+                  text: 'OK',
+                  onPress: () => navigation.navigate('HomePengajuanKP'),
+                },
+              ]);
+            } catch (err) {
+              console.error('Error deleting document:', err);
+            }
           },
-        ],
-        {cancelable: true},
-      );
+        },
+      ]);
     }
   };
 
-  const handleOpenLink = link => {
-    const supported = Linking.canOpenURL(link);
-    if (supported) {
-      Linking.openURL(link);
-    } else {
-      Alert.alert('Error', 'Tidak dapat membuka tautan.');
-      console.log(link);
-    }
-  };
-
-  const handleRefresh = () => {
-    setRefreshing(true);
+  React.useEffect(() => {
     fetchPengajuanData();
-  };
+    const fetchJadwalPengajuanData = async () => {
+      const data = await getJadwalPengajuanData();
+      setJadwalPengajuanData(
+        data.filter(jadwalData =>
+          jadwalData.jenisPengajuan.includes('Skripsi'),
+        ),
+      );
+    };
+    fetchJadwalPengajuanData();
+  }, [fetchPengajuanData]);
 
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
   return (
-    <AlertNotificationRoot>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }>
-        {pengajuanData ? (
+    <>
+      <ScrollView style={styles.container}>
+        <Header title="Detail Pengajuan Skripsi" />
+        {loading ? (
           <>
-            <View style={styles.detailContainer}>
-              <Text style={styles.detailTitleText}>Tanggal Daftar</Text>
-              <Text style={styles.detailText}>
-                {pengajuanData.createdAt.toDate().toLocaleDateString()}
-              </Text>
-              <Text style={styles.detailTitleText}>Status</Text>
-              <Text style={styles.detailText}>{pengajuanData.status}</Text>
-              <Text style={styles.detailTitleText}>Catatan</Text>
-              <Text style={styles.detailText}>{pengajuanData.catatan}</Text>
-              <Text style={styles.detailTitleText}>Dosen Pembimbing</Text>
-              <Text style={styles.detailText}>
-                {pengajuanData.dosenPembimbingInfo
-                  ? `${pengajuanData.dosenPembimbingInfo.nama} (${pengajuanData.dosenPembimbingInfo.nidn})`
-                  : '-'}
-              </Text>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(pengajuanData.berkasPersyaratan.formTopik)
-                }>
-                <Text style={styles.linkButtonText}>Form Pengajuan Topik</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(pengajuanData.berkasPersyaratan.formKrs)
-                }>
-                <Text style={styles.linkButtonText}>Form KRS</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(pengajuanData.berkasPersyaratan.transkipNilai)
-                }>
-                <Text style={styles.linkButtonText}>Transkip Sementara</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(
-                    pengajuanData.berkasPersyaratan.slipPembayaranSkripsi,
-                  )
-                }>
-                <Text style={styles.linkButtonText}>
-                  Slip Pembayaran Skripsi
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() =>
-                  handleOpenLink(
-                    pengajuanData.berkasPersyaratan.fileSertifikatPSPT,
-                  )
-                }>
-                <Text style={styles.linkButtonText}>Sertifikat PSPT</Text>
-              </TouchableOpacity>
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'space-around',
-                }}>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={handleEditButtonPress}>
-                  <Text style={styles.editButtonText}>Edit Pengajuan</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={handleDeleteButtonPress}>
-                  <Text style={styles.deleteButtonText}>Hapus Pengajuan</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <Loader />
           </>
         ) : (
-          <Text>Data pengajuan tidak ditemukan.</Text>
+          <>
+            <View>
+              <InputField
+                label={'Tanggal Pendaftaran'}
+                value={
+                  pengajuanData.createdAt
+                    ? new Intl.DateTimeFormat('id-ID', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric',
+                      }).format(pengajuanData.createdAt.toDate())
+                    : '-'
+                }
+                editable={false}
+              />
+              <InputField
+                label={'Status'}
+                value={pengajuanData.status}
+                editable={false}
+              />
+              <InputField
+                label={'Catatan'}
+                value={pengajuanData.catatan ? pengajuanData.catatan : '-'}
+                editable={false}
+              />
+              <InputField
+                label={'Dosen Pembimbing'}
+                value={
+                  pengajuanData.dosenPembimbingInfo
+                    ? `${pengajuanData.dosenPembimbingInfo.nama} (${pengajuanData.dosenPembimbingInfo.nidn})`
+                    : '-'
+                }
+                editable={false}
+              />
+            </View>
+            {/* Berkas */}
+            <View>
+              <Text style={styles.inputTitle}>Berkas Persyaratan</Text>
+              {Object.entries(berkas).map(([key, value], index) => (
+                <Pressable
+                  key={index}
+                  onPress={() => {
+                    setSelectedData(value);
+                  }}>
+                  <View style={styles.berkasContainer}>
+                    <Text style={styles.selectText}>{key}</Text>
+                  </View>
+                </Pressable>
+              ))}
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={selectedData !== null}
+                onRequestClose={() => {
+                  setSelectedData(null);
+                }}>
+                <View style={styles.modalContainer}>
+                  {selectedData && (
+                    <WebView
+                      source={{uri: selectedData}}
+                      startInLoadingState={true}
+                      style={styles.modalImage}
+                      renderLoading={() => (
+                        <ActivityIndicator
+                          style={styles.loader}
+                          size="large"
+                          color="#176B87"
+                        />
+                      )}
+                    />
+                  )}
+                </View>
+              </Modal>
+            </View>
+            <View style={styles.btnMainContainer}>
+              <Pressable
+                style={styles.btnEditContainer}
+                onPress={handleNavigateEdit}>
+                <Text style={styles.btnText}>Edit Pengajuan</Text>
+              </Pressable>
+              <Pressable
+                style={styles.btnDeleteContainer}
+                onPress={handleDelete}>
+                <Text style={styles.btnText}>Hapus Pengajuan</Text>
+              </Pressable>
+            </View>
+          </>
         )}
+        <BottomSpace marginBottom={40} />
       </ScrollView>
-    </AlertNotificationRoot>
+    </>
   );
 };
 
+export default DetailPengajuanSkripsi;
+
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    paddingTop: 10,
-    backgroundColor: 'white',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-    backgroundColor: 'white',
+    flex: 1,
     padding: 20,
-  },
-  detailContainer: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-    marginHorizontal: 10,
     backgroundColor: 'white',
-    padding: 30,
+  },
+  berkasContainer: {
+    paddingHorizontal: 10,
+    paddingVertical: 20,
+    backgroundColor: '#86B6F6',
     borderRadius: 15,
-    borderColor: '#C5DFF8',
-    borderWidth: 4,
+    marginBottom: 10,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  detailText: {
+  berkasTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6F7789',
+    textDecorationLine: 'underline',
+  },
+  selectText: {
     fontSize: 16,
-    marginBottom: 8,
-    color: 'black',
-    textTransform: 'uppercase',
-  },
-  detailTitleText: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: 'black',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  editButton: {
-    marginTop: 20,
-    backgroundColor: '#4A55A2',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  editButtonText: {
     color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
-  deleteButton: {
-    marginTop: 20,
-    backgroundColor: '#FF6969',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  deleteButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  linkButton: {
+  btnMainContainer: {
     marginTop: 10,
-    backgroundColor: '#7895CB',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
   },
-  linkButtonText: {
+  btnEditContainer: {
+    padding: 20,
+    borderRadius: 10,
+    backgroundColor: '#176B87',
+    marginBottom: 10,
+    elevation: 5,
+  },
+  btnDeleteContainer: {
+    padding: 20,
+    borderRadius: 10,
+    backgroundColor: '#FF6868',
+    elevation: 5,
+  },
+  pressableContainer: {
+    marginTop: 10,
+  },
+  btnText: {
     color: 'white',
+    textAlign: 'center',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'black',
+  },
+  modalImage: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+    resizeMode: 'contain',
+  },
+  inputTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6F7789',
+    marginBottom: 5,
+    marginTop: 10,
+  },
+  loader: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: Dimensions.get('window').height,
   },
 });
-
-export default DetailPengajuanSkripsi;

@@ -11,6 +11,7 @@ import useLogin from '../hooks/useLogin';
 import {AlertNotificationRoot} from 'react-native-alert-notification';
 import Logo from '../assets/login.svg';
 import InputField from '../components/InputField';
+import BottomSpace from '../components/BottomSpace';
 
 const Login = ({navigation}) => {
   const {email, setEmail, password, setPassword, isLoading, handleLogin} =
@@ -18,6 +19,10 @@ const Login = ({navigation}) => {
 
   const handleRegister = () => {
     navigation.navigate('Register');
+  };
+
+  const handleForgotPassword = () => {
+    navigation.navigate('ForgotPassword');
   };
   return (
     <AlertNotificationRoot>
@@ -44,7 +49,7 @@ const Login = ({navigation}) => {
           value={password}
           onChangeText={text => setPassword(text)}
         />
-        <Pressable>
+        <Pressable onPress={handleForgotPassword}>
           <Text style={styles.forgot}>Forgot Password?</Text>
         </Pressable>
         <View style={styles.btnLogin}>
@@ -67,6 +72,7 @@ const Login = ({navigation}) => {
             Sekolah Tinggi Teknologi Indonesia Tanjung Pinang
           </Text>
         </View>
+        <BottomSpace marginBottom={40} />
       </ScrollView>
     </AlertNotificationRoot>
   );

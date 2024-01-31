@@ -20,7 +20,9 @@ const InputField = ({value, onChangeText, placeholder, label, editable}) => {
 export default InputField;
 
 const styles = StyleSheet.create({
-  inputContainer: {},
+  inputContainer: {
+    paddingHorizontal: 15,
+  },
   inputEmail: {
     marginBottom: 10,
     paddingHorizontal: 10,

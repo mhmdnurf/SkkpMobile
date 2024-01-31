@@ -6,9 +6,6 @@ import {createStackNavigator} from '@react-navigation/stack';
 import Splash from './src/screens/Splash';
 import Login from './src/screens/Login';
 import Register from './src/screens/Register';
-import PengajuanTab from './src/mahasiswa/components/PengajuanTab';
-import SidangTab from './src/mahasiswa/components/SidangTab';
-import Menu from './src/screens/Menu';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 import DetailPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/DetailPengajuanSkripsi';
 import EditPengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/EditPengajuanSkripsi';
@@ -37,6 +34,8 @@ import MenuSkripsi from './src/screens/MenuSkripsi';
 import HomePengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/HomePengajuanSkripsi';
 import CreatePengajuanSkripsi from './src/mahasiswa/screens/pengajuan/pengajuan_skripsi/CreatePengajuanSkripsi';
 import HomeSidangKP from './src/mahasiswa/screens/sidang/sidang_kp/HomeSidangKP';
+import Profile from './src/screens/Profile';
+import ForgotPassword from './src/screens/ForgotPassword';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -73,13 +72,17 @@ const MainTabs = ({navigation}) => {
       <Tab.Navigator
         initialRouteName="Home"
         screenOptions={{
-          tabBarActiveTintColor: '#176B87',
+          tabBarActiveTintColor: '#80BCBD',
           tabBarInactiveTintColor: 'gray',
           tabBarLabelStyle: {
             fontSize: 14,
+            fontWeight: '600',
           },
           tabBarStyle: {
+            display: 'flex',
+            backgroundColor: 'white',
             height: 60,
+            paddingHorizontal: 10,
           },
         }}>
         <Tab.Screen
@@ -93,11 +96,11 @@ const MainTabs = ({navigation}) => {
           }}
         />
         <Tab.Screen
-          name="Menu"
-          component={Menu}
+          name="Profile"
+          component={Profile}
           options={{
             tabBarIcon: ({color, size}) => (
-              <Icon name="list" color={color} size={size} />
+              <Icon name="address-card" color={color} size={size} />
             ),
             headerStyle: {
               backgroundColor: '#C5DFF8',
@@ -125,7 +128,16 @@ const App = () => {
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
-        <Stack.Screen name="Dashboard" component={Dashboard} />
+        <Stack.Screen
+          name="ForgotPassword"
+          component={ForgotPassword}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTintColor: '#176B87',
+          }}
+        />
+        <Stack.Screen name="Homepage" component={MainTabs} />
         {/* Sidang Sempro */}
         <Stack.Screen
           name="AddSempro"
@@ -378,9 +390,9 @@ const App = () => {
           component={DetailPengajuanSkripsi}
           options={{
             headerShown: true,
-            title: 'Detail Pengajuan Skripsi',
+            title: '',
             headerStyle: {
-              backgroundColor: '#7895CB',
+              backgroundColor: '#176B87',
             },
             headerTintColor: 'white',
           }}
@@ -390,9 +402,9 @@ const App = () => {
           component={EditPengajuanSkripsi}
           options={{
             headerShown: true,
-            title: 'Edit Pengajuan Skripsi',
+            title: '',
             headerStyle: {
-              backgroundColor: '#7895CB',
+              backgroundColor: '#176B87',
             },
             headerTintColor: 'white',
           }}

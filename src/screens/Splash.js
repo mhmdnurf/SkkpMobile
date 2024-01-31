@@ -1,4 +1,3 @@
-// SplashScreen.js
 import {Image, Text, View, StyleSheet, StatusBar} from 'react-native';
 import React, {useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,7 +7,7 @@ export default function Splash({navigation}) {
     try {
       const userToken = await AsyncStorage.getItem('userToken');
       if (userToken) {
-        navigation.replace('Dashboard');
+        navigation.replace('Homepage');
       } else {
         navigation.replace('Login');
       }
@@ -27,14 +26,12 @@ export default function Splash({navigation}) {
 
   return (
     <>
-      <StatusBar barStyle={'light-content'} backgroundColor={'#7895CB'} />
+      <StatusBar barStyle={'light-content'} backgroundColor={'#176B87'} />
       <View style={styles.root}>
-        <View style={styles.imageRoot}>
+        <View>
           <View style={styles.imageContainer}>
             <Image
-              source={{
-                uri: 'https://sttindonesia.ac.id/wp-content/uploads/2021/01/Logo-STTI-Tanjungpinang.png',
-              }}
+              source={require('../assets/splash.png')}
               style={styles.imageStyling}
             />
           </View>
@@ -54,21 +51,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#7895CB',
+    backgroundColor: '#176B87',
   },
-  imageRoot: {},
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 4,
-    borderColor: 'whitesmoke',
     padding: 40,
     backgroundColor: 'white',
-    borderRadius: 20,
-    shadowColor: 'black',
-    shadowOffset: {width: 0, height: 10},
-    shadowOpacity: 0.2,
-    shadowRadius: 7,
+    borderRadius: 200,
     elevation: 5,
   },
   imageStyling: {

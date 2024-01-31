@@ -77,11 +77,7 @@ const CreatePengajuanKP = ({navigation}) => {
     } else {
       try {
         const res = await DocumentPicker.pick({
-          type: [
-            DocumentPicker.types.images,
-            DocumentPicker.types.pdf,
-            DocumentPicker.types.docx,
-          ],
+          type: [DocumentPicker.types.images, DocumentPicker.types.pdf],
         });
 
         const uploadedFileUrl = res[0].uri;
