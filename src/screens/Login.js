@@ -12,6 +12,7 @@ import {AlertNotificationRoot} from 'react-native-alert-notification';
 import Logo from '../assets/login.svg';
 import InputField from '../components/InputField';
 import BottomSpace from '../components/BottomSpace';
+import InputPassword from '../components/InputPassword';
 
 const Login = ({navigation}) => {
   const {email, setEmail, password, setPassword, isLoading, handleLogin} =
@@ -43,7 +44,7 @@ const Login = ({navigation}) => {
           value={email}
           onChangeText={text => setEmail(text)}
         />
-        <InputField
+        <InputPassword
           label={'Password'}
           placeholder={'********'}
           value={password}

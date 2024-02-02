@@ -6,18 +6,26 @@ import {
   Dimensions,
   TextInput,
   Pressable,
+  Alert,
 } from 'react-native';
 import React from 'react';
 import Logo from '../assets/forgot_password.svg';
+import auth from '@react-native-firebase/auth';
 
 const ForgotPassword = () => {
   const [email, setEmail] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
   const screenHeight = Dimensions.get('window').height;
   const handleResetPassword = async () => {
     try {
-      console.log(email);
-      // await auth().sendPasswordResetEmail(email);
+      setLoading(true);
+      await auth().sendPasswordResetEmail(email);
+      Alert.alert(
+        'Request berhasil',
+        'Email reset password telah dikirim ke email anda.',
+      );
       console.log('Email reset password telah dikirim.');
+      setLoading(false);
     } catch (error) {
       console.log('Error mengirim email reset password:', error);
     }
@@ -42,7 +50,11 @@ const ForgotPassword = () => {
         />
       </View>
       <Pressable style={styles.btnLogin} onPress={handleResetPassword}>
-        <Text style={styles.btnText}>Request Password</Text>
+        {loading ? (
+          <Text style={styles.btnText}>Loading...</Text>
+        ) : (
+          <Text style={styles.btnText}>Request Password</Text>
+        )}
       </Pressable>
     </ScrollView>
   );
