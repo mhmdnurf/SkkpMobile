@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 48,
     textAlign: 'center',
+    color: '#6F7789',
   },
   svgContainer: {
     display: 'flex',

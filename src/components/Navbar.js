@@ -78,6 +78,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 10,
     color: 'grey',
+    textAlign: 'center',
   },
   iconContainer: {
     backgroundColor: '#EEF5FF',
