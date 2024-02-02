@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   BackHandler,
   ToastAndroid,
+  RefreshControl,
 } from 'react-native';
 import InformasiPengajuan from '../components/InformasiPengajuan';
 import Navbar from '../components/Navbar';
@@ -17,8 +18,9 @@ import BottomSpace from '../components/BottomSpace';
 const Dashboard = ({navigation}) => {
   const {username, isLoading} = useUserInfo();
   const [exitApp, setExitApp] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleBackButton = React.useCallback(() => {
+  const handleBackButton = useCallback(() => {
     if (exitApp) {
       BackHandler.exitApp();
     } else if (!navigation.canGoBack()) {
@@ -33,6 +35,11 @@ const Dashboard = ({navigation}) => {
     return true;
   }, [exitApp, navigation]);
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setRefreshing(false);
+  }, []);
+
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', handleBackButton);
 
@@ -46,7 +53,15 @@ const Dashboard = ({navigation}) => {
       {isLoading ? (
         <ActivityIndicator size="large" color="#176B87" />
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#176B87']}
+            />
+          }>
           <DashboardHeader username={username} />
           <Navbar />
           <InformasiPengajuan />

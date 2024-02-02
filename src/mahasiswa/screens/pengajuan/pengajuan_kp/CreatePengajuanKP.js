@@ -30,32 +30,7 @@ const CreatePengajuanKP = ({navigation}) => {
   const [selectedData, setSelectedData] = React.useState(null);
   const [jadwalPengajuan, setJadwalPengajuan] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
-
-  React.useEffect(() => {
-    const fetchJadwalPengajuan = async () => {
-      setLoading(true);
-      try {
-        firestore()
-          .collection('jadwalPengajuan')
-          .where('status', '==', 'Aktif')
-          .where('jenisPengajuan', 'array-contains', 'Kerja Praktek')
-          .get()
-          .then(querySnapshot => {
-            const data = [];
-            querySnapshot.forEach(doc => {
-              data.push({id: doc.id, ...doc.data()});
-            });
-            setJadwalPengajuan(data);
-          });
-      } catch {
-        console.log('error');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPersyaratan();
-    fetchJadwalPengajuan();
-  }, [fetchPersyaratan]);
+  const [userData, setUserData] = React.useState([]);
 
   const fetchPersyaratan = React.useCallback(async () => {
     try {
@@ -66,6 +41,17 @@ const CreatePengajuanKP = ({navigation}) => {
       const res = await query;
       const data = res.docs.map(doc => doc.data().berkasPersyaratan).flat();
       setListPersyaratan(data);
+    } catch {
+      console.log('error');
+    }
+  }, []);
+
+  const fetchUser = React.useCallback(async () => {
+    try {
+      const user = auth().currentUser;
+      const query = firestore().collection('users').doc(user.uid).get();
+      const res = await query;
+      setUserData(res.data());
     } catch {
       console.log('error');
     }
@@ -126,8 +112,14 @@ const CreatePengajuanKP = ({navigation}) => {
       periodePengajuan: periodePendaftaran,
       jadwalPengajuan_uid: jadwalPengajuan[0].id,
       mahasiswa_uid: user.uid,
+      nama: userData.nama,
+      nim: userData.nim,
+      prodi: userData.prodi,
+      email: userData.email,
+      nomorHP: userData.nomorHP,
       createdAt: firestore.FieldValue.serverTimestamp(),
     };
+    console.log(dataUpload);
 
     const requiredFiles = listPersyaratan; // replace with your actual required file keys
     const requiredJudul = judul !== '';
@@ -159,6 +151,7 @@ const CreatePengajuanKP = ({navigation}) => {
         dataUpload.berkas[key] = url;
       }
       await firestore().collection('pengajuan').add(dataUpload);
+      console.log(dataUpload);
       Alert.alert('Submit berhasil', 'Silahkan tunggu verifikasi', [
         {
           text: 'OK',
@@ -173,6 +166,33 @@ const CreatePengajuanKP = ({navigation}) => {
       setJudul('');
     }
   };
+
+  React.useEffect(() => {
+    const fetchJadwalPengajuan = async () => {
+      setLoading(true);
+      try {
+        firestore()
+          .collection('jadwalPengajuan')
+          .where('status', '==', 'Aktif')
+          .where('jenisPengajuan', 'array-contains', 'Kerja Praktek')
+          .get()
+          .then(querySnapshot => {
+            const data = [];
+            querySnapshot.forEach(doc => {
+              data.push({id: doc.id, ...doc.data()});
+            });
+            setJadwalPengajuan(data);
+          });
+      } catch {
+        console.log('error');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPersyaratan();
+    fetchJadwalPengajuan();
+    fetchUser();
+  }, [fetchPersyaratan, fetchUser]);
 
   return (
     <>

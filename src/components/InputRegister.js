@@ -1,7 +1,13 @@
 import React from 'react';
 import {StyleSheet, Text, TextInput} from 'react-native';
 
-const InputRegister = ({value, onChangeText, placeholder, label}) => {
+const InputRegister = ({
+  value,
+  onChangeText,
+  placeholder,
+  label,
+  secureTextEntry,
+}) => {
   return (
     <>
       <Text style={styles.inputLabel}>{label}</Text>
@@ -10,6 +16,7 @@ const InputRegister = ({value, onChangeText, placeholder, label}) => {
         placeholder={placeholder}
         onChangeText={onChangeText}
         value={value}
+        secureTextEntry={secureTextEntry}
         placeholderTextColor={'#6F7789'}
       />
     </>

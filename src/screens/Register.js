@@ -20,7 +20,7 @@ import InputRegister from '../components/InputRegister';
 const Register = ({navigation}) => {
   const [nim, setNim] = useState('');
   const [nama, setNama] = useState('');
-  const [jurusan, setJurusan] = useState('');
+  const [prodi, setProdi] = useState('');
   const [nomorHP, setNomorHP] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,7 +32,7 @@ const Register = ({navigation}) => {
       password === '' ||
       nim === '' ||
       nama === '' ||
-      jurusan === '' ||
+      prodi === '' ||
       nomorHP === ''
     ) {
       Dialog.show({
@@ -77,7 +77,7 @@ const Register = ({navigation}) => {
         uid: userCredential.user.uid,
         nim: nim,
         nama: nama,
-        jurusan: jurusan,
+        prodi: prodi,
         nomorHP: nomorHP,
         email: email,
         role: 'Mahasiswa',
@@ -132,8 +132,8 @@ const Register = ({navigation}) => {
         <View style={styles.picker}>
           <Picker
             placeholder="Pilih Jurusan"
-            selectedValue={jurusan}
-            onValueChange={(itemValue, itemIndex) => setJurusan(itemValue)}>
+            selectedValue={prodi}
+            onValueChange={(itemValue, itemIndex) => setProdi(itemValue)}>
             <Picker.Item label="Pilih Jurusan" color="#6F7789" value="" />
             <Picker.Item
               label="Teknik Informatika"
@@ -159,6 +159,7 @@ const Register = ({navigation}) => {
         <InputRegister
           label={'Password'}
           placeholder={'********'}
+          secureTextEntry={true}
           onChangeText={text => setPassword(text)}
         />
         <Pressable

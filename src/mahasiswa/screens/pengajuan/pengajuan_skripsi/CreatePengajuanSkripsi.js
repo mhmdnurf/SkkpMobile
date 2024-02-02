@@ -35,6 +35,7 @@ const CreatePengajuanSkripsi = ({navigation}) => {
     [],
   );
   const [userJurusan, setUserJurusan] = React.useState('');
+  const [userData, setUserData] = React.useState([]);
 
   const fetchJadwalPengajuan = React.useCallback(async () => {
     setLoading(true);
@@ -76,7 +77,8 @@ const CreatePengajuanSkripsi = ({navigation}) => {
     const query = firestore().collection('users').doc(auth().currentUser.uid);
     const res = await query.get();
     const user = res.data();
-    setUserJurusan(user.jurusan);
+    setUserJurusan(user.prodi);
+    setUserData(user);
   }, []);
 
   const fetchTopikPenelitian = React.useCallback(async () => {
@@ -151,6 +153,11 @@ const CreatePengajuanSkripsi = ({navigation}) => {
       periodePengajuan: periodePendaftaran,
       jadwalPengajuan_uid: jadwalPengajuan[0].id,
       mahasiswa_uid: user.uid,
+      nama: userData.nama,
+      nim: userData.nim,
+      prodi: userData.prodi,
+      email: userData.email,
+      nomorHP: userData.nomorHP,
       createdAt: firestore.FieldValue.serverTimestamp(),
     };
 

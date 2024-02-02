@@ -28,8 +28,8 @@ const InformasiPengajuan = () => {
                 }).format(dates.tanggalTutupKP)}
               </Text>
             ) : (
-              <Text style={styles.contentText}>
-                Pengajuan Kerja Praktek belum dapat dilakukan
+              <Text style={styles.closedText}>
+                Pengajuan KP belum dapat dilakukan
               </Text>
             )}
           </View>
@@ -55,7 +55,7 @@ const InformasiPengajuan = () => {
                 }).format(dates.tanggalTutupSkripsi)}
               </Text>
             ) : (
-              <Text style={styles.contentText}>
+              <Text style={styles.closedText}>
                 Pengajuan Skripsi belum dapat dilakukan
               </Text>
             )}
@@ -89,5 +89,6 @@ const styles = StyleSheet.create({
   },
   contentTitle: {fontWeight: '600', color: '#176B87'},
   contentText: {fontWeight: '400', fontSize: 12, color: '#6F7789'},
+  closedText: {fontWeight: '600', fontSize: 12, color: '#FF6868'},
   rightContentContainer: {marginLeft: 20},
 });

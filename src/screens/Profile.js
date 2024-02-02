@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  ToastAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import auth from '@react-native-firebase/auth';
@@ -65,11 +66,11 @@ export default function Profile({navigation}) {
             try {
               const email = userData.email;
               console.log(email);
-              // await auth().sendPasswordResetEmail(email);
+              await auth().sendPasswordResetEmail(email);
               console.log('Email reset password telah dikirim.');
               Alert.alert(
                 'Reset Password',
-                'Email reset password telah dikirim.',
+                'Email reset password telah dikirim ke email anda.',
                 [
                   {
                     text: 'OK',
@@ -89,6 +90,10 @@ export default function Profile({navigation}) {
     );
   };
 
+  const handleEditProfile = async () => {
+    ToastAndroid.show('Coming Soon', ToastAndroid.SHORT);
+  };
+
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged(user => {
       if (user) {
@@ -100,7 +105,6 @@ export default function Profile({navigation}) {
             if (doc.exists) {
               const data = doc.data();
               setUserData(data);
-              // console.log('Data from Firestore:', data);
             } else {
               console.log('No such document!');
             }
@@ -131,7 +135,7 @@ export default function Profile({navigation}) {
           />
         )}
         <Text style={styles.textNama}>{userData.nama}</Text>
-        <Pressable style={styles.btnEdit}>
+        <Pressable style={styles.btnEdit} onPress={handleEditProfile}>
           <Text style={styles.btnEditText}>Edit Profile</Text>
         </Pressable>
       </View>
@@ -145,7 +149,7 @@ export default function Profile({navigation}) {
         <InputField
           label={'Program Studi'}
           editable={false}
-          value={userData.jurusan}
+          value={userData.prodi}
         />
         <InputField
           label={'Nomor HP'}

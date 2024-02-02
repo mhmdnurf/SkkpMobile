@@ -29,7 +29,7 @@ const HomeSidangKP = ({navigation}) => {
 
   useEffect(() => {
     const fetchJadwal = firestore()
-      .collection('jadwalPengajuan')
+      .collection('jadwalSidang')
       .where('status', '==', 'Aktif')
       .onSnapshot(querySnapshot => {
         const data = [];
@@ -74,17 +74,16 @@ const HomeSidangKP = ({navigation}) => {
     }
   }, []);
 
-  const handleNavigateToCreatePengajuanKP = () => {
+  const handleNavigateToSidangKP = () => {
     const activeJadwal = jadwalPengajuanData.find(
       item =>
-        item.status === 'Aktif' &&
-        item.jenisPengajuan.includes('Kerja Praktek'),
+        item.status === 'Aktif' && item.jenisSidang.includes('Kerja Praktek'),
     );
     if (!activeJadwal) {
       Dialog.show({
         type: ALERT_TYPE.WARNING,
         title: 'Peringatan',
-        textBody: 'Pengajuan Kerja Praktek belum dibuka saat ini.',
+        textBody: 'Sidang Kerja Praktek belum dibuka saat ini.',
         button: 'Tutup',
       });
     } else {
@@ -101,7 +100,7 @@ const HomeSidangKP = ({navigation}) => {
           button: 'Tutup',
         });
       } else {
-        navigation.navigate('CreatePengajuanKP');
+        navigation.navigate('AddSidangKP');
       }
     }
   };
@@ -179,7 +178,7 @@ const HomeSidangKP = ({navigation}) => {
         <View style={styles.wrapperButton}>
           <Pressable
             style={styles.floatingButton}
-            onPress={handleNavigateToCreatePengajuanKP}>
+            onPress={handleNavigateToSidangKP}>
             <Text style={{color: 'white', fontSize: 18}}>Daftar Sidang</Text>
           </Pressable>
         </View>

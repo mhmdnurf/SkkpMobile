@@ -47,6 +47,7 @@ const Login = ({navigation}) => {
           label={'Password'}
           placeholder={'********'}
           value={password}
+          secureTextEntry={true}
           onChangeText={text => setPassword(text)}
         />
         <Pressable onPress={handleForgotPassword}>
