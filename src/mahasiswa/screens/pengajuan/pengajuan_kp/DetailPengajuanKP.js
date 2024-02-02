@@ -16,7 +16,6 @@ import firestore from '@react-native-firebase/firestore';
 import {WebView} from 'react-native-webview';
 import Loader from '../../../../components/Loader';
 import BottomSpace from '../../../../components/BottomSpace';
-import storage from '@react-native-firebase/storage';
 
 const DetailPengajuanKP = ({route, navigation}) => {
   const {itemId} = route.params;
@@ -86,10 +85,51 @@ const DetailPengajuanKP = ({route, navigation}) => {
     fetchJadwalPengajuanData();
   }, [fetchPengajuanData]);
 
+  // const handleNavigateEdit = () => {
+  //   navigation.navigate('EditPengajuanKP', {
+  //     itemId: itemId,
+  //   });
+  // };
+
   const handleNavigateEdit = () => {
-    navigation.navigate('EditPengajuanKP', {
-      itemId: itemId,
-    });
+    const activeJadwal = jadwalPengajuanData.find(
+      item =>
+        item.status === 'Aktif' &&
+        item.jenisPengajuan.includes('Kerja Praktek'),
+    );
+    if (!activeJadwal) {
+      Alert.alert(
+        'Peringatan',
+        'Pengajuan Kerja Praktek belum dibuka saat ini.',
+        [
+          {
+            text: 'Tutup',
+            onPress: () => console.log('Tutup Pressed'),
+            style: 'cancel',
+          },
+        ],
+      );
+    } else {
+      const blockedStatuses = ['Sah'];
+      const hasBlockedStatus = blockedStatuses.includes(pengajuanData.status);
+      if (hasBlockedStatus) {
+        Alert.alert(
+          'Peringatan',
+          'Anda memiliki pengajuan yang sudah sah. Anda tidak dapat membuat atau mengubah pengajuan.',
+          [
+            {
+              text: 'Tutup',
+              onPress: () => console.log('Tutup Pressed'),
+              style: 'cancel',
+            },
+          ],
+        );
+      } else {
+        navigation.navigate('EditPengajuanKP', {
+          itemId: itemId,
+        });
+      }
+    }
   };
 
   const handleDelete = async () => {
@@ -112,7 +152,7 @@ const DetailPengajuanKP = ({route, navigation}) => {
               Alert.alert('Delete successful', 'Data berhasil dihapus', [
                 {
                   text: 'OK',
-                  onPress: () => navigation.navigate('HomePengajuanKP'),
+                  onPress: () => navigation.replace('HomePengajuanKP'),
                 },
               ]);
             } catch (err) {

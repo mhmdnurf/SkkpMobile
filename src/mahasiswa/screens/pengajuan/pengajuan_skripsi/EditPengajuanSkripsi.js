@@ -29,7 +29,7 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
   const [uploadedFiles, setUploadedFiles] = React.useState([]);
   const [selectedData, setSelectedData] = React.useState(null);
   const [jadwalPengajuan, setJadwalPengajuan] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
   const {itemId} = route.params;
   const [initialState, setInitialState] = React.useState({
     topikPenelitian: '',
@@ -68,7 +68,7 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       const query = firestore().collection('users').doc(auth().currentUser.uid);
       const res = await query.get();
       const user = res.data();
-      setUserJurusan(user.jurusan);
+      setUserJurusan(user.prodi);
     } catch (error) {
       console.log(error);
     } finally {
@@ -264,7 +264,7 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       tanggalTutup: jadwalPengajuan[0].periodePendaftaran.tanggalTutup.toDate(),
     };
     const dataUpload = {
-      topikPenelitian: pilihTopik.toUpperCase(),
+      topikPenelitian: pilihTopik,
       berkas: uploadedFiles,
       status: 'Belum Diverifikasi',
       periodePengajuan: periodePendaftaran,
@@ -310,6 +310,7 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
       topikPenelitian: pilihTopik,
       berkas: {...uploadedFiles},
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     fetchPersyaratan,
     fetchData,
@@ -322,7 +323,7 @@ const EditPengajuanSkripsi = ({route, navigation}) => {
   return (
     <>
       <ScrollView style={styles.mainContainer}>
-        <Header title="Edit Pengajuan KP" />
+        <Header title="Edit Pengajuan Skripsi" />
         {loading ? (
           <>
             <Loader />

@@ -73,9 +73,39 @@ const DetailPengajuanSkripsi = ({route, navigation}) => {
   }, [itemId]);
 
   const handleNavigateEdit = () => {
-    navigation.navigate('EditPengajuanSkripsi', {
-      itemId: itemId,
-    });
+    const activeJadwal = jadwalPengajuanData.find(
+      item =>
+        item.status === 'Aktif' && item.jenisPengajuan.includes('Skripsi'),
+    );
+    if (!activeJadwal) {
+      Alert.alert('Peringatan', 'Pengajuan Skripsi belum dibuka saat ini.', [
+        {
+          text: 'Tutup',
+          onPress: () => console.log('Tutup Pressed'),
+          style: 'cancel',
+        },
+      ]);
+    } else {
+      const blockedStatuses = ['Sah'];
+      const hasBlockedStatus = blockedStatuses.includes(pengajuanData.status);
+      if (hasBlockedStatus) {
+        Alert.alert(
+          'Peringatan',
+          'Anda memiliki pengajuan yang sudah sah. Anda tidak dapat membuat atau mengubah pengajuan.',
+          [
+            {
+              text: 'Tutup',
+              onPress: () => console.log('Tutup Pressed'),
+              style: 'cancel',
+            },
+          ],
+        );
+      } else {
+        navigation.navigate('EditPengajuanSkripsi', {
+          itemId: itemId,
+        });
+      }
+    }
   };
 
   const handleDelete = async () => {
@@ -98,7 +128,7 @@ const DetailPengajuanSkripsi = ({route, navigation}) => {
               Alert.alert('Delete successful', 'Data berhasil dihapus', [
                 {
                   text: 'OK',
-                  onPress: () => navigation.navigate('HomePengajuanKP'),
+                  onPress: () => navigation.replace('HomePengajuanSkripsi'),
                 },
               ]);
             } catch (err) {

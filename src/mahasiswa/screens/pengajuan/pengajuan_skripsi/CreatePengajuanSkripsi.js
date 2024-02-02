@@ -146,7 +146,7 @@ const CreatePengajuanSkripsi = ({navigation}) => {
       tanggalTutup: jadwalPengajuan[0].periodePendaftaran.tanggalTutup.toDate(),
     };
     const dataUpload = {
-      topikPenelitian: pilihTopik.toUpperCase(),
+      topikPenelitian: pilihTopik,
       berkas: {},
       status: 'Belum Diverifikasi',
       jenisPengajuan: 'Skripsi',
